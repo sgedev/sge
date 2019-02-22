@@ -1,12 +1,12 @@
 //
 //
-#ifndef SGL_SCENE_COMMON_H
-#define SGL_SCENE_COMMON_H
+#ifndef SGE_SCENE_COMMON_HPP
+#define SGE_SCENE_COMMON_HPP
 
-#include "SGL_common.h"
+#include <sge/common.hpp>
 
-#define SGL_SCENE_BEGIN SGL_BEGIN namespace Scene {
-#define SGL_SCENE_END } SGL_END
+#define SGE_SCENE_BEGIN SGE_BEGIN namespace scene {
+#define SGE_SCENE_END } SGE_END
 
-#endif // SGL_SCENE_COMMON_H
+#endif // SGE_SCENE_COMMON_HPP
 

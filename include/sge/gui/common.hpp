@@ -1,12 +1,12 @@
 //
 //
-#ifndef SGL_GUI_COMMON_H
-#define SGL_GUI_COMMON_H
+#ifndef SGE_GUI_COMMON_HPP
+#define SGE_GUI_COMMON_HPP
 
-#include "SGL_common.h"
+#include <sge/common.hpp>
 
-#define SGL_GUI_BEGIN SGL_BEGIN namespace GUI {
-#define SGL_GUI_END } SGL_END
+#define SGE_GUI_BEGIN SGE_BEGIN namespace gui {
+#define SGE_GUI_END } SGE_END
 
-#endif // SGL_GUI_COMMON_H
+#endif // SGE_GUI_COMMON_HPP
 

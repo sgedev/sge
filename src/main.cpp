@@ -2,225 +2,148 @@
 //
 #include <stdio.h>
 
-#include "SGL_common.h"
-#include "SGL_gl.h"
-#include "SGL_gui.h"
-#include "SGL_renderer.h"
-#include "SGL_physics.h"
-#include "SGL_sound.h"
-#include "SGL_scene.h"
-#include "SGL_game.h"
-#include "SGL_object.h"
+#include <sge/gl.hpp>
+#include <sge/gui.hpp>
+#include <sge/renderer.hpp>
+#include <sge/physics.hpp>
+#include <sge/sound.hpp>
+#include <sge/scene.hpp>
+#include <sge/game.hpp>
 
-#ifdef SGL_PROFILE
+#ifdef SGE_PROFILE
 #	include "microprofile/microprofile.h"
 #endif
 
-SGL_BEGIN
+SGE_BEGIN
 
-static bool IsWindowVisibled;
+static bool run;
+static bool is_window_visibled;
 
-static void HandleWindowEvent(const SDL_WindowEvent *event)
+static void handle_window_event(const SDL_WindowEvent *event)
 {
-	SGL_ASSERT(event != NULL);
+	SGE_ASSERT(event != NULL);
 
-	if (event->windowID != GL::GetWindowID())
+	if (event->windowID != gl::get_window_id())
 		return;
 
 	switch (event->event) {
 	case SDL_WINDOWEVENT_EXPOSED:
 	case SDL_WINDOWEVENT_SHOWN:
-		IsWindowVisibled = true;
+		is_window_visibled = true;
 		break;
 	case SDL_WINDOWEVENT_HIDDEN:
 	case SDL_WINDOWEVENT_MINIMIZED:
-		IsWindowVisibled = false;
+		is_window_visibled = false;
 		break;
 	}
 }
 
-static void PrintVersion(void)
+static void handle_event(const SDL_Event *event)
 {
-	SGL_LOGI("SGL v%d.%d.%d initializing...\n",
-		SGL_VERSION_MAJOR, SGL_VERSION_MINOR, SGL_VERSION_PATCH);
+	SGE_ASSERT(event != NULL);
+
+	switch (event->type) {
+	case SDL_WINDOWEVENT:
+		handle_window_event(&event->window);
+		break;
+	case SDL_QUIT:
+		run = false;
+		break;
+	}
+
+	gui::handle_event(event);
+	renderer::handle_event(event);
+	physics::handle_event(event);
+	sound::handle_event(event);
+	scene::handle_event(event);
+	game::handle_event(event);
 }
 
-static bool Init(const SGL_Game *game)
+static void frame(float elapsed)
 {
-	PrintVersion();
+#ifdef SGE_PROFILE
+	MICROPROFILE_SCOPEI("Frame", "Frame", MP_WHEAT);
+#endif
 
-	Game::Init(game);
-	GL::Init();
-	Renderer::Init();
-	GUI::Init();
-	Physics::Init();
-	Sound::Init();
-	Scene::Init();
+	game::update(elapsed);
+	physics::update(elapsed);
+	sound::update(elapsed);
+	scene::update(elapsed);
 
-#ifdef SGL_PROFILE
+	if (is_window_visibled) {
+		gl::draw_begin();
+		game::draw();
+		scene::draw();
+		gui::draw();
+		renderer::draw();
+		gl::draw_end();
+	}
+
+#ifdef SGE_PROFILE
+	MicroProfileFlip(0);
+#endif
+}
+
+static int main(int argc, char *argv[])
+{
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+		return -1;
+
+	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
+
+	SGE_LOGI("SGE v%d.%d.%d initializing...\n",
+		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH);
+
+	gl::init();
+	renderer::init();
+	gui::init();
+	physics::init();
+	sound::init();
+	scene::init();
+	game::init();
+
+#ifdef SGE_PROFILE
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetEnableAllGroups(true);
 	MicroProfileSetForceMetaCounters(true);
 	MicroProfileGpuInitGL();
 #endif
 
-	return true;
-}
+	run = true;
 
-static void Shutdown(void)
-{
-	Scene::Shutdown();
-	Sound::Shutdown();
-	Physics::Shutdown();
-	GUI::Shutdown();
-	Renderer::Shutdown();
-	GL::Shutdown();
-	Game::Shutdown();
+	Uint32 pass;
+	Uint32 base = SDL_GetTicks();
+	SDL_Event event;
 
-	SGL_LOGI("SGL shutdown.\n");
-}
-
-static void Frame(float elapsed)
-{
-#ifdef SGL_PROFILE
-	MICROPROFILE_SCOPEI("Frame", "Frame", MP_WHEAT);
-#endif
-
-	Physics::Update(elapsed);
-	Sound::Update(elapsed);
-	Game::Update(elapsed);
-	Scene::Update(elapsed);
-
-	if (IsWindowVisibled) {
-		GL::DrawBegin();
-
-		Game::Draw(elapsed);
-		Scene::Draw(elapsed);
-		GUI::Draw(elapsed);
-		Renderer::Draw(elapsed);
-
-		GL::DrawEnd();
+	while (run) {
+		while (SDL_PollEvent(&event))
+			handle_event(&event);
+		pass = SDL_GetTicks() - base;
+		if (pass > 16) {
+			frame(float(pass) / 1000.0f);
+			base = SDL_GetTicks();
+		} else
+			SDL_Delay(1);
 	}
 
-#ifdef SGL_PROFILE
-	MicroProfileFlip(0);
-#endif
+	game::shutdown();
+	scene::shutdown();
+	sound::shutdown();
+	physics::shutdown();
+	gui::shutdown();
+	renderer::shutdown();
+	gl::shutdown();
+
+	SGE_LOGI("SGE shutdown.\n");
+
+	SDL_Quit();
+
+	return 0;
 }
 
-static void HandleEvent(const SDL_Event *event)
+SGE_END
+
+int main(int argc, char *argv[])
 {
-	SGL_ASSERT(event != NULL);
-
-	switch (event->type) {
-	case SDL_MOUSEMOTION:
-		break;
-	case SDL_MOUSEBUTTONDOWN:
-		break;
-	case SDL_MOUSEBUTTONUP:
-		break;
-	case SDL_MOUSEWHEEL:
-		break;
-	case SDL_KEYDOWN:
-		break;
-	case SDL_KEYUP:
-		break;
-	case SDL_WINDOWEVENT:
-		HandleWindowEvent(&event->window);
-		break;
-	}
-
-	GUI::HandleEvent(event);
-	Renderer::HandleEvent(event);
-	Physics::HandleEvent(event);
-	Sound::HandleEvent(event);
-	Scene::HandleEvent(event);
-}
-
-static void AddObject(Object *obj)
-{
-	
-}
-
-static void RemoveObject(Object *obj)
-{
-}
-
-SGL_END
-
-struct SGL_ObjectStruct {
-	SGL_ObjectStruct(const SGL_ObjectType *type): obj(type) { }
-	SGL::Object obj;
-	const SGL_ObjectType *type;
-};
-
-SGL_API void SGL_MakeDefaultGame(SGL_Game *game)
-{
-	SGL::Game::MakeDefault(game);
-}
-
-SGL_API int SGL_Init(const SGL_Game *game)
-{
-	return SGL::Init(game) ? 0 : -1;
-}
-
-SGL_API void SGL_Quit(void)
-{
-	SGL::Shutdown();
-}
-
-SGL_API void SGL_Frame(float elapsed)
-{
-	SGL::Frame(elapsed);
-}
-
-SGL_API void SGL_HandleEvent(const SDL_Event *event)
-{
-	SGL::HandleEvent(event);
-}
-
-SGL_API SDL_Window *SGL_GetMainWindow(void)
-{
-	return SGL::GL::GetWindow();
-}
-
-SGL_API SDL_GLContext SGL_GetGLContext(void)
-{
-	return SGL::GL::GetContext();
-}
-
-SGL_API SGL_Object *SGL_CreateObject(const char *name, const SGL_ObjectType *type)
-{
-	SGL_Object *obj = new SGL_Object(type);
-	if (obj) {
-		obj->obj.SetName(name);
-		obj->type = type;
-	}
-
-	return obj;
-}
-
-SGL_API void SGL_DestroyObject(SGL_Object *obj)
-{
-	if (obj != NULL)
-		delete obj;
-}
-
-SGL_API const SGL_ObjectType *SGL_GetObjectType(SGL_Object *obj)
-{
-	if (obj == NULL)
-		return NULL;
-
-	return obj->type;
-}
-
-SGL_API void SGL_AddObject(SGL_Object *obj)
-{
-	if (obj != NULL)
-		SGL::AddObject(&obj->obj);
-}
-
-SGL_API void SGL_RemoveObject(SGL_Object *obj)
-{
-	if (obj != NULL)
-		SGL::RemoveObject(&obj->obj);
+	return sge::main(argc, argv);
 }

@@ -1,26 +1,26 @@
 //
 //
-#ifndef SGL_GL_SHADER_H
-#define SGL_GL_SHADER_H
+#ifndef SGE_GL_SHADER_HPP
+#define SGE_GL_SHADER_HPP
 
 #include <string>
 
-#include "SGL_gl_common.h"
+#include <sge/gl/common.hpp>
 
-SGL_GL_BEGIN
+SGE_GL_BEGIN
 
-class Shader {
+class shader {
 public:
-	Shader(GLenum type);
-	virtual ~Shader(void);
+	shader(GLenum type);
+	virtual ~shader(void);
 
 public:
-	bool Create(void);
-	void Destroy(void);
-	GLuint Id(void) const;
-	GLenum Type(void) const;
-	bool Compile(const char *src);
-	const char *InfoLog(void) const;
+	bool create(void);
+	void destroy(void);
+	GLuint id(void) const;
+	GLenum type(void) const;
+	bool compile(const char *src);
+	const char *info_log(void) const;
 
 private:
 	GLuint m_id;
@@ -29,21 +29,21 @@ private:
 	std::string m_info_log;
 };
 
-inline GLuint Shader::Id(void) const
+inline GLuint shader::id(void) const
 {
 	return m_id;
 }
 
-inline GLenum Shader::Type(void) const
+inline GLenum shader::type(void) const
 {
 	return m_type;
 }
 
-inline const char *Shader::InfoLog(void) const
+inline const char *shader::info_log(void) const
 {
 	return m_info_log.c_str();
 }
 
-SGL_GL_END
+SGE_GL_END
 
-#endif // SGL_GL_SHADER_H
+#endif // SGE_GL_SHADER_HPP

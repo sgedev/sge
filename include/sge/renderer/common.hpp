@@ -1,11 +1,11 @@
 //
 //
-#ifndef SGL_RENDERER_COMMON_H
-#define SGL_RENDERER_COMMON_H
+#ifndef SGE_RENDERER_COMMON_HPP
+#define SGE_RENDERER_COMMON_HPP
 
-#include "SGL_common.h"
+#include <sge/common.hpp>
 
-#define SGL_RENDERER_BEGIN SGL_BEGIN namespace Renderer {
-#define SGL_RENDERER_END } SGL_END
+#define SGE_RENDERER_BEGIN SGE_BEGIN namespace renderer {
+#define SGE_RENDERER_END } SGE_END
 
-#endif // SGL_RENDERER_COMMON_H
+#endif // SGE_RENDERER_COMMON_HPP

@@ -1,24 +1,24 @@
 //
 //
-#ifndef SGL_GL_H
-#define SGL_GL_H
+#ifndef SGE_GL_HPP
+#define SGE_GL_HPP
 
-#include "SGL_gl_common.h"
-#include "SGL_gl_buffer.h"
-#include "SGL_gl_shader.h"
-#include "SGL_gl_program.h"
-#include "SGL_gl_vertex_array.h"
+#include <sge/gl/common.hpp>
+#include <sge/gl/buffer.hpp>
+#include <sge/gl/shader.hpp>
+#include <sge/gl/program.hpp>
+#include <sge/gl/vertex_array.hpp>
 
-SGL_GL_BEGIN
+SGE_GL_BEGIN
 
-bool Init(void);
-void Shutdown(void);
-void DrawBegin(void);
-void DrawEnd(void);
-SDL_Window *GetWindow(void);
-Uint32 GetWindowID(void);
-SDL_GLContext GetContext(void);
+bool init(void);
+void shutdown(void);
+void draw_begin(void);
+void draw_end(void);
+SDL_Window *get_window(void);
+Uint32 get_window_id(void);
+SDL_GLContext get_context(void);
 
-SGL_GL_END
+SGE_GL_END
 
-#endif // SGL_GL_H
+#endif // SGE_GL_HPP

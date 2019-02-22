@@ -1,33 +1,21 @@
 //
 //
-#ifndef SGL_GAME_H
-#define SGL_GAME_H
+#ifndef SGE_GAME_HPP
+#define SGE_GAME_HPP
 
-#include "SGL_common.h"
+#include <sge/common.hpp>
 
-#define SGL_GAME_BEGIN SGL_BEGIN namespace Game {
-#define SGL_GAME_END } SGL_END
+#define SGE_GAME_BEGIN SGE_BEGIN namespace game {
+#define SGE_GAME_END } SGE_END
 
-SGL_GAME_BEGIN
+SGE_GAME_BEGIN
 
-namespace Window {
-	const Eigen::Vector4i &GetRect(void);
-	Uint32 GetFlags(void);
-}
+bool init(void);
+void shutdown(void);
+void update(float elapsed);
+void draw(void);
+void handle_event(const SDL_Event *event);
 
-namespace Renderer {
-	bool IsClearEnabled(void);
-	const Eigen::Vector4f &GetClearColor(void);
-}
+SGE_GAME_END
 
-void MakeDefault(SGL_Game *game);
-bool Init(const SGL_Game *game);
-void Shutdown(void);
-void Update(float elapsed);
-void Draw(float elapsed);
-const char *GetName(void);
-
-SGL_GAME_END
-
-#endif // SGL_GAME_H
-
+#endif // SGE_GAME_HPP

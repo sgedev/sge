@@ -1,13 +1,13 @@
 //
 //
-#ifndef SGL_GL_COMMON_H
-#define SGL_GL_COMMON_H
+#ifndef SGE_GL_COMMON_HPP
+#define SGE_GL_COMMON_HPP
 
 #include <GL/glew.h>
 
-#include "SGL_common.h"
+#include <sge/common.hpp>
 
-#define SGL_GL_BEGIN SGL_BEGIN namespace GL {
-#define SGL_GL_END } SGL_END
+#define SGE_GL_BEGIN SGE_BEGIN namespace gl {
+#define SGE_GL_END } SGE_END
 
-#endif // SGL_GL_COMMON_H
+#endif // SGE_GL_COMMON_HPP

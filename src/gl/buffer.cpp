@@ -1,10 +1,10 @@
 //
 //
-#include "SGL_gl_buffer.h"
+#include <sge/gl/buffer.hpp>
 
-SGL_GL_BEGIN
+SGE_GL_BEGIN
 
-Buffer::Buffer(GLenum target, GLenum usage)
+buffer::buffer(GLenum target, GLenum usage)
 	: m_id(0)
 	, m_target(target)
 	, m_usage(usage)
@@ -12,15 +12,15 @@ Buffer::Buffer(GLenum target, GLenum usage)
 {
 }
 
-Buffer::~Buffer(void)
+buffer::~buffer(void)
 {
-	Destroy();
+	destroy();
 }
 
-bool Buffer::Create(const void *data, int size)
+bool buffer::create(const void *data, int size)
 {
-	SGL_ASSERT(m_id == 0);
-	SGL_ASSERT(size > 0);
+	SGE_ASSERT(m_id == 0);
+	SGE_ASSERT(size > 0);
 
 	glGenBuffers(1, &m_id);
 	if (m_id == 0)
@@ -34,11 +34,10 @@ bool Buffer::Create(const void *data, int size)
 	return true;
 }
 
-void Buffer::Destroy(void)
+void buffer::destroy(void)
 {
 	if (m_id > 0)
 		glDeleteBuffers(1, &m_id);
 }
 
-SGL_GL_END
-
+SGE_GL_END

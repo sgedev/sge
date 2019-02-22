@@ -4,60 +4,60 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#include "SGL_gui.h"
+#include <sge/gui.hpp>
 
-SGL_GUI_BEGIN
+SGE_GUI_BEGIN
 
-static SDL_Window *Window;
-static bool ShowDemo;
+static SDL_Window *window;
+static bool show_demo;
 
-bool Init(void)
+bool init(void)
 {
     IMGUI_CHECKVERSION();
 
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGuiIO &io = ImGui::GetIO(); (void)io;
 	ImGui::StyleColorsDark();
 
-	Window = SDL_GL_GetCurrentWindow();
+	window = SDL_GL_GetCurrentWindow();
 
-	ImGui_ImplSDL2_InitForOpenGL(Window, SDL_GL_GetCurrentContext());
+	ImGui_ImplSDL2_InitForOpenGL(window, SDL_GL_GetCurrentContext());
 	ImGui_ImplOpenGL3_Init();
 
-	ShowDemo = true;
+	show_demo = true;
 
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
-	SGL_ASSERT(Window != NULL);
+	SGE_ASSERT(window != NULL);
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
 }
 
-void Draw(float elapsed)
+void draw(void)
 {
-	SGL_ASSERT(Window != NULL);
+	SGE_ASSERT(window != NULL);
 
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame(Window);
+    ImGui_ImplSDL2_NewFrame(window);
     ImGui::NewFrame();
 
-    if (ShowDemo)
-        ImGui::ShowDemoWindow(&ShowDemo);
+    if (show_demo)
+        ImGui::ShowDemoWindow(&show_demo);
 
 	ImGui::Render();
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
-	SGL_ASSERT(Window != NULL);
+	SGE_ASSERT(window != NULL);
 
 	ImGui_ImplSDL2_ProcessEvent(event);
 }
 
-SGL_GUI_END
+SGE_GUI_END

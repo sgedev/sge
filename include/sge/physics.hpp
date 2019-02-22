@@ -1,21 +1,18 @@
 //
 //
-#ifndef SGL_PHYSICS_H
-#define SGL_PHYSICS_H
+#ifndef SGE_PHYSICS_HPP
+#define SGE_PHYSICS_HPP
 
-#include "SGL_physics_common.h"
-#include "SGL_physics_object.h"
+#include <sge/physics/common.hpp>
 
-SGL_PHYSICS_BEGIN
+SGE_PHYSICS_BEGIN
 
-bool Init(void);
-void Shutdown(void);
-void Update(float elapsed);
-void HandleEvent(const SDL_Event *event);
-void AddObject(Object *obj);
-void RemoveObject(Object *obj);
+bool init(void);
+void shutdown(void);
+void update(float elapsed);
+void handle_event(const SDL_Event *event);
 
-SGL_PHYSICS_END
+SGE_PHYSICS_END
 
-#endif // SGL_PHYSICS_H
+#endif // SGE_PHYSICS_HPP
 

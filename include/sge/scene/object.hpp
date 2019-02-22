@@ -1,19 +1,19 @@
 //
 //
-#ifndef SGL_OBJECT_H
-#define SGL_OBJECT_H
+#ifndef SGE_OBJECT_H
+#define SGE_OBJECT_H
 
 #include <string>
 
-#include "SGL_common.h"
-#include "SGL_renderer_object.h"
-#include "SGL_physics_object.h"
+#include "SGE_common.h"
+#include "SGE_renderer_object.h"
+#include "SGE_physics_object.h"
 
-SGL_BEGIN
+SGE_BEGIN
 
 class Object {
 public:
-	Object(const SGL_ObjectType *type);
+	Object(const SGE_ObjectType *type);
 	virtual ~Object(void);
 
 public:
@@ -36,6 +36,6 @@ inline const char *Object::GetName(void) const
 	return m_Name.c_str();
 }
 
-SGL_END
+SGE_END
 
-#endif // SGL_OBJECT_H
+#endif // SGE_OBJECT_H

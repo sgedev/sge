@@ -1,20 +1,17 @@
 //
 //
-#ifndef SGL_RENDERER_H
-#define SGL_RENDERER_H
+#ifndef SGE_RENDERER_HPP
+#define SGE_RENDERER_HPP
 
-#include "SGL_renderer_common.h"
-#include "SGL_renderer_object.h"
+#include <sge/renderer/common.hpp>
 
-SGL_RENDERER_BEGIN
+SGE_RENDERER_BEGIN
 
-bool Init(void);
-void Shutdown(void);
-void Draw(float elapsed);
-void HandleEvent(const SDL_Event *event);
-void AddObject(Object *obj);
-void RemoveObject(Object *obj);
+bool init(void);
+void shutdown(void);
+void draw(void);
+void handle_event(const SDL_Event *event);
 
-SGL_RENDERER_END
+SGE_RENDERER_END
 
-#endif // SGL_RENDERER_H
+#endif // SGE_RENDERER_HPP

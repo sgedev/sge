@@ -1,14 +1,11 @@
 //
 //
-#ifndef SGL_PHYSICS_COMMON_H
-#define SGL_PHYSICS_COMMON_H
+#ifndef SGE_PHYSICS_COMMON_HPP
+#define SGE_PHYSICS_COMMON_HPP
 
-#include <btBulletDynamicsCommon.h>
+#include <sge/common.hpp>
 
-#include "SGL_common.h"
+#define SGE_PHYSICS_BEGIN SGE_BEGIN namespace physics {
+#define SGE_PHYSICS_END } SGE_END
 
-#define SGL_PHYSICS_BEGIN SGL_BEGIN namespace Physics {
-#define SGL_PHYSICS_END } SGL_END
-
-#endif // SGL_PHYSICS_COMMON_H
-
+#endif // SGE_PHYSICS_COMMON_HPP

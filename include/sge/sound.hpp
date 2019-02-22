@@ -1,21 +1,20 @@
 //
 //
-#ifndef SGL_SOUND_H
-#define SGL_SOUND_H
+#ifndef SGE_SOUND_HPP
+#define SGE_SOUND_HPP
 
-#include "SGL_common.h"
+#include <sge/common.hpp>
 
-#define SGL_SOUND_BEGIN SGL_BEGIN namespace Sound {
-#define SGL_SOUND_END } SGL_END
+#define SGE_SOUND_BEGIN SGE_BEGIN namespace sound {
+#define SGE_SOUND_END } SGE_END
 
-SGL_SOUND_BEGIN
+SGE_SOUND_BEGIN
 
-bool Init(void);
-void Shutdown(void);
-void Update(float elapsed);
-void HandleEvent(const SDL_Event *event);
+bool init(void);
+void shutdown(void);
+void update(float elapsed);
+void handle_event(const SDL_Event *event);
 
-SGL_SOUND_END
+SGE_SOUND_END
 
-#endif // SGL_SOUND_H
-
+#endif // SGE_SOUND_HPP

@@ -1,29 +1,29 @@
 //
 //
-#include "SGL_scene.h"
+#include <sge/scene.hpp>
 
-SGL_SCENE_BEGIN
+SGE_SCENE_BEGIN
 
-bool Init(void)
+bool init(void)
 {
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
 }
 
-void Update(float elapsed)
+void update(float elapsed)
 {
 }
 
-void Draw(float elapsed)
+void draw(void)
 {
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
 }
 
-SGL_SCENE_END
+SGE_SCENE_END
 

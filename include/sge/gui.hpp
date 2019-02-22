@@ -1,18 +1,18 @@
 //
 //
-#ifndef SGL_GUI_H
-#define SGL_GUI_H
+#ifndef SGE_GUI_HPP
+#define SGE_GUI_HPP
 
-#include "SGL_gui_common.h"
+#include <sge/gui/common.hpp>
 
-SGL_GUI_BEGIN
+SGE_GUI_BEGIN
 
-bool Init(void);
-void Shutdown(void);
-void Draw(float elapsed);
-void HandleEvent(const SDL_Event *event);
+bool init(void);
+void shutdown(void);
+void draw(void);
+void handle_event(const SDL_Event *event);
 
-SGL_GUI_END
+SGE_GUI_END
 
-#endif // SGL_GUI_H
+#endif // SGE_GUI_HPP
 

@@ -1,58 +1,50 @@
 //
 //
-#include "SGL_physics.h"
+#include <btBulletDynamicsCommon.h>
 
-SGL_PHYSICS_BEGIN
+#include <sge/physics.hpp>
 
-static btAxisSweep3 *BroadPhase;
-static btDefaultCollisionConfiguration *Configuration;
-static btCollisionDispatcher *Dispatcher;
-static btSequentialImpulseConstraintSolver *Solver;
-static btDiscreteDynamicsWorld *World;
+SGE_PHYSICS_BEGIN
 
-bool Init(void)
+static btAxisSweep3 *broad_phase;
+static btDefaultCollisionConfiguration *conf;
+static btCollisionDispatcher *disp;
+static btSequentialImpulseConstraintSolver *solver;
+static btDiscreteDynamicsWorld *world;
+
+bool init(void)
 {
-	btVector3 worldAabbMin(-10000, -10000, -10000);
-	btVector3 worldAabbMax(10000, 10000, 10000);
+	btVector3 world_aabb_min(-10000, -10000, -10000);
+	btVector3 world_aabb_max(10000, 10000, 10000);
 
-	BroadPhase = new btAxisSweep3(worldAabbMin, worldAabbMax);
-	Configuration = new btDefaultCollisionConfiguration();
-	Dispatcher = new btCollisionDispatcher(Configuration);
-	Solver = new btSequentialImpulseConstraintSolver;
-	World = new btDiscreteDynamicsWorld(Dispatcher, BroadPhase, Solver, Configuration);
+	broad_phase = new btAxisSweep3(world_aabb_min, world_aabb_max);
+	conf = new btDefaultCollisionConfiguration();
+	disp = new btCollisionDispatcher(conf);
+	solver = new btSequentialImpulseConstraintSolver;
+	world = new btDiscreteDynamicsWorld(disp, broad_phase, solver, conf);
 
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
-	delete World;
-	delete Solver;
-	delete Dispatcher;
-	delete Configuration;
-	delete BroadPhase;
+	delete world;
+	delete solver;
+	delete disp;
+	delete conf;
+	delete broad_phase;
 }
 
-void Update(float elapsed)
+void update(float elapsed)
 {
-	World->stepSimulation(elapsed);
+	world->stepSimulation(elapsed);
 
 	//btTransform trans;
-	//fallRigidBody->getMotionState()->getWorldTransform(trans);
+	//fallRigidBody->getMotionState()->getworldTransform(trans);
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
 }
 
-void AddObject(Object *obj)
-{
-	SDL_assert(obj != NULL);
-}
-
-void RemoveObject(Object *obj)
-{
-	SDL_assert(obj != NULL);
-}
-
-SGL_PHYSICS_END
+SGE_PHYSICS_END

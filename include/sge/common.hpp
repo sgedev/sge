@@ -1,48 +1,51 @@
 //
 //
-#ifndef SGL_COMMON_H
-#define SGL_COMMON_H
+#ifndef SGE_COMMON_HPP
+#define SGE_COMMON_HPP
 
 #include <Eigen/Geometry>
 
-#include <SGL.h>
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
 
-#ifdef SGL_DEBUG
+#include <sge/config.hpp>
+
+#ifdef SGE_DEBUG
 #	undef SDL_ASSERT_LEVEL
 #	define SDL_ASSERT_LEVEL 2
 #	include <SDL_assert.h>
-#	define SGL_ASSERT(expr) SDL_assert(expr)
-#	define SGL_LOG_CATEGORY SDL_LOG_CATEGORY_APPLICATION
+#	define SGE_ASSERT(expr) SDL_assert(expr)
+#	define SGE_LOG_CATEGORY SDL_LOG_CATEGORY_APPLICATION
 #	ifdef __GNUC__
-#		define SGL_LOGI(fmt, ...) SDL_LogInfo(SGL_LOG_CATEGORY, fmt, ##__VA_ARGS__)
-#		define SGL_LOGE(fmt, ...) SDL_LogError(SGL_LOG_CATEGORY, fmt, ##__VA_ARGS__)
-#		define SGL_LOGW(fmt, ...) SDL_LogWarn(SGL_LOG_CATEGORY, fmt, ##__VA_ARGS__)
-#		define SGL_LOGD(fmt, ...) SDL_LogDebug(SGL_LOG_CATEGORY, fmt, ##__VA_ARGS__)
+#		define SGE_LOGI(fmt, ...) SDL_LogInfo(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
+#		define SGE_LOGE(fmt, ...) SDL_LogError(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
+#		define SGE_LOGW(fmt, ...) SDL_LogWarn(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
+#		define SGE_LOGD(fmt, ...) SDL_LogDebug(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
 #	else
-#		define SGL_LOGI(fmt, ...) SDL_LogInfo(SGL_LOG_CATEGORY, fmt, __VA_ARGS__)
-#		define SGL_LOGE(fmt, ...) SDL_LogError(SGL_LOG_CATEGORY, fmt, __VA_ARGS__)
-#		define SGL_LOGW(fmt, ...) SDL_LogWarn(SGL_LOG_CATEGORY, fmt, __VA_ARGS__)
-#		define SGL_LOGD(fmt, ...) SDL_LogDebug(SGL_LOG_CATEGORY, fmt, __VA_ARGS__)
+#		define SGE_LOGI(fmt, ...) SDL_LogInfo(SGE_LOG_CATEGORY, fmt, __VA_ARGS__)
+#		define SGE_LOGE(fmt, ...) SDL_LogError(SGE_LOG_CATEGORY, fmt, __VA_ARGS__)
+#		define SGE_LOGW(fmt, ...) SDL_LogWarn(SGE_LOG_CATEGORY, fmt, __VA_ARGS__)
+#		define SGE_LOGD(fmt, ...) SDL_LogDebug(SGE_LOG_CATEGORY, fmt, __VA_ARGS__)
 #	endif
 #else
-#	define SGL_ASSERT(expr)
-#	define SGL_LOGI(fmt, ...)
-#	define SGL_LOGE(fmt, ...)
-#	define SGL_LOGW(fmt, ...)
-#	define SGL_LOGD(fmt, ...)
+#	define SGE_ASSERT(expr)
+#	define SGE_LOGI(fmt, ...)
+#	define SGE_LOGE(fmt, ...)
+#	define SGE_LOGW(fmt, ...)
+#	define SGE_LOGD(fmt, ...)
 #endif
 
-#define SGL_CONCAT(a, b) SGL_CONCAT_IMPL(a, b)
-#define SGL_CONCAT_IMPL(a, b) a##b
+#define SGE_CONCAT(a, b) SGE_CONCAT_IMPL(a, b)
+#define SGE_CONCAT_IMPL(a, b) a##b
 
-#define SGL_STRIZE(x) SGL_STRIZE_IMPL(x)
-#define SGL_STRIZE_IMPL(x) #x
+#define SGE_STRIZE(x) SGE_STRIZE_IMPL(x)
+#define SGE_STRIZE_IMPL(x) #x
 
-#define SGL_BEGIN namespace SGL {
-#define SGL_END }
+#define SGE_BEGIN namespace sge {
+#define SGE_END }
 
-SGL_BEGIN
+SGE_BEGIN
 
-SGL_END
+SGE_END
 
-#endif // SGL_COMMON_H
+#endif // SGE_COMMON_HPP

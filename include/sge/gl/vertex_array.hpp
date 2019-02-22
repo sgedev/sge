@@ -1,39 +1,39 @@
 //
 //
-#ifndef SGL_GL_VERTEX_ARRAY_H
-#define SGL_GL_VERTEX_ARRAY_H
+#ifndef SGE_GL_VERTEX_ARRAY_HPP
+#define SGE_GL_VERTEX_ARRAY_HPP
 
-#include "SGL_gl_common.h"
+#include <sge/gl/common.hpp>
 
-SGL_GL_BEGIN
+SGE_GL_BEGIN
 
-class VertexArray {
+class vertex_array {
 public:
-	VertexArray(void);
-	virtual ~VertexArray(void);
+	vertex_array(void);
+	virtual ~vertex_array(void);
 
 public:
-	bool Create(void);
-	void Destroy(void);
-	GLuint Id(void) const;
-	void Bind(void);
+	bool create(void);
+	void destroy(void);
+	GLuint id(void) const;
+	void bind(void);
 
 private:
 	GLuint m_id;
 };
 
-inline GLuint VertexArray::Id(void) const
+inline GLuint vertex_array::id(void) const
 {
 	return m_id;
 }
 
-inline void VertexArray::Bind(void)
+inline void vertex_array::bind(void)
 {
-	SGL_ASSERT(m_id > 0);
+	SGE_ASSERT(m_id > 0);
+
 	glBindVertexArray(m_id);
 }
 
-SGL_GL_END
+SGE_GL_END
 
-#endif // SGL_GL_VERTEX_ARRAY_H
-
+#endif // SGE_GL_VERTEX_ARRAY_HPP

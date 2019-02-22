@@ -1,24 +1,24 @@
 //
 //
-#include "SGL_sound.h"
+#include <sge/sound.hpp>
 
-SGL_SOUND_BEGIN
+SGE_SOUND_BEGIN
 
-bool Init(void)
+bool init(void)
 {
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
 }
 
-void Update(float elapsed)
+void update(float elapsed)
 {
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
 }
 
-SGL_SOUND_END
+SGE_SOUND_END

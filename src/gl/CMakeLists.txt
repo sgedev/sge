@@ -17,7 +17,7 @@ endif()
 
 set(SGE_LINK_STATIC_GLEW OFF CACHE BOOL "Link static glew library.")
 if(SGE_LINK_STATIC_GLEW)
-	target_compiler_definitions(sge PRIVATE GLEW_STATIC)
+	target_compile_definitions(sge PRIVATE GLEW_STATIC)
 endif()
 
 target_sources(sge

@@ -1,31 +1,31 @@
 //
 //
-#ifndef SGL_GL_BUFFER_H
-#define SGL_GL_BUFFER_H
+#ifndef SGE_GL_BUFFER_HPP
+#define SGE_GL_BUFFER_HPP
 
-#include "SGL_gl_common.h"
+#include <sge/gl/common.hpp>
 
-SGL_GL_BEGIN
+SGE_GL_BEGIN
 
-class Buffer {
+class buffer {
 public:
-	Buffer(GLenum target, GLenum usage);
-	virtual ~Buffer(void);
+	buffer(GLenum target, GLenum usage);
+	virtual ~buffer(void);
 
 public:
-	bool Create(const void *data, int size);
-	bool Create(int size);
-	void Destroy(void);
-	GLuint Id(void) const;
-	GLenum Type(void) const;
-	GLenum Target(void) const;
-	int Size(void) const;
-	void Bind(void);
-	void *Map(GLenum access);
-	void *MapRange(int offset, int size, GLenum access);
-	bool Unmap(void);
-	bool Read(int offset, void *buff, int size);
-	bool Write(int offset, const void *data, int size);
+	bool create(const void *data, int size);
+	bool create(int size);
+	void destroy(void);
+	GLuint id(void) const;
+	GLenum type(void) const;
+	GLenum target(void) const;
+	int size(void) const;
+	void bind(void);
+	void *map(GLenum access);
+	void *map_range(int offset, int size, GLenum access);
+	bool unmap(void);
+	bool read(int offset, void *buff, int size);
+	bool write(int offset, const void *data, int size);
 
 private:
 	GLuint m_id;
@@ -35,37 +35,37 @@ private:
 	bool m_mapped;
 };
 
-inline bool Buffer::Create(int size)
+inline bool buffer::create(int size)
 {
-	return Create(NULL, size);
+	return create(NULL, size);
 }
 
-inline GLuint Buffer::Id(void) const
+inline GLuint buffer::id(void) const
 {
 	return m_id;
 }
 
-inline GLenum Buffer::Target(void) const
+inline GLenum buffer::target(void) const
 {
 	return m_target;
 }
 
-inline int Buffer::Size(void) const
+inline int buffer::size(void) const
 {
 	return m_size;
 }
 
-inline void Buffer::Bind(void)
+inline void buffer::bind(void)
 {
-	SGL_ASSERT(m_id > 0);
+	SGE_ASSERT(m_id > 0);
 
 	glBindBuffer(m_target, m_id);
 }
 
-inline void *Buffer::Map(GLenum access)
+inline void *buffer::map(GLenum access)
 {
-	SGL_ASSERT(m_id > 0);
-	SGL_ASSERT(!m_mapped);
+	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(!m_mapped);
 
 	void *p = glMapBuffer(m_target, access);
 	if (p != NULL)
@@ -74,10 +74,10 @@ inline void *Buffer::Map(GLenum access)
 	return p;
 }
 
-inline bool Buffer::Unmap(void)
+inline bool buffer::unmap(void)
 {
-	SGL_ASSERT(m_id > 0);
-	SGL_ASSERT(m_mapped);
+	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(m_mapped);
 
 	if (!glUnmapBuffer(m_target))
 		return false;
@@ -87,37 +87,36 @@ inline bool Buffer::Unmap(void)
 	return true;
 }
 
-inline bool Buffer::Read(int offset, void *buff, int size)
+inline bool buffer::read(int offset, void *buff, int size)
 {
-	SGL_ASSERT(m_id > 0);
-	SGL_ASSERT(offset >= 0);
-	SGL_ASSERT(offset < m_size);
-	SGL_ASSERT(buff != NULL);
-	SGL_ASSERT((offset + size) > 0);
-	SGL_ASSERT((offset + size) < m_size);
-	SGL_ASSERT(!m_mapped);
+	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(offset >= 0);
+	SGE_ASSERT(offset < m_size);
+	SGE_ASSERT(buff != NULL);
+	SGE_ASSERT((offset + size) > 0);
+	SGE_ASSERT((offset + size) < m_size);
+	SGE_ASSERT(!m_mapped);
 
 	glGetBufferSubData(m_target, offset, size, buff);
 
 	return true;
 }
 
-inline bool Buffer::Write(int offset, const void *data, int size)
+inline bool buffer::write(int offset, const void *data, int size)
 {
-	SGL_ASSERT(m_id > 0);
-	SGL_ASSERT(offset >= 0);
-	SGL_ASSERT(offset < m_size);
-	SGL_ASSERT(data != NULL);
-	SGL_ASSERT((offset + size) > 0);
-	SGL_ASSERT((offset + size) < m_size);
-	SGL_ASSERT(!m_mapped);
+	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(offset >= 0);
+	SGE_ASSERT(offset < m_size);
+	SGE_ASSERT(data != NULL);
+	SGE_ASSERT((offset + size) > 0);
+	SGE_ASSERT((offset + size) < m_size);
+	SGE_ASSERT(!m_mapped);
 
 	glBufferSubData(m_target, offset, size, data);
 
 	return true;
 }
 
-SGL_GL_END
+SGE_GL_END
 
-#endif // SGL_GL_BUFFER_H
-
+#endif // SGE_GL_BUFFER_HPP

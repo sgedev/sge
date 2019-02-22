@@ -1,17 +1,16 @@
 //
 //
-#include "SGL_gl.h"
-#include "SGL_game.h"
-#include "SGL_renderer.h"
+#include <sge/gl.hpp>
+#include <sge/renderer.hpp>
 
-SGL_RENDERER_BEGIN
+SGE_RENDERER_BEGIN
 
-enum Uniform_v1f {
+enum uniform_v1f {
 	UNIFORM_V1F_ELAPSED,
 	UNIFORM_V1F_MAX
 };
 
-enum Uniform_m4f {
+enum uniform_m4f {
 	UNIFORM_M4F_MODEL_MATRIX,
 	UNIFORM_M4F_VIEW_MATRIX,
 	UNIFORM_M4F_PROJECT_MATRIX,
@@ -19,110 +18,104 @@ enum Uniform_m4f {
 	UNIFORM_M4F_MAX
 };
 
-static GLint			Uniform_m4f_loc[UNIFORM_M4F_MAX];
-static Eigen::Matrix4f	Uniform_m4f[UNIFORM_M4F_MAX];
-static GLint			Uniform_v1f_loc[UNIFORM_V1F_MAX];
-static float			Uniform_v1f[UNIFORM_V1F_MAX];
-static Eigen::Vector4i	Viewport;
-static GL::Program		Program;
+static GLint			uniform_m4f_loc[UNIFORM_M4F_MAX];
+static Eigen::Matrix4f	uniform_m4f[UNIFORM_M4F_MAX];
+static GLint			uniform_v1f_loc[UNIFORM_V1F_MAX];
+static float			uniform_v1f[UNIFORM_V1F_MAX];
+static Eigen::Vector4i	viewport;
+static gl::program		program;
 
-static const char *VertexShaderSource =
+static const char *vertex_shader_source =
 	"#version 330 core\n"
-	"uniform mat4 sge_ModelMatrix;\n"
-	"uniform mat4 sge_ViewMatrix;\n"
-	"uniform mat4 sge_ProjectMatrix;\n"
-	"uniform mat4 sge_NormalMatrix;\n"
-	"uniform float sge_Elapsed;\n"
-	"layout(location = 0) in vec3 Position;\n"
-	"layout(location = 1) in vec3 Normal;\n"
+	"uniform mat4 sge_model_matrix;\n"
+	"uniform mat4 sge_view_matrix;\n"
+	"uniform mat4 sge_project_matrix ;\n"
+	"uniform mat4 sge_normal_matrix;\n"
+	"uniform float sge_elapsed;\n"
+	"layout(location = 0) in vec3 position;\n"
+	"layout(location = 1) in vec3 normal;\n"
 	"void main() {\n"
-	"    gl_Position = sge_ProjectMatrix * sge_ViewMatrix * sge_ModelMatrix * vec4(Position, 1.0);\n"
+	"    gl_Position = sge_project_matrix  * sge_view_matrix * sge_model_matrix * vec4(Position, 1.0);\n"
 	"}";
 
-static const char *FragmentShaderSource =
+static const char *fragment_shader_source =
 	"#version 330 core\n"
-	"out vec4 FragColor;\n"
+	"out vec4 frag_color;\n"
 	"void main() {\n"
-	"	FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+	"	frag_color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 	"}";
 
-static bool InitProgram(void)
+static bool init_program(void)
 {
-	if (!Program.Create())
+	if (!program.create())
 		return false;
 
-	if (!Program.AddShader(GL_VERTEX_SHADER, VertexShaderSource)) {
-		Program.Destroy();
-		return false;
-	}
-
-	if (!Program.AddShader(GL_FRAGMENT_SHADER, FragmentShaderSource)) {
-		Program.Destroy();
+	if (!program.add_shader(GL_VERTEX_SHADER, vertex_shader_source)) {
+		program.destroy();
 		return false;
 	}
 
-	if (!Program.Link()) {
-		Program.Destroy();
+	if (!program.add_shader(GL_FRAGMENT_SHADER, fragment_shader_source)) {
+		program.destroy();
+		return false;
+	}
+
+	if (!program.link()) {
+		program.destroy();
 		return false;
 	}
 
 	/* v1f */
 
 	for (int i = 0; i < UNIFORM_V1F_MAX; ++i)
-		Uniform_v1f_loc[i] = -1;
+		uniform_v1f_loc[i] = -1;
 
-	Uniform_v1f_loc[UNIFORM_V1F_ELAPSED] = Program.GetUniformLocation("sge_Elapsed");
+	uniform_v1f_loc[UNIFORM_V1F_ELAPSED] = program.get_uniform_location("sge_elapsed");
 
 	/* m4f */
 
 	for (int i = 0; i < UNIFORM_M4F_MAX; ++i)
-		Uniform_m4f_loc[i] = -1;
+		uniform_m4f_loc[i] = -1;
 
-	Uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX] = Program.GetUniformLocation("sge_ModelMatrix");
-	SGL_LOGD("Uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX] %d\n", Uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX]);
-	Uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX] = Program.GetUniformLocation("sge_ViewMatrix");
-	SGL_LOGD("Uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX] %d\n", Uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX]);
-	Uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX] = Program.GetUniformLocation("sge_ProjectMatrix");
-	SGL_LOGD("Uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX] %d\n", Uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX]);
-	Uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX] = Program.GetUniformLocation("sge_NormalMatrix");
-	SGL_LOGD("Uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX] %d\n", Uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX]);
+	uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX] = program.get_uniform_location("sge_model_matrix");
+	SGE_LOGD("Uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX] %d\n", uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX]);
+	uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX] = program.get_uniform_location("sge_view_matrix");
+	SGE_LOGD("Uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX] %d\n", uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX]);
+	uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX] = program.get_uniform_location("sge_project_matrix ");
+	SGE_LOGD("Uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX] %d\n", uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX]);
+	uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX] = program.get_uniform_location("sge_normal_matrix");
+	SGE_LOGD("Uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX] %d\n", uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX]);
 
 	return true;
 }
 
-static void CommitUniforms(void)
+static void commit_uniforms(void)
 {
 	for (int i = 0; i < UNIFORM_V1F_MAX; ++i) {
-		if (Uniform_v1f_loc[i] >= 0)
-			Program.Uniform(Uniform_v1f_loc[i], Uniform_v1f[i]);
+		if (uniform_v1f_loc[i] >= 0)
+			program.uniform(uniform_v1f_loc[i], uniform_v1f[i]);
 	}
 
 	for (int i = 0; i < UNIFORM_M4F_MAX; ++i) {
-		if (Uniform_m4f_loc[i] >= 0)
-			Program.Uniform(Uniform_m4f_loc[i], 1, GL_FALSE, &Uniform_m4f[i]);
+		if (uniform_m4f_loc[i] >= 0)
+			program.uniform(uniform_m4f_loc[i], 1, GL_FALSE, &uniform_m4f[i]);
 	}
 }
 
-static void DrawBegin(void)
+static void draw_begin(void)
 {
 	// cull?
 }
 
-static void DrawEnd(void)
+static void draw_end(void)
 {
-	glUseProgram(Program.Id());
-
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	CommitUniforms();
 }
 
-static void HandleWindowEvent(const SDL_WindowEvent *event)
+static void handle_window_event(const SDL_WindowEvent *event)
 {
-	SGL_ASSERT(event != NULL);
+	SGE_ASSERT(event != NULL);
 
-	if (event->windowID != GL::GetWindowID())
+	if (event->windowID != gl::get_window_id())
 		return;
 
 	switch (event->event) {
@@ -131,49 +124,39 @@ static void HandleWindowEvent(const SDL_WindowEvent *event)
 	}
 }
 
-bool Init(void)
+bool init(void)
 {
-	SGL_LOGI("Renderer initializing...\n");
+	SGE_LOGI("Renderer initializing...\n");
 
-	if (!InitProgram())
+	if (!init_program())
 		return false;
 
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
-	Program.Destroy();
+	program.destroy();
 
-	SGL_LOGI("Renderer shutdown.\n");
+	SGE_LOGI("Renderer shutdown.\n");
 }
 
-void Draw(float elapsed)
+void draw(void)
 {
-	DrawBegin();
+	draw_begin();
 
 	/* TODO add visible surfaces here. */
 
-	DrawEnd();
+	draw_end();
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
 	switch (event->type) {
 	case SDL_WINDOWEVENT:
-		HandleWindowEvent(&event->window);
+		handle_window_event(&event->window);
 		break;
 	}
 }
 
-void AddObject(Object *obj)
-{
-	SDL_assert(obj != NULL);
-}
-
-void RemoveObject(Object *obj)
-{
-	SDL_assert(obj != NULL);
-}
-
-SGL_RENDERER_END
+SGE_RENDERER_END

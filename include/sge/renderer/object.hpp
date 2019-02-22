@@ -1,18 +1,18 @@
 //
 //
-#ifndef SGL_RENDERER_OBJECT_H
-#define SGL_RENDERER_OBJECT_H
+#ifndef SGE_RENDERER_OBJECT_HPP
+#define SGE_RENDERER_OBJECT_HPP
 
-#include "SGL_renderer_common.h"
+#include <sge/renderer/common.hpp>
 
-SGL_RENDERER_BEGIN
+SGE_RENDERER_BEGIN
 
 class Object {
 public:
-	Object(const SGL_ObjectType *type);
+	Object(const SGE_ObjectType *type);
 	virtual ~Object(void);
 };
 
-SGL_RENDERER_END
+SGE_RENDERER_END
 
-#endif // SGL_RENDERER_OBJECT_H
+#endif // SGE_RENDERER_OBJECT_HPP

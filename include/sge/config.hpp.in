@@ -1,0 +1,11 @@
+//
+//
+#ifndef SGE_CONFIG_H
+#define SGE_CONFIG_H
+
+#define SGE_TARGET_NAME "${SGE_TARGET_NAME}"
+
+#cmakedefine SGE_DEBUG
+
+#endif // SGE_CONFIG_H
+

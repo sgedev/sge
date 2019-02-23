@@ -6,23 +6,21 @@ add_subdirectory(gl gl)
 add_subdirectory(gui gui)
 add_subdirectory(physics physics)
 add_subdirectory(renderer renderer)
-add_subdirectory(scene scene)
 
 target_sources(sge
 	PRIVATE
-		common.hpp
-		config.hpp.in
-		game.hpp
-		gl.hpp
-		gui.hpp
-		physics.hpp
-		renderer.hpp
-		scene.hpp
-		sound.hpp
+		common.h
+		config.h.in
+		game.h
+		gl.h
+		gui.h
+		physics.h
+		renderer.h
+		sound.h
 	)
 
 configure_file(
-	config.hpp.in
-	config.hpp
+	config.h.in
+	config.h
 	)
 

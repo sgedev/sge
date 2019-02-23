@@ -1,14 +1,14 @@
 //
 //
-#ifndef SGE_COMMON_HPP
-#define SGE_COMMON_HPP
+#ifndef SGE_COMMON_H
+#define SGE_COMMON_H
 
 #include <Eigen/Geometry>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include <sge/config.hpp>
+#include <sge/config.h>
 
 #ifdef SGE_DEBUG
 #	undef SDL_ASSERT_LEVEL
@@ -41,11 +41,17 @@
 #define SGE_STRIZE(x) SGE_STRIZE_IMPL(x)
 #define SGE_STRIZE_IMPL(x) #x
 
-#define SGE_BEGIN namespace sge {
+#define SGE_BEGIN namespace SGE {
 #define SGE_END }
 
 SGE_BEGIN
 
+Uint32 GetNow(void);
+float GetElapsed(void);
+unsigned long GetFPS(void);
+unsigned long GetMaxFPS(void);
+void SetMaxFPS(unsigned long FPS);
+
 SGE_END
 
-#endif // SGE_COMMON_HPP
+#endif // SGE_COMMON_H

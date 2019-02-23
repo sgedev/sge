@@ -1208,7 +1208,7 @@ struct IMGUI_API ImGuiWindow
     int                     FocusIdxTabRequestNext;             // "
 
 public:
-    ImGuiWindow(ImGuiContext* context, const char* name);
+    ImGuiWindow(ImGuiContext* Context, const char* name);
     ~ImGuiWindow();
 
     ImGuiID     GetID(const char* str, const char* str_end = NULL);
@@ -1235,8 +1235,8 @@ struct ImGuiItemHoveredDataBackup
     ImRect                  LastItemDisplayRect;
 
     ImGuiItemHoveredDataBackup() { Backup(); }
-    void Backup()           { ImGuiWindow* window = GImGui->CurrentWindow; LastItemId = window->DC.LastItemId; LastItemStatusFlags = window->DC.LastItemStatusFlags; LastItemRect = window->DC.LastItemRect; LastItemDisplayRect = window->DC.LastItemDisplayRect; }
-    void Restore() const    { ImGuiWindow* window = GImGui->CurrentWindow; window->DC.LastItemId = LastItemId; window->DC.LastItemStatusFlags = LastItemStatusFlags; window->DC.LastItemRect = LastItemRect; window->DC.LastItemDisplayRect = LastItemDisplayRect; }
+    void Backup()           { ImGuiWindow* Window = GImGui->CurrentWindow; LastItemId = Window->DC.LastItemId; LastItemStatusFlags = Window->DC.LastItemStatusFlags; LastItemRect = Window->DC.LastItemRect; LastItemDisplayRect = Window->DC.LastItemDisplayRect; }
+    void Restore() const    { ImGuiWindow* Window = GImGui->CurrentWindow; Window->DC.LastItemId = LastItemId; Window->DC.LastItemStatusFlags = LastItemStatusFlags; Window->DC.LastItemRect = LastItemRect; Window->DC.LastItemDisplayRect = LastItemDisplayRect; }
 };
 
 //-----------------------------------------------------------------------------
@@ -1319,40 +1319,40 @@ namespace ImGui
     inline    ImGuiWindow*  GetCurrentWindow()          { ImGuiContext& g = *GImGui; g.CurrentWindow->WriteAccessed = true; return g.CurrentWindow; }
     IMGUI_API ImGuiWindow*  FindWindowByID(ImGuiID id);
     IMGUI_API ImGuiWindow*  FindWindowByName(const char* name);
-    IMGUI_API void          FocusWindow(ImGuiWindow* window);
+    IMGUI_API void          FocusWindow(ImGuiWindow* Window);
     IMGUI_API void          FocusPreviousWindowIgnoringOne(ImGuiWindow* ignore_window);
-    IMGUI_API void          BringWindowToFocusFront(ImGuiWindow* window);
-    IMGUI_API void          BringWindowToDisplayFront(ImGuiWindow* window);
-    IMGUI_API void          BringWindowToDisplayBack(ImGuiWindow* window);
-    IMGUI_API void          UpdateWindowParentAndRootLinks(ImGuiWindow* window, ImGuiWindowFlags flags, ImGuiWindow* parent_window);
-    IMGUI_API ImVec2        CalcWindowExpectedSize(ImGuiWindow* window);
-    IMGUI_API bool          IsWindowChildOf(ImGuiWindow* window, ImGuiWindow* potential_parent);
-    IMGUI_API bool          IsWindowNavFocusable(ImGuiWindow* window);
-    IMGUI_API void          SetWindowScrollX(ImGuiWindow* window, float new_scroll_x);
-    IMGUI_API void          SetWindowScrollY(ImGuiWindow* window, float new_scroll_y);
-    IMGUI_API float         GetWindowScrollMaxX(ImGuiWindow* window);
-    IMGUI_API float         GetWindowScrollMaxY(ImGuiWindow* window);
-    IMGUI_API ImRect        GetWindowAllowedExtentRect(ImGuiWindow* window);
-    IMGUI_API void          SetWindowPos(ImGuiWindow* window, const ImVec2& pos, ImGuiCond cond);
-    IMGUI_API void          SetWindowSize(ImGuiWindow* window, const ImVec2& size, ImGuiCond cond);
-    IMGUI_API void          SetWindowCollapsed(ImGuiWindow* window, bool collapsed, ImGuiCond cond);
+    IMGUI_API void          BringWindowToFocusFront(ImGuiWindow* Window);
+    IMGUI_API void          BringWindowToDisplayFront(ImGuiWindow* Window);
+    IMGUI_API void          BringWindowToDisplayBack(ImGuiWindow* Window);
+    IMGUI_API void          UpdateWindowParentAndRootLinks(ImGuiWindow* Window, ImGuiWindowFlags flags, ImGuiWindow* parent_window);
+    IMGUI_API ImVec2        CalcWindowExpectedSize(ImGuiWindow* Window);
+    IMGUI_API bool          IsWindowChildOf(ImGuiWindow* Window, ImGuiWindow* potential_parent);
+    IMGUI_API bool          IsWindowNavFocusable(ImGuiWindow* Window);
+    IMGUI_API void          SetWindowScrollX(ImGuiWindow* Window, float new_scroll_x);
+    IMGUI_API void          SetWindowScrollY(ImGuiWindow* Window, float new_scroll_y);
+    IMGUI_API float         GetWindowScrollMaxX(ImGuiWindow* Window);
+    IMGUI_API float         GetWindowScrollMaxY(ImGuiWindow* Window);
+    IMGUI_API ImRect        GetWindowAllowedExtentRect(ImGuiWindow* Window);
+    IMGUI_API void          SetWindowPos(ImGuiWindow* Window, const ImVec2& pos, ImGuiCond cond);
+    IMGUI_API void          SetWindowSize(ImGuiWindow* Window, const ImVec2& size, ImGuiCond cond);
+    IMGUI_API void          SetWindowCollapsed(ImGuiWindow* Window, bool collapsed, ImGuiCond cond);
 
     IMGUI_API void          SetCurrentFont(ImFont* font);
     inline ImFont*          GetDefaultFont() { ImGuiContext& g = *GImGui; return g.IO.FontDefault ? g.IO.FontDefault : g.IO.Fonts->Fonts[0]; }
 
     // Init
-    IMGUI_API void          Initialize(ImGuiContext* context);
-    IMGUI_API void          Shutdown(ImGuiContext* context);    // Since 1.60 this is a _private_ function. You can call DestroyContext() to destroy the context created by CreateContext().
+    IMGUI_API void          Initialize(ImGuiContext* Context);
+    IMGUI_API void          Shutdown(ImGuiContext* Context);    // Since 1.60 this is a _private_ function. You can call DestroyContext() to destroy the context created by CreateContext().
 
     // NewFrame
     IMGUI_API void          UpdateHoveredWindowAndCaptureFlags();
-    IMGUI_API void          StartMouseMovingWindow(ImGuiWindow* window);
+    IMGUI_API void          StartMouseMovingWindow(ImGuiWindow* Window);
     IMGUI_API void          UpdateMouseMovingWindowNewFrame();
     IMGUI_API void          UpdateMouseMovingWindowEndFrame();
 
     // Settings
     IMGUI_API void                  MarkIniSettingsDirty();
-    IMGUI_API void                  MarkIniSettingsDirty(ImGuiWindow* window);
+    IMGUI_API void                  MarkIniSettingsDirty(ImGuiWindow* Window);
     IMGUI_API ImGuiWindowSettings*  CreateNewWindowSettings(const char* name);
     IMGUI_API ImGuiWindowSettings*  FindWindowSettings(ImGuiID id);
     IMGUI_API ImGuiWindowSettings*  FindOrCreateWindowSettings(const char* name);
@@ -1362,8 +1362,8 @@ namespace ImGui
     inline ImGuiID          GetItemID()     { ImGuiContext& g = *GImGui; return g.CurrentWindow->DC.LastItemId; }
     inline ImGuiID          GetActiveID()   { ImGuiContext& g = *GImGui; return g.ActiveId; }
     inline ImGuiID          GetFocusID()    { ImGuiContext& g = *GImGui; return g.NavId; }
-    IMGUI_API void          SetActiveID(ImGuiID id, ImGuiWindow* window);
-    IMGUI_API void          SetFocusID(ImGuiID id, ImGuiWindow* window);
+    IMGUI_API void          SetActiveID(ImGuiID id, ImGuiWindow* Window);
+    IMGUI_API void          SetFocusID(ImGuiID id, ImGuiWindow* Window);
     IMGUI_API void          ClearActiveID();
     IMGUI_API ImGuiID       GetHoveredID();
     IMGUI_API void          SetHoveredID(ImGuiID id);
@@ -1376,8 +1376,8 @@ namespace ImGui
     IMGUI_API bool          ItemAdd(const ImRect& bb, ImGuiID id, const ImRect* nav_bb = NULL);
     IMGUI_API bool          ItemHoverable(const ImRect& bb, ImGuiID id);
     IMGUI_API bool          IsClippedEx(const ImRect& bb, ImGuiID id, bool clip_even_when_logged);
-    IMGUI_API bool          FocusableItemRegister(ImGuiWindow* window, ImGuiID id, bool tab_stop = true);   // Return true if focus is requested
-    IMGUI_API void          FocusableItemUnregister(ImGuiWindow* window);
+    IMGUI_API bool          FocusableItemRegister(ImGuiWindow* Window, ImGuiID id, bool tab_stop = true);   // Return true if focus is requested
+    IMGUI_API void          FocusableItemUnregister(ImGuiWindow* Window);
     IMGUI_API ImVec2        CalcItemSize(ImVec2 size, float default_x, float default_y);
     IMGUI_API float         CalcWrapWidthForPos(const ImVec2& pos, float wrap_pos_x);
     IMGUI_API void          PushMultiItemsWidths(int components, float width_full = 0.0f);
@@ -1392,15 +1392,15 @@ namespace ImGui
     IMGUI_API bool          BeginPopupEx(ImGuiID id, ImGuiWindowFlags extra_flags);
     IMGUI_API void          BeginTooltipEx(ImGuiWindowFlags extra_flags, bool override_previous_tooltip = true);
     IMGUI_API ImGuiWindow*  GetFrontMostPopupModal();
-    IMGUI_API ImVec2        FindBestWindowPosForPopup(ImGuiWindow* window);
+    IMGUI_API ImVec2        FindBestWindowPosForPopup(ImGuiWindow* Window);
     IMGUI_API ImVec2        FindBestWindowPosForPopupEx(const ImVec2& ref_pos, const ImVec2& size, ImGuiDir* last_dir, const ImRect& r_outer, const ImRect& r_avoid, ImGuiPopupPositionPolicy policy = ImGuiPopupPositionPolicy_Default);
 
     // Navigation
-    IMGUI_API void          NavInitWindow(ImGuiWindow* window, bool force_reinit);
+    IMGUI_API void          NavInitWindow(ImGuiWindow* Window, bool force_reinit);
     IMGUI_API bool          NavMoveRequestButNoResultYet();
     IMGUI_API void          NavMoveRequestCancel();
     IMGUI_API void          NavMoveRequestForward(ImGuiDir move_dir, ImGuiDir clip_dir, const ImRect& bb_rel, ImGuiNavMoveFlags move_flags);
-    IMGUI_API void          NavMoveRequestTryWrapping(ImGuiWindow* window, ImGuiNavMoveFlags move_flags);
+    IMGUI_API void          NavMoveRequestTryWrapping(ImGuiWindow* Window, ImGuiNavMoveFlags move_flags);
     IMGUI_API float         GetNavInputAmount(ImGuiNavInput n, ImGuiInputReadMode mode);
     IMGUI_API ImVec2        GetNavInputAmount2d(ImGuiNavDirSourceFlags dir_sources, ImGuiInputReadMode mode, float slow_factor = 0.0f, float fast_factor = 0.0f);
     IMGUI_API int           CalcTypematicPressedRepeatAmount(float t, float t_prev, float repeat_delay, float repeat_rate);

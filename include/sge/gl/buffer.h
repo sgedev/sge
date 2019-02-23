@@ -1,31 +1,31 @@
 //
 //
-#ifndef SGE_GL_BUFFER_HPP
-#define SGE_GL_BUFFER_HPP
+#ifndef SGE_GL_BUFFER_H
+#define SGE_GL_BUFFER_H
 
-#include <sge/gl/common.hpp>
+#include <sge/gl/common.h>
 
 SGE_GL_BEGIN
 
-class buffer {
+class Buffer {
 public:
-	buffer(GLenum target, GLenum usage);
-	virtual ~buffer(void);
+	Buffer(GLenum target, GLenum usage);
+	virtual ~Buffer(void);
 
 public:
-	bool create(const void *data, int size);
-	bool create(int size);
-	void destroy(void);
-	GLuint id(void) const;
-	GLenum type(void) const;
-	GLenum target(void) const;
-	int size(void) const;
-	void bind(void);
-	void *map(GLenum access);
-	void *map_range(int offset, int size, GLenum access);
-	bool unmap(void);
-	bool read(int offset, void *buff, int size);
-	bool write(int offset, const void *data, int size);
+	bool Create(const void *data, int size);
+	bool Create(int size);
+	void Destroy(void);
+	GLuint GetID(void) const;
+	GLenum GetType(void) const;
+	GLenum GetTarget(void) const;
+	int GetSize(void) const;
+	void Bind(void);
+	void *Map(GLenum access);
+	void *MapRange(int offset, int size, GLenum access);
+	bool Unmap(void);
+	bool Read(int offset, void *buff, int size);
+	bool Write(int offset, const void *data, int size);
 
 private:
 	GLuint m_id;
@@ -35,34 +35,34 @@ private:
 	bool m_mapped;
 };
 
-inline bool buffer::create(int size)
+inline bool Buffer::Create(int size)
 {
-	return create(NULL, size);
+	return Create(NULL, size);
 }
 
-inline GLuint buffer::id(void) const
+inline GLuint Buffer::GetID(void) const
 {
 	return m_id;
 }
 
-inline GLenum buffer::target(void) const
+inline GLenum Buffer::GetTarget(void) const
 {
 	return m_target;
 }
 
-inline int buffer::size(void) const
+inline int Buffer::GetSize(void) const
 {
 	return m_size;
 }
 
-inline void buffer::bind(void)
+inline void Buffer::Bind(void)
 {
 	SGE_ASSERT(m_id > 0);
 
 	glBindBuffer(m_target, m_id);
 }
 
-inline void *buffer::map(GLenum access)
+inline void *Buffer::Map(GLenum access)
 {
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(!m_mapped);
@@ -74,7 +74,7 @@ inline void *buffer::map(GLenum access)
 	return p;
 }
 
-inline bool buffer::unmap(void)
+inline bool Buffer::Unmap(void)
 {
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(m_mapped);
@@ -87,7 +87,7 @@ inline bool buffer::unmap(void)
 	return true;
 }
 
-inline bool buffer::read(int offset, void *buff, int size)
+inline bool Buffer::Read(int offset, void *buff, int size)
 {
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(offset >= 0);
@@ -102,7 +102,7 @@ inline bool buffer::read(int offset, void *buff, int size)
 	return true;
 }
 
-inline bool buffer::write(int offset, const void *data, int size)
+inline bool Buffer::Write(int offset, const void *data, int size)
 {
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(offset >= 0);
@@ -119,4 +119,4 @@ inline bool buffer::write(int offset, const void *data, int size)
 
 SGE_GL_END
 
-#endif // SGE_GL_BUFFER_HPP
+#endif // SGE_GL_BUFFER_H

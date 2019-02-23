@@ -1,20 +1,20 @@
 //
 //
-#include <sge/gl/vertex_array.hpp>
+#include <sge/gl/vertex_array.h>
 
 SGE_GL_BEGIN
 
-vertex_array::vertex_array(void)
+VertexArray::VertexArray(void)
 	: m_id(0)
 {
 }
 
-vertex_array::~vertex_array(void)
+VertexArray::~VertexArray(void)
 {
-	destroy();
+	Destroy();
 }
 
-bool vertex_array::create(void)
+bool VertexArray::Create(void)
 {
 	SGE_ASSERT(m_id == 0);
 
@@ -25,7 +25,7 @@ bool vertex_array::create(void)
 	return true;
 }
 
-void vertex_array::destroy(void)
+void VertexArray::Destroy(void)
 {
 	if (m_id > 0) {
 		glDeleteVertexArrays(1, &m_id);

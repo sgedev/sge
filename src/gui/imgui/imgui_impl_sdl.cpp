@@ -120,9 +120,9 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
     return false;
 }
 
-static bool ImGui_ImplSDL2_Init(SDL_Window* window)
+static bool ImGui_ImplSDL2_Init(SDL_Window* Window)
 {
-    g_Window = window;
+    g_Window = Window;
 
     // Setup back-end capabilities flags
     ImGuiIO& io = ImGui::GetIO();
@@ -169,27 +169,27 @@ static bool ImGui_ImplSDL2_Init(SDL_Window* window)
 #ifdef _WIN32
     SDL_SysWMinfo wmInfo;
     SDL_VERSION(&wmInfo.version);
-    SDL_GetWindowWMInfo(window, &wmInfo);
+    SDL_GetWindowWMInfo(Window, &wmInfo);
     io.ImeWindowHandle = wmInfo.info.win.window;
 #else
-    (void)window;
+    (void)Window;
 #endif
 
     return true;
 }
 
-bool ImGui_ImplSDL2_InitForOpenGL(SDL_Window* window, void* sdl_gl_context)
+bool ImGui_ImplSDL2_InitForOpenGL(SDL_Window* Window, void* sdl_gl_context)
 {
     (void)sdl_gl_context; // Viewport branch will need this.
-    return ImGui_ImplSDL2_Init(window);
+    return ImGui_ImplSDL2_Init(Window);
 }
 
-bool ImGui_ImplSDL2_InitForVulkan(SDL_Window* window)
+bool ImGui_ImplSDL2_InitForVulkan(SDL_Window* Window)
 {
 #if !SDL_HAS_VULKAN
     IM_ASSERT(0 && "Unsupported");
 #endif
-    return ImGui_ImplSDL2_Init(window);
+    return ImGui_ImplSDL2_Init(Window);
 }
 
 void ImGui_ImplSDL2_Shutdown()
@@ -268,7 +268,7 @@ static void ImGui_ImplSDL2_UpdateMouseCursor()
     }
 }
 
-void ImGui_ImplSDL2_NewFrame(SDL_Window* window)
+void ImGui_ImplSDL2_NewFrame(SDL_Window* Window)
 {
     ImGuiIO& io = ImGui::GetIO();
     IM_ASSERT(io.Fonts->IsBuilt() && "Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
@@ -276,8 +276,8 @@ void ImGui_ImplSDL2_NewFrame(SDL_Window* window)
     // Setup display size (every frame to accommodate for window resizing)
     int w, h;
     int display_w, display_h;
-    SDL_GetWindowSize(window, &w, &h);
-    SDL_GL_GetDrawableSize(window, &display_w, &display_h);
+    SDL_GetWindowSize(Window, &w, &h);
+    SDL_GL_GetDrawableSize(Window, &display_w, &display_h);
     io.DisplaySize = ImVec2((float)w, (float)h);
     io.DisplayFramebufferScale = ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
 

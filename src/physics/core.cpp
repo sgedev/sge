@@ -2,7 +2,7 @@
 //
 #include <btBulletDynamicsCommon.h>
 
-#include <sge/physics.hpp>
+#include <sge/physics.h>
 
 SGE_PHYSICS_BEGIN
 
@@ -12,8 +12,10 @@ static btCollisionDispatcher *disp;
 static btSequentialImpulseConstraintSolver *solver;
 static btDiscreteDynamicsWorld *world;
 
-bool init(void)
+bool Init(void)
 {
+	SGE_LOGI("Initializing physics...\n");
+
 	btVector3 world_aabb_min(-10000, -10000, -10000);
 	btVector3 world_aabb_max(10000, 10000, 10000);
 
@@ -26,8 +28,10 @@ bool init(void)
 	return true;
 }
 
-void shutdown(void)
+void Shutdown(void)
 {
+	SGE_LOGI("Shuting down physics...\n");
+
 	delete world;
 	delete solver;
 	delete disp;
@@ -35,15 +39,15 @@ void shutdown(void)
 	delete broad_phase;
 }
 
-void update(float elapsed)
+void Update(void)
 {
-	world->stepSimulation(elapsed);
+	world->stepSimulation(GetElapsed());
 
 	//btTransform trans;
 	//fallRigidBody->getMotionState()->getworldTransform(trans);
 }
 
-void handle_event(const SDL_Event *event)
+void HandleEvent(const SDL_Event *event)
 {
 }
 

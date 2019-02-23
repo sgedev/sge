@@ -2,15 +2,15 @@
 //
 #include <iostream>
 
-#include <sge/gl.hpp>
+#include <sge/gl.h>
 
 SGE_GL_BEGIN
 
-static SDL_Window *window;
-static SDL_GLContext context;
-static Uint32 window_id;
+static SDL_Window *Window;
+static SDL_GLContext Context;
+static Uint32 WindowID;
 
-static const char *debug_source(GLenum source)
+static const char *DebugSource(GLenum source)
 {
 	switch (source) {
 	case GL_DEBUG_SOURCE_API:             return "API";
@@ -23,7 +23,7 @@ static const char *debug_source(GLenum source)
 	return "";
 }
 
-static const char *debug_type(GLenum type)
+static const char *DebugType(GLenum type)
 {
 	switch (type) {
 	case GL_DEBUG_TYPE_ERROR:               return "ERROR";
@@ -39,7 +39,7 @@ static const char *debug_type(GLenum type)
 	return "";
 }
 
-static const char *debug_severity(GLenum severity)
+static const char *DebugSeverity(GLenum severity)
 {
 	switch (severity) {
 	case GL_DEBUG_SEVERITY_HIGH:         return "HIGH";
@@ -50,14 +50,14 @@ static const char *debug_severity(GLenum severity)
 	return "";
 }
 
-static void debug_output(GLenum source, GLenum type, GLuint id,
+static void DebugOutput(GLenum source, GLenum type, GLuint id,
 	GLenum severity, GLsizei length, const GLchar *message, const void *data)
 {
 	SGE_LOGD("[GL-%04d|%s|%s|%s] %s", id,
-		debug_source(source), debug_type(type), debug_severity(severity), message);
+		DebugSource(source), DebugType(type), DebugSeverity(severity), message);
 }
 
-bool init(void)
+bool Init(void)
 {
 	SGE_LOGD("Creating OpenGL window...\n");
 
@@ -74,29 +74,28 @@ bool init(void)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
-	window = SDL_CreateWindow(SGE_GAME_NAME,
+	Window = SDL_CreateWindow(SGE_GAME_NAME,
 		SDL_WINDOWPOS_CENTERED,	SDL_WINDOWPOS_CENTERED, 800, 600,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 
-	if (window == NULL)
+	if (Window == NULL)
 		return false;
 
 	SGE_LOGD("Initializing OpenGL...\n");
 
-	context = SDL_GL_CreateContext(window);
-	if (context == NULL) {
-		SDL_DestroyWindow(window);
+	Context = SDL_GL_CreateContext(Window);
+	if (Context == NULL) {
+		SDL_DestroyWindow(Window);
 		SGE_LOGE("Failed to create OpenGL context.\n");
 		return false;
 	}
 
-	SDL_GL_MakeCurrent(window, context);
+	SDL_GL_MakeCurrent(Window, Context);
 
-	SGE_LOGD("Initializing GLEW...\n");
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK) {
-		SDL_GL_DeleteContext(context);
-		SDL_DestroyWindow(window);
+		SDL_GL_DeleteContext(Context);
+		SDL_DestroyWindow(Window);
 		SGE_LOGE("Failed to initialize GLEW.\n");
 		return false;
 	}
@@ -104,71 +103,73 @@ bool init(void)
 #ifdef SGE_DEBUG
 	if (GL_KHR_debug) {
 		SGE_LOGD("Enable OpenGL debug output.\n");
-		glDebugMessageCallback(debug_output, NULL);
+		glDebugMessageCallback(DebugOutput, NULL);
 	}
 #endif
+
+	SGE_LOGI("OpenGL: %s\n", glGetString(GL_VERSION));
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClearDepth(0.0f);
 
-	window_id = SDL_GetWindowID(window);
+	WindowID = SDL_GetWindowID(Window);
 
 	return true;
 }
 
-void shutdown(void)
+void Shutdown(void)
 {
-	SGE_ASSERT(window != NULL);
-	SGE_ASSERT(context != NULL);
+	SGE_ASSERT(Window != NULL);
+	SGE_ASSERT(Context != NULL);
 
-	if (SDL_GL_GetCurrentContext() == context)
-		SDL_GL_MakeCurrent(window, NULL);
+	SGE_LOGI("Shutding down OpenGL...\n");
+
+	if (SDL_GL_GetCurrentContext() == Context)
+		SDL_GL_MakeCurrent(Window, NULL);
 
 	SGE_LOGD("Destroy OpenGL context...\n");
-	SDL_GL_DeleteContext(context);
+	SDL_GL_DeleteContext(Context);
 
 	SGE_LOGD("Destroy OpenGL window...\n");
-	SDL_DestroyWindow(window);
-
-	SGE_LOGI("OpenGL shutdown.\n");
+	SDL_DestroyWindow(Window);
 }
 
-void draw_begin(void)
+void DrawBegin(void)
 {
-	SGE_ASSERT(window != NULL);
-	SGE_ASSERT(context != NULL);
+	SGE_ASSERT(Window != NULL);
+	SGE_ASSERT(Context != NULL);
 
-	SDL_GL_MakeCurrent(window, context);
+	SDL_GL_MakeCurrent(Window, Context);
 
 	glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void draw_end(void)
+void DrawEnd(void)
 {
-	SGE_ASSERT(window != NULL);
+	SGE_ASSERT(Window != NULL);
 
-	SDL_GL_SwapWindow(window);
+	SDL_GL_SwapWindow(Window);
 }
 
-SDL_Window *get_window(void)
+SDL_Window *GetWindow(void)
 {
-	SGE_ASSERT(window != NULL);
+	SGE_ASSERT(Window != NULL);
 
-	return window;
+	return Window;
 }
 
-Uint32 get_window_id(void)
+Uint32 GetWindowID(void)
 {
-	SGE_ASSERT(window != NULL);
+	SGE_ASSERT(Window != NULL);
 
-	return window_id;
+	return WindowID;
 }
 
-SDL_GLContext get_context(void)
+SDL_GLContext GetContext(void)
 {
-	SGE_ASSERT(context != NULL);
+	SGE_ASSERT(Context != NULL);
 
-	return context;
+	return Context;
 }
 
 SGE_GL_END

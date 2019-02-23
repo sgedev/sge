@@ -2,22 +2,22 @@
 //
 #include <string.h>
 
-#include <sge/gl/shader.hpp>
+#include <sge/gl/shader.h>
 
 SGE_GL_BEGIN
 
-shader::shader(GLenum type)
+Shader::Shader(GLenum type)
 	: m_id(0)
 	, m_type(type)
 {
 }
 
-shader::~shader(void)
+Shader::~Shader(void)
 {
-	destroy();
+	Destroy();
 }
 
-bool shader::create(void)
+bool Shader::Create(void)
 {
 	SGE_ASSERT(m_id == 0);
 
@@ -28,7 +28,7 @@ bool shader::create(void)
 	return true;
 }
 
-void shader::destroy(void)
+void Shader::Destroy(void)
 {
 	if (m_id > 0) {
 		glDeleteShader(m_id);
@@ -38,7 +38,7 @@ void shader::destroy(void)
 	m_info_log.clear();
 }
 
-bool shader::compile(const char *src)
+bool Shader::Compile(const char *src)
 {
 	SGE_ASSERT(m_id != 0);
 	SGE_ASSERT(src != NULL);

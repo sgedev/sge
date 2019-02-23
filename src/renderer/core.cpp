@@ -1,7 +1,7 @@
 //
 //
-#include <sge/gl.hpp>
-#include <sge/renderer.hpp>
+#include <sge/gl.h>
+#include <sge/renderer.h>
 
 SGE_RENDERER_BEGIN
 
@@ -23,7 +23,7 @@ static Eigen::Matrix4f	uniform_m4f[UNIFORM_M4F_MAX];
 static GLint			uniform_v1f_loc[UNIFORM_V1F_MAX];
 static float			uniform_v1f[UNIFORM_V1F_MAX];
 static Eigen::Vector4i	viewport;
-static gl::program		program;
+static GL::Program		program;
 
 static const char *vertex_shader_source =
 	"#version 330 core\n"
@@ -35,7 +35,7 @@ static const char *vertex_shader_source =
 	"layout(location = 0) in vec3 position;\n"
 	"layout(location = 1) in vec3 normal;\n"
 	"void main() {\n"
-	"    gl_Position = sge_project_matrix  * sge_view_matrix * sge_model_matrix * vec4(Position, 1.0);\n"
+	"    gl_Position = sge_project_matrix  * sge_view_matrix * sge_model_matrix * vec4(position, 1.0);\n"
 	"}";
 
 static const char *fragment_shader_source =
@@ -45,23 +45,23 @@ static const char *fragment_shader_source =
 	"	frag_color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 	"}";
 
-static bool init_program(void)
+static bool InitProgram(void)
 {
-	if (!program.create())
+	if (!program.Create())
 		return false;
 
-	if (!program.add_shader(GL_VERTEX_SHADER, vertex_shader_source)) {
-		program.destroy();
-		return false;
-	}
-
-	if (!program.add_shader(GL_FRAGMENT_SHADER, fragment_shader_source)) {
-		program.destroy();
+	if (!program.AddShader(GL_VERTEX_SHADER, vertex_shader_source)) {
+		program.Destroy();
 		return false;
 	}
 
-	if (!program.link()) {
-		program.destroy();
+	if (!program.AddShader(GL_FRAGMENT_SHADER, fragment_shader_source)) {
+		program.Destroy();
+		return false;
+	}
+
+	if (!program.Link()) {
+		program.Destroy();
 		return false;
 	}
 
@@ -70,52 +70,52 @@ static bool init_program(void)
 	for (int i = 0; i < UNIFORM_V1F_MAX; ++i)
 		uniform_v1f_loc[i] = -1;
 
-	uniform_v1f_loc[UNIFORM_V1F_ELAPSED] = program.get_uniform_location("sge_elapsed");
+	uniform_v1f_loc[UNIFORM_V1F_ELAPSED] = program.GetUniformLocation("sge_elapsed");
 
 	/* m4f */
 
 	for (int i = 0; i < UNIFORM_M4F_MAX; ++i)
 		uniform_m4f_loc[i] = -1;
 
-	uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX] = program.get_uniform_location("sge_model_matrix");
-	SGE_LOGD("Uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX] %d\n", uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX]);
-	uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX] = program.get_uniform_location("sge_view_matrix");
-	SGE_LOGD("Uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX] %d\n", uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX]);
-	uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX] = program.get_uniform_location("sge_project_matrix ");
-	SGE_LOGD("Uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX] %d\n", uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX]);
-	uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX] = program.get_uniform_location("sge_normal_matrix");
-	SGE_LOGD("Uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX] %d\n", uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX]);
+	uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX] = program.GetUniformLocation("sge_model_matrix");
+	SGE_LOGD("UNIFORM_M4F_MODEL_MATRIX %d\n", uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX]);
+	uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX] = program.GetUniformLocation("sge_view_matrix");
+	SGE_LOGD("UNIFORM_M4F_VIEW_MATRIX %d\n", uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX]);
+	uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX] = program.GetUniformLocation("sge_project_matrix ");
+	SGE_LOGD("UNIFORM_M4F_PROJECT_MATRIX %d\n", uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX]);
+	uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX] = program.GetUniformLocation("sge_normal_matrix");
+	SGE_LOGD("UNIFORM_M4F_NORMAL_MATRIX %d\n", uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX]);
 
 	return true;
 }
 
-static void commit_uniforms(void)
+static void CommitUniforms(void)
 {
 	for (int i = 0; i < UNIFORM_V1F_MAX; ++i) {
 		if (uniform_v1f_loc[i] >= 0)
-			program.uniform(uniform_v1f_loc[i], uniform_v1f[i]);
+			program.Uniform(uniform_v1f_loc[i], uniform_v1f[i]);
 	}
 
 	for (int i = 0; i < UNIFORM_M4F_MAX; ++i) {
 		if (uniform_m4f_loc[i] >= 0)
-			program.uniform(uniform_m4f_loc[i], 1, GL_FALSE, &uniform_m4f[i]);
+			program.Uniform(uniform_m4f_loc[i], 1, GL_FALSE, &uniform_m4f[i]);
 	}
 }
 
-static void draw_begin(void)
+static void DrawBegin(void)
 {
 	// cull?
 }
 
-static void draw_end(void)
+static void DrawEnd(void)
 {
 }
 
-static void handle_window_event(const SDL_WindowEvent *event)
+static void HandleWindowEvent(const SDL_WindowEvent *event)
 {
 	SGE_ASSERT(event != NULL);
 
-	if (event->windowID != gl::get_window_id())
+	if (event->windowID != GL::GetWindowID())
 		return;
 
 	switch (event->event) {
@@ -124,37 +124,42 @@ static void handle_window_event(const SDL_WindowEvent *event)
 	}
 }
 
-bool init(void)
+bool Init(void)
 {
-	SGE_LOGI("Renderer initializing...\n");
+	SGE_LOGI("Initializing renderer...\n");
 
-	if (!init_program())
+	if (!InitProgram())
 		return false;
 
 	return true;
 }
 
-void shutdown(void)
+void Shutdown(void)
 {
-	program.destroy();
+	SGE_LOGI("Shuting down renderer...\n");
 
-	SGE_LOGI("Renderer shutdown.\n");
+	program.Destroy();
 }
 
-void draw(void)
+void Update(void)
 {
-	draw_begin();
+
+}
+
+void Draw(void)
+{
+	DrawBegin();
 
 	/* TODO add visible surfaces here. */
 
-	draw_end();
+	DrawEnd();
 }
 
-void handle_event(const SDL_Event *event)
+void HandleEvent(const SDL_Event *event)
 {
 	switch (event->type) {
 	case SDL_WINDOWEVENT:
-		handle_window_event(&event->window);
+		HandleWindowEvent(&event->window);
 		break;
 	}
 }

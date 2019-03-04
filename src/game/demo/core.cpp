@@ -4,37 +4,37 @@
 
 SGE_GAME_BEGIN
 
-bool PreInit(void)
+bool pre_init(void)
 {
 	return true;
 }
 
-bool Init(void)
+bool init(void)
 {
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
 
 }
 
-void PostShutdown(void)
+void post_shutdown(void)
 {
 
 }
 
-void Update(void)
+void update(void)
 {
 
 }
 
-void Draw(void)
+void draw(void)
 {
 
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
 
 }

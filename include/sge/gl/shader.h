@@ -9,18 +9,18 @@
 
 SGE_GL_BEGIN
 
-class Shader {
+class shader {
 public:
-	Shader(GLenum type);
-	virtual ~Shader(void);
+	shader(GLenum type);
+	virtual ~shader(void);
 
 public:
-	bool Create(void);
-	void Destroy(void);
-	GLuint GetID(void) const;
-	GLenum GetType(void) const;
-	bool Compile(const char *src);
-	const char *GetInfoLog(void) const;
+	bool create(void);
+	void destroy(void);
+	GLuint id(void) const;
+	GLenum type(void) const;
+	bool compile(const char *src);
+	const char *info_log(void) const;
 
 private:
 	GLuint m_id;
@@ -29,17 +29,17 @@ private:
 	std::string m_info_log;
 };
 
-inline GLuint Shader::GetID(void) const
+inline GLuint shader::id(void) const
 {
 	return m_id;
 }
 
-inline GLenum Shader::GetType(void) const
+inline GLenum shader::type(void) const
 {
 	return m_type;
 }
 
-inline const char *Shader::GetInfoLog(void) const
+inline const char *shader::info_log(void) const
 {
 	return m_info_log.c_str();
 }

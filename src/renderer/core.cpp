@@ -23,7 +23,7 @@ static Eigen::Matrix4f	uniform_m4f[UNIFORM_M4F_MAX];
 static GLint			uniform_v1f_loc[UNIFORM_V1F_MAX];
 static float			uniform_v1f[UNIFORM_V1F_MAX];
 static Eigen::Vector4i	viewport;
-static GL::Program		program;
+static gl::program		program;
 
 static const char *vertex_shader_source =
 	"#version 330 core\n"
@@ -45,23 +45,23 @@ static const char *fragment_shader_source =
 	"	frag_color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
 	"}";
 
-static bool InitProgram(void)
+static bool init_program(void)
 {
-	if (!program.Create())
+	if (!program.create())
 		return false;
 
-	if (!program.AddShader(GL_VERTEX_SHADER, vertex_shader_source)) {
-		program.Destroy();
-		return false;
-	}
-
-	if (!program.AddShader(GL_FRAGMENT_SHADER, fragment_shader_source)) {
-		program.Destroy();
+	if (!program.add_shader(GL_VERTEX_SHADER, vertex_shader_source)) {
+		program.destroy();
 		return false;
 	}
 
-	if (!program.Link()) {
-		program.Destroy();
+	if (!program.add_shader(GL_FRAGMENT_SHADER, fragment_shader_source)) {
+		program.destroy();
+		return false;
+	}
+
+	if (!program.link()) {
+		program.destroy();
 		return false;
 	}
 
@@ -70,52 +70,52 @@ static bool InitProgram(void)
 	for (int i = 0; i < UNIFORM_V1F_MAX; ++i)
 		uniform_v1f_loc[i] = -1;
 
-	uniform_v1f_loc[UNIFORM_V1F_ELAPSED] = program.GetUniformLocation("sge_elapsed");
+	uniform_v1f_loc[UNIFORM_V1F_ELAPSED] = program.uniform_location("sge_elapsed");
 
 	/* m4f */
 
 	for (int i = 0; i < UNIFORM_M4F_MAX; ++i)
 		uniform_m4f_loc[i] = -1;
 
-	uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX] = program.GetUniformLocation("sge_model_matrix");
+	uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX] = program.uniform_location("sge_model_matrix");
 	SGE_LOGD("UNIFORM_M4F_MODEL_MATRIX %d\n", uniform_m4f_loc[UNIFORM_M4F_MODEL_MATRIX]);
-	uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX] = program.GetUniformLocation("sge_view_matrix");
+	uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX] = program.uniform_location("sge_view_matrix");
 	SGE_LOGD("UNIFORM_M4F_VIEW_MATRIX %d\n", uniform_m4f_loc[UNIFORM_M4F_VIEW_MATRIX]);
-	uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX] = program.GetUniformLocation("sge_project_matrix ");
+	uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX] = program.uniform_location("sge_project_matrix ");
 	SGE_LOGD("UNIFORM_M4F_PROJECT_MATRIX %d\n", uniform_m4f_loc[UNIFORM_M4F_PROJECT_MATRIX]);
-	uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX] = program.GetUniformLocation("sge_normal_matrix");
+	uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX] = program.uniform_location("sge_normal_matrix");
 	SGE_LOGD("UNIFORM_M4F_NORMAL_MATRIX %d\n", uniform_m4f_loc[UNIFORM_M4F_NORMAL_MATRIX]);
 
 	return true;
 }
 
-static void CommitUniforms(void)
+static void commit_uniforms(void)
 {
 	for (int i = 0; i < UNIFORM_V1F_MAX; ++i) {
 		if (uniform_v1f_loc[i] >= 0)
-			program.Uniform(uniform_v1f_loc[i], uniform_v1f[i]);
+			program.uniform(uniform_v1f_loc[i], uniform_v1f[i]);
 	}
 
 	for (int i = 0; i < UNIFORM_M4F_MAX; ++i) {
 		if (uniform_m4f_loc[i] >= 0)
-			program.Uniform(uniform_m4f_loc[i], 1, GL_FALSE, &uniform_m4f[i]);
+			program.uniform(uniform_m4f_loc[i], 1, GL_FALSE, &uniform_m4f[i]);
 	}
 }
 
-static void DrawBegin(void)
+static void draw_begin(void)
 {
 	// cull?
 }
 
-static void DrawEnd(void)
+static void draw_end(void)
 {
 }
 
-static void HandleWindowEvent(const SDL_WindowEvent *event)
+static void handle_window_event(const SDL_WindowEvent *event)
 {
 	SGE_ASSERT(event != NULL);
 
-	if (event->windowID != GL::GetWindowID())
+	if (event->windowID != gl::get_window_id())
 		return;
 
 	switch (event->event) {
@@ -124,42 +124,42 @@ static void HandleWindowEvent(const SDL_WindowEvent *event)
 	}
 }
 
-bool Init(void)
+bool init(void)
 {
 	SGE_LOGI("Initializing renderer...\n");
 
-	if (!InitProgram())
+	if (!init_program())
 		return false;
 
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
 	SGE_LOGI("Shuting down renderer...\n");
 
-	program.Destroy();
+	program.destroy();
 }
 
-void Update(void)
+void update(void)
 {
 
 }
 
-void Draw(void)
+void draw(void)
 {
-	DrawBegin();
+	draw_begin();
 
 	/* TODO add visible surfaces here. */
 
-	DrawEnd();
+	draw_end();
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
 	switch (event->type) {
 	case SDL_WINDOWEVENT:
-		HandleWindowEvent(&event->window);
+		handle_window_event(&event->window);
 		break;
 	}
 }

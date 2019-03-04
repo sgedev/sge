@@ -11,13 +11,13 @@
 
 SGE_GL_BEGIN
 
-bool Init(void);
-void Shutdown(void);
-void DrawBegin(void);
-void DrawEnd(void);
-SDL_Window *GetWindow(void);
-Uint32 GetWindowID(void);
-SDL_GLContext GetContext(void);
+bool init(void);
+void shutdown(void);
+void draw_begin(void);
+void draw_end(void);
+SDL_Window *get_window(void);
+Uint32 get_window_id(void);
+SDL_GLContext get_context(void);
 
 SGE_GL_END
 

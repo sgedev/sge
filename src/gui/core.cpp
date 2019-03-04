@@ -4,36 +4,37 @@
 #include "imgui/imgui_impl_sdl.h"
 #include "imgui/imgui_impl_opengl3.h"
 
+#include <sge/gl.h>
 #include <sge/gui.h>
 
 SGE_GUI_BEGIN
 
-static SDL_Window *Window;
-static bool Demo;
+static SDL_Window *window;
+static bool demo;
 
-bool Init(void)
+bool init(void)
 {
 	SGE_LOGI("Initializing GUI...\n");
 
-    IMGUI_CHECKVERSION();
+	IMGUI_CHECKVERSION();
 
-    ImGui::CreateContext();
-    ImGuiIO &io = ImGui::GetIO(); (void)io;
+	ImGui::CreateContext();
+	ImGuiIO &io = ImGui::GetIO(); (void)io;
 	ImGui::StyleColorsDark();
 
-	Window = SDL_GL_GetCurrentWindow();
+	window = gl::get_window();
 
-	ImGui_ImplSDL2_InitForOpenGL(Window, SDL_GL_GetCurrentContext());
+	ImGui_ImplSDL2_InitForOpenGL(window, gl::get_context());
 	ImGui_ImplOpenGL3_Init();
 
-	Demo = true;
+	demo = true;
 
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
-	SGE_ASSERT(Window != NULL);
+	SGE_ASSERT(window != NULL);
 
 	SGE_LOGI("Shuting down GUI...\n");
 
@@ -41,18 +42,18 @@ void Shutdown(void)
 	ImGui_ImplSDL2_Shutdown();
 }
 
-void Update(void)
+void update(void)
 {
 
 }
 
-void Draw(void)
+void draw(void)
 {
-	SGE_ASSERT(Window != NULL);
+	SGE_ASSERT(window != NULL);
 
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame(Window);
-    ImGui::NewFrame();
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame(window);
+	ImGui::NewFrame();
 
 	bool v = true;
 	ImGui::Begin("Debug", &v,
@@ -63,20 +64,20 @@ void Draw(void)
 		ImGuiWindowFlags_NoScrollbar);
 	ImGui::SetWindowPos(ImVec2(0, 0));
 	ImGui::SetWindowSize(ImVec2(100, 50));
-	ImGui::Text("fps %d", GetFPS());
+	ImGui::Text("fps %d", get_fps());
 	ImGui::End();
 
-    if (Demo)
-        ImGui::ShowDemoWindow(&Demo);
+	if (demo)
+		ImGui::ShowDemoWindow(&demo);
 
 	ImGui::Render();
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
-	SGE_ASSERT(Window != NULL);
+	SGE_ASSERT(window != NULL);
 
 	ImGui_ImplSDL2_ProcessEvent(event);
 }

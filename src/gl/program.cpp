@@ -4,17 +4,17 @@
 
 SGE_GL_BEGIN
 
-Program::Program(void)
+program::program(void)
 	: m_id(0)
 {
 }
 
-Program::~Program(void)
+program::~program(void)
 {
-	Destroy();
+	destroy();
 }
 
-bool Program::Create(void)
+bool program::create(void)
 {
 	SGE_ASSERT(m_id == 0);
 
@@ -25,7 +25,7 @@ bool Program::Create(void)
 	return true;
 }
 
-void Program::Destroy(void)
+void program::destroy(void)
 {
 	if (m_id != 0) {
 		glDeleteProgram(m_id);
@@ -33,7 +33,7 @@ void Program::Destroy(void)
 	}
 }
 
-bool Program::AddShader(GLenum type, const char *src)
+bool program::add_shader(GLenum type, const char *src)
 {
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(src != NULL);
@@ -65,7 +65,7 @@ bool Program::AddShader(GLenum type, const char *src)
 	return true;
 }
 
-bool Program::Link(void)
+bool program::link(void)
 {
 	SGE_ASSERT(m_id > 0);
 

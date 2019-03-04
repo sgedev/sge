@@ -23,5 +23,5 @@ set_target_properties(sge PROPERTIES OUTPUT_NAME ${SGE_GAME})
 
 target_sources(sge
 	PRIVATE
-		helper_FPS.cpp
+		helper_fps.cpp
 	)

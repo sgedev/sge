@@ -5,15 +5,15 @@
 
 #include <sge/common.h>
 
-#define SGE_SOUND_BEGIN SGE_BEGIN namespace Sound {
+#define SGE_SOUND_BEGIN SGE_BEGIN namespace sound {
 #define SGE_SOUND_END } SGE_END
 
 SGE_SOUND_BEGIN
 
-bool Init(void);
-void Shutdown(void);
-void Update(void);
-void HandleEvent(const SDL_Event *event);
+bool init(void);
+void shutdown(void);
+void update(void);
+void handle_event(const SDL_Event *event);
 
 SGE_SOUND_END
 

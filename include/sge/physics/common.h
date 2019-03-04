@@ -5,7 +5,7 @@
 
 #include <sge/common.h>
 
-#define SGE_PHYSICS_BEGIN SGE_BEGIN namespace Physics {
+#define SGE_PHYSICS_BEGIN SGE_BEGIN namespace physics {
 #define SGE_PHYSICS_END } SGE_END
 
 #endif // SGE_PHYSICS_COMMON_H

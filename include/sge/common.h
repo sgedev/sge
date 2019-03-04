@@ -41,16 +41,16 @@
 #define SGE_STRIZE(x) SGE_STRIZE_IMPL(x)
 #define SGE_STRIZE_IMPL(x) #x
 
-#define SGE_BEGIN namespace SGE {
+#define SGE_BEGIN namespace sge {
 #define SGE_END }
 
 SGE_BEGIN
 
-Uint32 GetNow(void);
-float GetElapsed(void);
-unsigned long GetFPS(void);
-unsigned long GetMaxFPS(void);
-void SetMaxFPS(unsigned long FPS);
+Uint32 get_now(void);
+float get_elapsed(void);
+unsigned int get_fps(void);
+unsigned int get_max_fps(void);
+void set_max_fps(unsigned int fps);
 
 SGE_END
 

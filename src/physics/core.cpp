@@ -12,7 +12,7 @@ static btCollisionDispatcher *disp;
 static btSequentialImpulseConstraintSolver *solver;
 static btDiscreteDynamicsWorld *world;
 
-bool Init(void)
+bool init(void)
 {
 	SGE_LOGI("Initializing physics...\n");
 
@@ -28,7 +28,7 @@ bool Init(void)
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
 	SGE_LOGI("Shuting down physics...\n");
 
@@ -39,15 +39,15 @@ void Shutdown(void)
 	delete broad_phase;
 }
 
-void Update(void)
+void update(void)
 {
-	world->stepSimulation(GetElapsed());
+	world->stepSimulation(get_elapsed());
 
 	//btTransform trans;
 	//fallRigidBody->getMotionState()->getworldTransform(trans);
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
 }
 

@@ -40,6 +40,15 @@ endif()
 #	message(FATAL_ERROR "Assimp not found.")
 #endif()
 
+# dep: libZIP
+include(FindZIP)
+if(ZIP_FOUND)
+	target_include_directories(sge PRIVATE ${ZIP_INCLUDE_DIRS})
+	target_link_libraries(sge ${ZIP_LIBRARIES})
+else()
+	message(FATAL_ERROR "Libzip not found.")
+endif()
+
 # sge
 
 target_sources(sge
@@ -48,6 +57,7 @@ target_sources(sge
 		sound.cpp
 	)
 
+add_subdirectory(fs fs)
 add_subdirectory(game game)
 add_subdirectory(gl gl)
 add_subdirectory(gui gui)

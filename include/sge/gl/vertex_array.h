@@ -7,27 +7,27 @@
 
 SGE_GL_BEGIN
 
-class VertexArray {
+class vertex_array {
 public:
-	VertexArray(void);
-	virtual ~VertexArray(void);
+	vertex_array(void);
+	virtual ~vertex_array(void);
 
 public:
-	bool Create(void);
-	void Destroy(void);
-	GLuint GetID(void) const;
-	void Bind(void);
+	bool create(void);
+	void destroy(void);
+	GLuint id(void) const;
+	void bind(void);
 
 private:
 	GLuint m_id;
 };
 
-inline GLuint VertexArray::GetID(void) const
+inline GLuint vertex_array::id(void) const
 {
 	return m_id;
 }
 
-inline void VertexArray::Bind(void)
+inline void vertex_array::bind(void)
 {
 	SGE_ASSERT(m_id > 0);
 

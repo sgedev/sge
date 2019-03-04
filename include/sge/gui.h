@@ -7,11 +7,11 @@
 
 SGE_GUI_BEGIN
 
-bool Init(void);
-void Shutdown(void);
-void Update(void);
-void Draw(void);
-void HandleEvent(const SDL_Event *event);
+bool init(void);
+void shutdown(void);
+void update(void);
+void draw(void);
+void handle_event(const SDL_Event *event);
 
 SGE_GUI_END
 

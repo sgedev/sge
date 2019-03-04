@@ -4,20 +4,20 @@
 
 SGE_SOUND_BEGIN
 
-bool Init(void)
+bool init(void)
 {
 	return true;
 }
 
-void Shutdown(void)
+void shutdown(void)
 {
 }
 
-void Update(void)
+void update(void)
 {
 }
 
-void HandleEvent(const SDL_Event *event)
+void handle_event(const SDL_Event *event)
 {
 }
 

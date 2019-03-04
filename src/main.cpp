@@ -2,6 +2,7 @@
 //
 #include <stdio.h>
 
+#include <sge/fs.h>
 #include <sge/gl.h>
 #include <sge/gui.h>
 #include <sge/renderer.h>
@@ -11,106 +12,107 @@
 
 SGE_BEGIN
 
-static bool Run;
-static Uint32 CurrentTime;
-static Uint32 MinFrameElapsed;
-static float FrameElapsed;
-static unsigned long FPS;
-static bool IsWindowVisibled;
+static bool run;
+static Uint32 curr_time;
+static unsigned int fps;
+static unsigned int frame_elapsed_min;
+static float frame_elapsed;
+static bool is_window_visibled;
 
-static void HandleWindowEvent(const SDL_WindowEvent *event)
+static void handle_window_event(const SDL_WindowEvent *event)
 {
 	SGE_ASSERT(event != NULL);
 
-	if (event->windowID != GL::GetWindowID())
+	if (event->windowID != gl::get_window_id())
 		return;
 
 	switch (event->event) {
 	case SDL_WINDOWEVENT_EXPOSED:
 	case SDL_WINDOWEVENT_SHOWN:
-		IsWindowVisibled = true;
+		is_window_visibled = true;
 		break;
 	case SDL_WINDOWEVENT_HIDDEN:
 	case SDL_WINDOWEVENT_MINIMIZED:
-		IsWindowVisibled = false;
+		is_window_visibled = false;
 		break;
 	}
 }
 
-static void HandleEvent(const SDL_Event *event)
+static void handle_event(const SDL_Event *event)
 {
 	SGE_ASSERT(event != NULL);
 
 	switch (event->type) {
 	case SDL_WINDOWEVENT:
-		HandleWindowEvent(&event->window);
+		handle_window_event(&event->window);
 		break;
 	case SDL_QUIT:
-		Run = false;
+		run = false;
 		break;
 	}
 
-	GUI::HandleEvent(event);
-	Renderer::HandleEvent(event);
-	Physics::HandleEvent(event);
-	Sound::HandleEvent(event);
-	Game::HandleEvent(event);
+	gui::handle_event(event);
+	renderer::handle_event(event);
+	physics::handle_event(event);
+	sound::handle_event(event);
+	game::handle_event(event);
 }
 
-static void UpdateWindow(void)
+static void update_window(void)
 {
-	if (!IsWindowVisibled)
+	if (!is_window_visibled)
 		return;
 
-	GL::DrawBegin();
+	gl::draw_begin();
 
-	Game::Draw();
-	GUI::Draw();
-	Renderer::Draw();
+	game::draw();
+	gui::draw();
+	renderer::draw();
 
-	GL::DrawEnd();
+	gl::draw_end();
 }
 
-static void MainLoop(void)
+static void main_loop(void)
 {
-	FPS = 0;
-	Run = true;
-	CurrentTime = SDL_GetTicks();
-	FrameElapsed = 0.0f;
+	fps = 0;
+	run = true;
+	curr_time = SDL_GetTicks();
+	frame_elapsed = 0.0f;
 
 	SDL_Event event;
 	Uint32 elapsed;
-	Uint32 last = CurrentTime;
-	Uint32 fps_last = CurrentTime;
+	Uint32 last = curr_time;
+	Uint32 fps_last = curr_time;
 	unsigned long fps_count = 0;
 
 	SGE_LOGD("Main loop started.\n");
 
-	while (Run) {
+	while (run) {
 		while (SDL_PollEvent(&event))
-			HandleEvent(&event);
+			handle_event(&event);
 
-		CurrentTime = SDL_GetTicks();
-		elapsed = CurrentTime - last;
-		if (elapsed < MinFrameElapsed) {
+		curr_time = SDL_GetTicks();
+		elapsed = curr_time - last;
+		if (elapsed < frame_elapsed_min) {
 			SDL_Delay(1);
 			continue;
 		}
 
-		FrameElapsed = float(elapsed) / 1000.0f;
+		frame_elapsed = float(elapsed) / 1000.0f;
 
-		Physics::Update();
-		Renderer::Update();
-		Sound::Update();
-		Game::Update();
+		fs::update();
+		physics::update();
+		renderer::update();
+		sound::update();
+		game::update();
 
-		UpdateWindow();
+		update_window();
 
 		last = SDL_GetTicks();
 		fps_count++;
 
 		if (fps_last < last && (last - fps_last) >= 250) {
-			FPS = fps_count << 2;
+			fps = fps_count << 2;
 			fps_last = last;
 			fps_count = 0;
 		}
@@ -119,7 +121,7 @@ static void MainLoop(void)
 	SGE_LOGD("Main loop exited.\n");
 }
 
-static void ShowInfo(void)
+static void show_info(void)
 {
 	SGE_LOGI("SGE %d.%d.%d Copyright(C) 2019\n",
 		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH);
@@ -134,7 +136,7 @@ static void ShowInfo(void)
 	SGE_LOGI("Game: \"%s\"\n", SGE_GAME_NAME);
 }
 
-static int Main(int argc, char *argv[])
+static int main(int argc, char *argv[])
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 		return -1;
@@ -143,65 +145,68 @@ static int Main(int argc, char *argv[])
 	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
-	ShowInfo();
+	show_info();
 
-	SetMaxFPS(60);
+	set_max_fps(60);
 
-	Game::PreInit();
+	game::pre_init();
 
-	GL::Init();
-	Renderer::Init();
-	GUI::Init();
-	Physics::Init();
-	Sound::Init();
-	Game::Init();
+	fs::init(NULL);
+	gl::init();
+	renderer::init();
+	gui::init();
+	physics::init();
+	sound::init();
+	game::init();
 
-	MainLoop();
+	main_loop();
 
-	Game::Shutdown();
-	Sound::Shutdown();
-	Physics::Shutdown();
-	GUI::Shutdown();
-	Renderer::Shutdown();
-	GL::Shutdown();
+	game::shutdown();
+	sound::shutdown();
+	physics::shutdown();
+	gui::shutdown();
+	renderer::shutdown();
+	gl::shutdown();
+	fs::shutdown();
 
-	Game::PostShutdown();
+	game::post_shutdown();
 
 	SDL_Quit();
 
 	return 0;
 }
 
-Uint32 GetNow(void)
+Uint32 get_now(void)
 {
-	return CurrentTime;
+	return curr_time;
 }
 
-float GetElapsed(void)
+float get_elapsed(void)
 {
-	return FrameElapsed;
+	return frame_elapsed;
 }
 
-unsigned long GetFPS(void)
+unsigned int get_fps(void)
 {
-	return FPS;
+	return fps;
 }
 
-unsigned long GetMaxFPS(void)
+unsigned int get_max_fps(void)
 {
-	return 1000 / MinFrameElapsed;
+	return 1000 / frame_elapsed_min;
 }
 
-void SetMaxFPS(unsigned long v)
+void set_max_fps(unsigned int v)
 {
 	SGE_ASSERT(v > 0);
 	SGE_LOGD("Set max fps to %d\n", v);
-	MinFrameElapsed = 1005 / v;
+
+	frame_elapsed_min = 1005 / v;
 }
 
 SGE_END
 
 int main(int argc, char *argv[])
 {
-	return SGE::Main(argc, argv);
+	return sge::main(argc, argv);
 }

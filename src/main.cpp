@@ -14,7 +14,7 @@ SGE_BEGIN
 
 static bool run;
 static Uint32 curr_time;
-static unsigned int fps;
+static unsigned int frame_per_second;
 static unsigned int frame_elapsed_min;
 static float frame_elapsed;
 static bool is_window_visibled;
@@ -74,10 +74,10 @@ static void update_window(void)
 
 static void main_loop(void)
 {
-	fps = 0;
 	run = true;
 	curr_time = SDL_GetTicks();
 	frame_elapsed = 0.0f;
+	frame_per_second = 0;
 
 	SDL_Event event;
 	Uint32 elapsed;
@@ -100,7 +100,6 @@ static void main_loop(void)
 
 		frame_elapsed = float(elapsed) / 1000.0f;
 
-		fs::update();
 		physics::update();
 		renderer::update();
 		sound::update();
@@ -112,7 +111,7 @@ static void main_loop(void)
 		fps_count++;
 
 		if (fps_last < last && (last - fps_last) >= 250) {
-			fps = fps_count << 2;
+			frame_per_second = fps_count << 2;
 			fps_last = last;
 			fps_count = 0;
 		}
@@ -147,11 +146,11 @@ static int main(int argc, char *argv[])
 
 	show_info();
 
-	set_max_fps(60);
+	set_fps_max(60);
 
 	game::pre_init();
 
-	fs::init(NULL);
+	fs::init("new.db");
 	gl::init();
 	renderer::init();
 	gui::init();
@@ -176,32 +175,32 @@ static int main(int argc, char *argv[])
 	return 0;
 }
 
-Uint32 get_now(void)
-{
-	return curr_time;
-}
-
-float get_elapsed(void)
-{
-	return frame_elapsed;
-}
-
-unsigned int get_fps(void)
-{
-	return fps;
-}
-
-unsigned int get_max_fps(void)
-{
-	return 1000 / frame_elapsed_min;
-}
-
-void set_max_fps(unsigned int v)
+void set_fps_max(unsigned int v)
 {
 	SGE_ASSERT(v > 0);
 	SGE_LOGD("Set max fps to %d\n", v);
 
 	frame_elapsed_min = 1005 / v;
+}
+
+Uint32 now(void)
+{
+	return curr_time;
+}
+
+float elapsed(void)
+{
+	return frame_elapsed;
+}
+
+unsigned int fps(void)
+{
+	return 	frame_per_second;
+}
+
+unsigned int fps_max(void)
+{
+	return 1000 / frame_elapsed_min;
 }
 
 SGE_END

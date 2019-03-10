@@ -3,6 +3,8 @@
 #ifndef SGE_COMMON_H
 #define SGE_COMMON_H
 
+#include <cstdint>
+
 #include <Eigen/Geometry>
 
 #define SDL_MAIN_HANDLED
@@ -46,11 +48,20 @@
 
 SGE_BEGIN
 
-Uint32 get_now(void);
-float get_elapsed(void);
-unsigned int get_fps(void);
-unsigned int get_max_fps(void);
-void set_max_fps(unsigned int fps);
+typedef std::int8_t int8_t;
+typedef std::uint8_t uint8_t;
+typedef std::int16_t int16_t;
+typedef std::uint16_t uint16_t;
+typedef std::int32_t int32_t;
+typedef std::uint32_t uint32_t;
+typedef std::int64_t int64_t;
+typedef std::uint64_t uint64_t;
+
+Uint32 now(void);
+float elapsed(void);
+unsigned int fps(void);
+unsigned int fps_max(void);
+void set_fps_max(unsigned int fps);
 
 SGE_END
 

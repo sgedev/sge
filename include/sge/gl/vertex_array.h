@@ -16,7 +16,6 @@ public:
 	bool create(void);
 	void destroy(void);
 	GLuint id(void) const;
-	void bind(void);
 
 private:
 	GLuint m_id;
@@ -25,13 +24,6 @@ private:
 inline GLuint vertex_array::id(void) const
 {
 	return m_id;
-}
-
-inline void vertex_array::bind(void)
-{
-	SGE_ASSERT(m_id > 0);
-
-	glBindVertexArray(m_id);
 }
 
 SGE_GL_END

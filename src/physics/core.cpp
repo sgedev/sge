@@ -41,7 +41,7 @@ void shutdown(void)
 
 void update(void)
 {
-	world->stepSimulation(get_elapsed());
+	world->stepSimulation(elapsed());
 
 	//btTransform trans;
 	//fallRigidBody->getMotionState()->getworldTransform(trans);

@@ -20,9 +20,8 @@ public:
 	GLenum type(void) const;
 	GLenum target(void) const;
 	int size(void) const;
-	void bind(void);
 	void *map(GLenum access);
-	void *map_range(int offset, int size, GLenum access);
+	void *map(GLenum access, int offset, int size);
 	bool unmap(void);
 	bool read(int offset, void *buff, int size);
 	bool write(int offset, const void *data, int size);
@@ -55,13 +54,6 @@ inline int buffer::size(void) const
 	return m_size;
 }
 
-inline void buffer::bind(void)
-{
-	SGE_ASSERT(m_id > 0);
-
-	glBindBuffer(m_target, m_id);
-}
-
 inline void *buffer::map(GLenum access)
 {
 	SGE_ASSERT(m_id > 0);
@@ -72,6 +64,12 @@ inline void *buffer::map(GLenum access)
 		m_mapped = true;
 
 	return p;
+}
+
+inline void *buffer::map(GLenum access, int offset, int size)
+{
+	/* TODO */
+	return NULL;
 }
 
 inline bool buffer::unmap(void)

@@ -64,7 +64,7 @@ void draw(void)
 		ImGuiWindowFlags_NoScrollbar);
 	ImGui::SetWindowPos(ImVec2(0, 0));
 	ImGui::SetWindowSize(ImVec2(100, 50));
-	ImGui::Text("fps %d", get_fps());
+	ImGui::Text("fps %d", fps());
 	ImGui::End();
 
 	if (demo)

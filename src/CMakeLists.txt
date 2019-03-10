@@ -31,23 +31,23 @@ else()
 	message(FATAL_ERROR "SDL2 not found.")
 endif()
 
+# dep: Zlib
+#include(FindZLIB)
+#if(ZLIB_FOUND)
+#	target_include_directories(sge PRIVATE ${ZLIB_INCLUDE_DIRS})
+#	target_link_libraries(sge ${ZLIB_LIBRARIES})
+#else()
+#	message(FATAL_ERROR "Zlib not found.")
+#endif()
+
 # dep: Assimp
 #include(FindAssimp)
 #if(ASSIMP_FOUND)
 #	target_include_directories(${ASSIMP_INCLUDE_DIR})
 #	target_link_libraries(sge ${ASSIMP_LIBRARY})
 #else()
-#	message(FATAL_ERROR "Assimp not found.")
+#	message(FATAL_ERROR "assimp not found.")
 #endif()
-
-# dep: libZIP
-include(FindZIP)
-if(ZIP_FOUND)
-	target_include_directories(sge PRIVATE ${ZIP_INCLUDE_DIRS})
-	target_link_libraries(sge ${ZIP_LIBRARIES})
-else()
-	message(FATAL_ERROR "Libzip not found.")
-endif()
 
 # sge
 

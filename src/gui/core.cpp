@@ -10,7 +10,6 @@
 SGE_GUI_BEGIN
 
 static SDL_Window *window;
-static bool demo;
 
 bool init(void)
 {
@@ -26,8 +25,6 @@ bool init(void)
 
 	ImGui_ImplSDL2_InitForOpenGL(window, gl::get_context());
 	ImGui_ImplOpenGL3_Init();
-
-	demo = true;
 
 	return true;
 }
@@ -66,9 +63,6 @@ void draw(void)
 	ImGui::SetWindowSize(ImVec2(100, 50));
 	ImGui::Text("fps %d", fps());
 	ImGui::End();
-
-	if (demo)
-		ImGui::ShowDemoWindow(&demo);
 
 	ImGui::Render();
 

@@ -4,6 +4,12 @@
 #define SGE_GAME_H
 
 #include <sge/common.h>
+#include <sge/fs.h>
+#include <sge/gl.h>
+#include <sge/gui.h>
+#include <sge/renderer.h>
+#include <sge/physics.h>
+#include <sge/sound.h>
 
 #define SGE_GAME_BEGIN SGE_BEGIN namespace game {
 #define SGE_GAME_END } SGE_END
@@ -19,10 +25,11 @@ namespace helper {
 	}
 }
 
-bool pre_init(void);
-bool init(void);
-void shutdown(void);
-void post_shutdown(void);
+bool preinit(void);
+bool postinit(void);
+void preshutdown(void);
+void postshutdown(void);
+bool should_quit(void);
 void update(void);
 void draw(void);
 void handle_event(const SDL_Event *event);

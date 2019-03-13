@@ -4,24 +4,29 @@
 
 SGE_GAME_BEGIN
 
-bool pre_init(void)
+bool preinit(void)
 {
 	return true;
 }
 
-bool init(void)
+bool postinit(void)
 {
 	return true;
 }
 
-void shutdown(void)
+void preshutdown(void)
 {
 
 }
 
-void post_shutdown(void)
+void postshutdown(void)
 {
 
+}
+
+bool should_quit(void)
+{
+	return true;
 }
 
 void update(void)

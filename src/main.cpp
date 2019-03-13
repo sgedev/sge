@@ -1,6 +1,7 @@
 //
 //
-#include <stdio.h>
+#include <cstdio>
+#include <string>
 
 #include <sge/fs.h>
 #include <sge/gl.h>
@@ -12,9 +13,14 @@
 
 SGE_BEGIN
 
+namespace cmdline {
+	bool version;
+	std::string root;
+}
+
 static bool run;
-static Uint32 curr_time;
-static unsigned int frame_per_second;
+static Uint32 current_time;
+static unsigned int frames_per_second;
 static unsigned int frame_elapsed_min;
 static float frame_elapsed;
 static bool is_window_visibled;
@@ -47,7 +53,7 @@ static void handle_event(const SDL_Event *event)
 		handle_window_event(&event->window);
 		break;
 	case SDL_QUIT:
-		run = false;
+		run = !game::should_quit();
 		break;
 	}
 
@@ -58,32 +64,18 @@ static void handle_event(const SDL_Event *event)
 	game::handle_event(event);
 }
 
-static void update_window(void)
-{
-	if (!is_window_visibled)
-		return;
-
-	gl::draw_begin();
-
-	game::draw();
-	gui::draw();
-	renderer::draw();
-
-	gl::draw_end();
-}
-
 static void main_loop(void)
 {
 	run = true;
-	curr_time = SDL_GetTicks();
+	current_time = SDL_GetTicks();
 	frame_elapsed = 0.0f;
-	frame_per_second = 0;
+	frames_per_second = 0;
 
 	SDL_Event event;
 	Uint32 elapsed;
-	Uint32 last = curr_time;
-	Uint32 fps_last = curr_time;
-	unsigned long fps_count = 0;
+	Uint32 last = current_time;
+	Uint32 fps_last = current_time;
+	unsigned long frames = 0;
 
 	SGE_LOGD("Main loop started.\n");
 
@@ -91,8 +83,8 @@ static void main_loop(void)
 		while (SDL_PollEvent(&event))
 			handle_event(&event);
 
-		curr_time = SDL_GetTicks();
-		elapsed = curr_time - last;
+		current_time = SDL_GetTicks();
+		elapsed = current_time - last;
 		if (elapsed < frame_elapsed_min) {
 			SDL_Delay(1);
 			continue;
@@ -105,15 +97,21 @@ static void main_loop(void)
 		sound::update();
 		game::update();
 
-		update_window();
+		if (is_window_visibled) {
+			gl::draw_begin();
+			gui::draw();
+			renderer::draw();
+			game::draw();
+			gl::draw_end();
+		}
 
 		last = SDL_GetTicks();
-		fps_count++;
+		frames++;
 
-		if (fps_last < last && (last - fps_last) >= 250) {
-			frame_per_second = fps_count << 2;
+		if (fps_last < last && (last - fps_last) >= 62) {
+			frames_per_second = frames << 4;
+			frames = 0;
 			fps_last = last;
-			fps_count = 0;
 		}
 	}
 
@@ -135,32 +133,33 @@ static void show_info(void)
 	SGE_LOGI("Game: \"%s\"\n", SGE_GAME_NAME);
 }
 
-static int main(int argc, char *argv[])
+static void main(void)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
-		return -1;
+		return;
 
 #ifdef SGE_DEBUG
 	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
 	show_info();
-
 	set_fps_max(60);
 
-	game::pre_init();
+	game::preinit();
 
-	fs::init("new.db");
+	fs::init(cmdline::root.c_str());
 	gl::init();
 	renderer::init();
 	gui::init();
 	physics::init();
 	sound::init();
-	game::init();
+
+	game::postinit();
 
 	main_loop();
 
-	game::shutdown();
+	game::preshutdown();
+
 	sound::shutdown();
 	physics::shutdown();
 	gui::shutdown();
@@ -168,11 +167,9 @@ static int main(int argc, char *argv[])
 	gl::shutdown();
 	fs::shutdown();
 
-	game::post_shutdown();
+	game::postshutdown();
 
 	SDL_Quit();
-
-	return 0;
 }
 
 void set_fps_max(unsigned int v)
@@ -185,7 +182,7 @@ void set_fps_max(unsigned int v)
 
 Uint32 now(void)
 {
-	return curr_time;
+	return current_time;
 }
 
 float elapsed(void)
@@ -195,7 +192,7 @@ float elapsed(void)
 
 unsigned int fps(void)
 {
-	return 	frame_per_second;
+	return frames_per_second;
 }
 
 unsigned int fps_max(void)
@@ -207,5 +204,9 @@ SGE_END
 
 int main(int argc, char *argv[])
 {
-	return sge::main(argc, argv);
+	// TODO parse cmdline.
+
+	sge::main();
+
+	return EXIT_SUCCESS;
 }

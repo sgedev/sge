@@ -30,6 +30,13 @@ add_subdirectory(src src)
 get_target_property(SGE_SOURCES sge SOURCES)
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SGE_SOURCES})
 
+# sge_add_license_files
+macro(sge_add_license_files)
+	foreach(LICENSE_FILE ${ARGN})
+		
+	endforeach()
+endmacro()
+
 install(
 	TARGETS
 		sge

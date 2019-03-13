@@ -1,7 +1,6 @@
 //
 //
 #include <string>
-#include <filesystem>
 
 #include <sge/fs.h>
 
@@ -43,12 +42,6 @@ void shutdown(void)
 	SGE_ASSERT(root_file != NULL);
 	SDL_RWclose(root_file);
 	root_file = NULL;
-}
-
-SDL_RWops *get_root_file(void)
-{
-	SGE_ASSERT(root_file != NULL);
-	return root_file;
 }
 
 SGE_FS_END

@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <sge/common.h>
+#include <sge/common.hpp>
 
 //---- Define assertion handler. Defaults to calling assert().
 #define IM_ASSERT(_EXPR)  SGE_ASSERT(_EXPR)

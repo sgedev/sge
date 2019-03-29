@@ -1,6 +1,6 @@
 //
 //
-#include <sge/gl/program.h>
+#include <sge/gl/program.hpp>
 
 SGE_GL_BEGIN
 

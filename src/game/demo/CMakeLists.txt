@@ -1,6 +1,8 @@
 
 target_sources(sge
 	PRIVATE
-		core.cpp
+		demo.cpp
+		demo.hpp
+		main.cpp
 	)
 

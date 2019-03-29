@@ -2,7 +2,7 @@
 //
 #include <string.h>
 
-#include <sge/gl/shader.h>
+#include <sge/gl/shader.hpp>
 
 SGE_GL_BEGIN
 

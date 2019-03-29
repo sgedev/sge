@@ -4,10 +4,11 @@
 
 target_sources(sge
 	PRIVATE
-		buffer.h
-		common.h
-		program.h
-		shader.h
-		vertex_array.h
+		buffer.hpp
+		common.hpp
+		context.hpp
+		program.hpp
+		shader.hpp
+		vertex_array.hpp
 	)
 

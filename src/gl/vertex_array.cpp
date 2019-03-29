@@ -1,6 +1,6 @@
 //
 //
-#include <sge/gl/vertex_array.h>
+#include <sge/gl/vertex_array.hpp>
 
 SGE_GL_BEGIN
 

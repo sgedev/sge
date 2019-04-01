@@ -9,7 +9,7 @@ project(sge VERSION 0.1.0)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 99)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -22,20 +22,26 @@ if(MSVC)
 	add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 endif()
 
-set(SGE_DEBUG ON CACHE BOOL "Enable debug features.")
+include_directories(
+	${CMAKE_SOURCE_DIR}/include
+	${CMAKE_BINARY_DIR}/include
+	)
 
-add_executable(sge)
+set(SGE_DEBUG ON CACHE BOOL "Enable debug features.")
+set(SGE_SHARED ON CACHE BOOL "Build shared library.")
+
+if(SGE_SHARED)
+	add_library(sge SHARED)
+	target_compile_definitions(sge PRIVATE SGE)
+else()
+	add_library(sge STATIC)
+endif()
+
 add_subdirectory(include include)
 add_subdirectory(src src)
+
 get_target_property(SGE_SOURCES sge SOURCES)
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SGE_SOURCES})
-
-# sge_add_license_files
-macro(sge_add_license_files)
-	foreach(LICENSE_FILE ${ARGN})
-		
-	endforeach()
-endmacro()
 
 install(
 	TARGETS

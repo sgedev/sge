@@ -40,6 +40,10 @@ macro(sge_link_libraries)
 	target_link_libraries(sge ${ARGN})
 endmacro()
 
+macro(sge_properties)
+	set_target_properties(sge PROPERTIES ${ARGN})
+endmacro()
+
 add_executable(sge)
 
 include(FindUV)

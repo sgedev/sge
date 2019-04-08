@@ -6,3 +6,7 @@ sge_sources(
 	miniz_zip.c
 	)
 
+if(UNIX)
+	sge_compile_definitions(_LARGEFILE64_SOURCE)
+endif()
+

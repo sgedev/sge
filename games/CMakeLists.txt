@@ -1,0 +1,5 @@
+
+sge_subdirectories(
+	demo
+	)
+

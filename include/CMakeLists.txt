@@ -1,17 +1,16 @@
-#
-#
-#
 
-target_sources(sge
-	PUBLIC
-		sge.h
-
-	PRIVATE
-		sge_config.h.in
+sge_subdirectories(
+	GL
+	sge
 	)
 
-configure_file(
-	sge_config.h.in
-	sge_config.h
+sge_sources(
+	miniz.h
+	miniz_common.h
+	miniz_tdef.h
+	miniz_tinfl.h
+	miniz_zip.h
+	pugiconfig.hpp
+	pugixml.hpp
 	)
 

@@ -77,8 +77,8 @@ sge_subdirectories(
 	init
 	kernel
 	lib
-	physics
 	renderer
+	scene
 	sound
 	test
 	tools

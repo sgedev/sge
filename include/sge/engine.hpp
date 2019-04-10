@@ -4,13 +4,14 @@
 #define SGE_ENGINE_HPP
 
 #include <sge/common.hpp>
+#include <sge/noncopyable.hpp>
 #include <sge/renderer.hpp>
 #include <sge/gui.hpp>
 #include <sge/scene.hpp>
 
 SGE_BEGIN
 
-class engine {
+class engine: public noncopyable {
 public:
 	engine(uv_loop_t *loop = NULL);
 	virtual ~engine(void);
@@ -21,18 +22,16 @@ public:
 	void feed_event(const SDL_Event &event);
 
 protected:
-	float get_elapsed(void) const;
-	renderer::context get_renderer(void);
+	unsigned int get_fps(void);
+	renderer::context &get_renderer(void);
 	gui::context &get_gui(void);
 	scene::context &get_scene(void);
 
 protected:
-	virtual bool preinit(void);
 	virtual bool init(void);
 	virtual void shutdown(void);
-	virtual void postshutdown(void);
 	virtual void update(float elapsed);
-	virtual void draw(renderer::context &r);
+	virtual void draw(void);
 	virtual void handle_event(const SDL_Event &event);
 
 private:
@@ -48,16 +47,19 @@ private:
 	renderer::context m_renderer;
 	gui::context m_gui;
 	scene::context m_scene;
-	float m_elapsed;
+	uint64_t m_base;
+	unsigned int m_fps_count;
+	unsigned int m_fps;
 	float m_time_scale;
+	bool m_started;
 };
 
-inline float engine::get_elapsed(void) const
+inline unsigned int engine::get_fps(void)
 {
-	return m_elapsed;
+	return m_fps;
 }
 
-inline renderer::context engine::get_renderer(void)
+inline renderer::context &engine::get_renderer(void)
 {
 	return m_renderer;
 }

@@ -14,10 +14,13 @@ public:
 	virtual ~context(void);
 
 public:
-	bool init(void);
+	bool init(renderer::context *p);
 	void shutdown(void);
 	void update(float elapsed);
-	void draw(renderer::context &r);
+	void draw(void);
+
+private:
+	renderer::context *m_renderer;
 };
 
 SGE_SCENE_END

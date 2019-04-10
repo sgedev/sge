@@ -8,6 +8,7 @@ sge_subdirectories(
 
 sge_sources(
 	common.hpp
+	console.hpp
 	engine.hpp
 	gui.hpp
 	renderer.hpp

@@ -1,5 +1,7 @@
 //
 //
+#include <algorithm>
+
 #include <sge/renderer/context.hpp>
 
 SGE_RENDERER_BEGIN
@@ -59,7 +61,6 @@ context::context(void)
 	: m_window(NULL)
 	, m_window_id(0)
 	, m_visibled(false)
-	, m_drawable(false)
 	, m_gl_context(NULL)
 {
 }
@@ -162,44 +163,6 @@ void context::handle_event(const SDL_Event &event)
 		m_visibled = false;
 		break;
 	}
-}
-
-bool context::begin(void)
-{
-	SGE_ASSERT(m_window != NULL);
-	SGE_ASSERT(!m_drawable);
-
-	if (!m_visibled)
-		return false;
-
-	m_drawable = true;
-
-	return true;
-}
-
-void context::end(void)
-{
-	SGE_ASSERT(m_window != NULL);
-	SGE_ASSERT(m_gl_context != NULL);
-	SGE_ASSERT(m_drawable);
-
-	m_drawable = false;
-
-	int ret = SDL_GL_MakeCurrent(m_window, m_gl_context);
-	if (ret)
-		return;
-
-	// flush draw queue to gl.
-
-	SDL_GL_SwapWindow(m_window);
-}
-
-void context::draw(drawable &d)
-{
-	SGE_ASSERT(m_drawable);
-
-	// add drawable to draw queue?
-	// sort?
 }
 
 SGE_RENDERER_END

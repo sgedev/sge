@@ -9,7 +9,7 @@ project(sge VERSION 0.1.0)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -60,6 +60,13 @@ if(SDL2_FOUND)
 	sge_link_libraries(${SDL2_LIBRARY})
 else()
 	message(FATAL_ERROR "SDL2 not found.")
+endif()
+
+include(FindGLM)
+if(GLM_FOUND)
+	sge_include_directories(${GLM_INCLUDE_DIR})
+else()
+	message(FATAL_ERRO "glm not found.")
 endif()
 
 sge_include_directories(

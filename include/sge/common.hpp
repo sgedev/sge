@@ -7,6 +7,8 @@
 
 #include <uv.h>
 
+#include <glm/glm.hpp>
+
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 

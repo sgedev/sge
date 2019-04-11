@@ -62,11 +62,12 @@ else()
 	message(FATAL_ERROR "SDL2 not found.")
 endif()
 
-include(FindGLM)
-if(GLM_FOUND)
-	sge_include_directories(${GLM_INCLUDE_DIR})
+include(FindBullet)
+if(BULLET_FOUND)
+	sge_include_directories(${BULLET_INCLUDE_DIRS})
+	sge_link_libraries(${BULLET_LIBRARIES})
 else()
-	message(FATAL_ERRO "glm not found.")
+	message(FATAL_ERROR "bullet not found.")
 endif()
 
 sge_include_directories(
@@ -79,12 +80,12 @@ sge_subdirectories(
 	extras
 	fs
 	games
+	gl
 	gui
 	include
 	init
 	kernel
 	lib
-	renderer
 	scene
 	sound
 	test

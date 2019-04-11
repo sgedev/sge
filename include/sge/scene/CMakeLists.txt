@@ -1,6 +1,10 @@
 
 sge_sources(
+	camera.hpp
 	common.hpp
-	context.hpp
+	drawable.hpp
+	object.hpp
+	renderer.hpp
+	system.hpp
 	)
 

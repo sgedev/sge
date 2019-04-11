@@ -3,8 +3,8 @@
 #ifndef SGE_SCENE_CAMERA_HPP
 #define SGE_SCENE_CAMERA_HPP
 
-#include <sge/renderer.hpp>
 #include <sge/scene/common.hpp>
+#include <sge/scene/renderer.hpp>
 
 SGE_SCENE_BEGIN
 
@@ -14,12 +14,12 @@ public:
 	virtual ~camera(void);
 
 public:
-	bool init(void);
+	bool init(renderer *r);
 	void shutdown(void);
-	void draw(void);
+	void setup(void);
 
 private:
-	renderer::view m_view;
+	renderer *m_renderer;
 };
 
 SGE_SCENE_END

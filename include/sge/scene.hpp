@@ -4,7 +4,7 @@
 #define SGE_SCENE_HPP
 
 #include <sge/scene/common.hpp>
-#include <sge/scene/context.hpp>
+#include <sge/scene/system.hpp>
 
 #endif // SGE_SCENE_HPP
 

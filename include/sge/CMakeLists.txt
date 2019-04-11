@@ -1,7 +1,7 @@
 
 sge_subdirectories(
+	gl
 	gui
-	renderer
 	scene
 	sound
 	)
@@ -9,9 +9,14 @@ sge_subdirectories(
 sge_sources(
 	common.hpp
 	console.hpp
+	dentry.hpp
+	dir.hpp
 	engine.hpp
+	file.hpp
+	fs.hpp
+	gl.hpp
 	gui.hpp
-	renderer.hpp
+	noncopyable.hpp
 	scene.hpp
 	sound.hpp
 	)

@@ -1,5 +1,5 @@
 
 sge_sources(
-	context.cpp
+	system.cpp
 	)
 

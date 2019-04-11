@@ -5,8 +5,11 @@
 SGE_BEGIN
 
 engine::engine(uv_loop_t *loop)
-	: m_loop(loop ? loop : uv_default_loop())
+	: m_loop(loop != NULL ? loop : uv_default_loop())
+	, m_time_base(0)
 	, m_time_scale(1.0f)
+	, m_fps_count(0)
+	, m_fps(0)
 	, m_started(false)
 {
 	SGE_ASSERT(m_loop != NULL);
@@ -35,7 +38,8 @@ bool engine::start(void)
 	uv_timer_start(&m_frame_timer, &engine::frame_cb, 0, 16);
 	uv_timer_start(&m_state_timer, &engine::state_cb, 1000, 1000);
 
-	m_base = uv_now(m_loop);
+	m_time_base = uv_now(m_loop);
+	m_time_scale = 1.0f;
 	m_fps_count = 0;
 	m_fps = 0;
 	m_started = true;
@@ -55,17 +59,73 @@ void engine::stop(void)
 	m_started = false;
 }
 
-void engine::feed_event(const SDL_Event &event)
+void engine::handle_event(const SDL_Event &event)
 {
-	handle_event(event);
+	switch (event.type) {
+	case SDL_WINDOWEVENT:
+		handle_window_event(event.window);
+		break;
+	default:
+		break;
+	}
 }
 
 bool engine::init(void)
 {
-	m_renderer.init();
+	SGE_LOGD("Creating OpenGL window...\n");
 
-	m_scene.init(&m_renderer);
-	m_gui.init(&m_renderer);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+
+#ifdef SGE_DEBUG
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
+
+	m_window = SDL_CreateWindow(SGE_GAME_NAME,
+		SDL_WINDOWPOS_CENTERED,	SDL_WINDOWPOS_CENTERED, 800, 600,
+		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+
+	if (m_window == NULL)
+		return false;
+
+	SGE_LOGD("Initializing OpenGL...\n");
+
+	m_gl_context = SDL_GL_CreateContext(m_window);
+	if (m_gl_context == NULL) {
+		SDL_DestroyWindow(m_window);
+		SGE_LOGE("Failed to create OpenGL context.\n");
+		return false;
+	}
+
+	SDL_GL_MakeCurrent(m_window, m_gl_context);
+
+	glewExperimental = GL_TRUE;
+	if (glewInit() != GLEW_OK) {
+		SDL_GL_DeleteContext(m_gl_context);
+		SDL_DestroyWindow(m_window);
+		SGE_LOGE("Failed to initialize GLEW.\n");
+		return false;
+	}
+
+#ifdef SGE_DEBUG
+	//if (GL_KHR_debug) {
+	//	SGE_LOGD("Enable OpenGL debug output.\n");
+	//	glDebugMessageCallback(debug_output, NULL);
+	//}
+#endif
+
+	SGE_LOGI("OpenGL: %s\n", glGetString(GL_VERSION));
+
+	m_window_id = SDL_GetWindowID(m_window);
+
+	m_gui.init();
+	m_scene.init();
 
 	return true;
 }
@@ -74,7 +134,18 @@ void engine::shutdown(void)
 {
 	m_gui.shutdown();
 	m_scene.shutdown();
-	m_renderer.shutdown();
+
+	SGE_ASSERT(m_window != NULL);
+	SGE_ASSERT(m_gl_context != NULL);
+
+	if (m_gl_context == SDL_GL_GetCurrentContext())
+		SDL_GL_MakeCurrent(m_window, NULL);
+
+	SDL_GL_DeleteContext(m_gl_context);
+	m_gl_context = NULL;
+
+	SDL_DestroyWindow(m_window);
+	m_window = NULL;
 }
 
 void engine::update(float elapsed)
@@ -89,32 +160,31 @@ void engine::draw(void)
 	m_gui.draw();
 }
 
-void engine::handle_event(const SDL_Event &event)
-{
-	switch (event.type) {
-	default:
-		break;
-	}
-
-	m_renderer.handle_event(event);
-}
-
 void engine::frame(void)
 {
 	SGE_ASSERT(m_loop != NULL);
 
-	float elapsed = float(uv_now(m_loop) - m_base) * m_time_scale / 1000.0f;
+	float elapsed = float(uv_now(m_loop) - m_time_base);
+
+	elapsed *= m_time_scale;
+	elapsed /= 1000.0f;
 
 	update(elapsed);
 	
-	if (m_renderer.begin()) {
+	if (m_visibled && SDL_GL_MakeCurrent(m_window, m_gl_context) == 0) {
 		draw();
-		m_renderer.end();
+		SDL_GL_SwapWindow(m_window);
 	}
 
 	uv_update_time(m_loop);
-	m_base = uv_now(m_loop);
+
+	m_time_base = uv_now(m_loop);
 	m_fps_count++;
+}
+
+void engine::frame_cb(uv_timer_t *p)
+{
+	((engine *)(p->data))->frame();
 }
 
 void engine::state(void)
@@ -125,14 +195,24 @@ void engine::state(void)
 	// printf("fps %d\n", m_fps);
 }
 
-void engine::frame_cb(uv_timer_t *p)
-{
-	((engine *)(p->data))->frame();
-}
-
 void engine::state_cb(uv_timer_t *p)
 {
 	((engine *)(p->data))->state();
+}
+
+void engine::handle_window_event(const SDL_WindowEvent &event)
+{
+	if (event.windowID != m_window_id)
+		return;
+
+	switch (event.event) {
+	case SDL_WINDOWEVENT_SHOWN:
+		m_visibled = true;
+		break;
+	case SDL_WINDOWEVENT_HIDDEN:
+		m_visibled = false;
+		break;
+	}
 }
 
 SGE_END

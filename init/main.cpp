@@ -15,7 +15,7 @@ static void event_poll(uv_timer_t *p)
 			break;
 		}
 
-		((sge::engine *)(p->data))->feed_event(event);
+		((sge::engine *)(p->data))->handle_event(event);
 	}
 }
 

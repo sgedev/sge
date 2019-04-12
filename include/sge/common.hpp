@@ -73,6 +73,10 @@ typedef std::uint32_t uint32_t;
 typedef std::int64_t int64_t;
 typedef std::uint64_t uint64_t;
 
+uv_loop_t *get_loop(void);
+float get_elapsed(void);
+unsigned int get_fps(void);
+
 SGE_END
 
 #endif // SGE_COMMON_H

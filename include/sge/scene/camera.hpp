@@ -4,25 +4,17 @@
 #define SGE_SCENE_CAMERA_HPP
 
 #include <sge/scene/common.hpp>
-#include <sge/scene/renderer.hpp>
 
-SGE_SCENE_BEGIN
+#define SGE_SCENE_CAMERA_BEGIN SGE_SCENE_BEGIN namespace camera {
+#define SGE_SCENE_CAMERA_END } SGE_SCENE_END
 
-class camera {
-public:
-	camera(void);
-	virtual ~camera(void);
+SGE_SCENE_CAMERA_BEGIN
 
-public:
-	bool init(renderer *r);
-	void shutdown(void);
-	void setup(void);
+bool init(void);
+void shutdown(void);
+void setup(void);
 
-private:
-	renderer *m_renderer;
-};
-
-SGE_SCENE_END
+SGE_SCENE_CAMERA_END
 
 #endif // SGE_SCENE_CAMERA_HPP
 

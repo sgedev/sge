@@ -3,31 +3,19 @@
 #ifndef SGE_SCENE_RENDERER_HPP
 #define SGE_SCENE_RENDERER_HPP
 
-
-#include <sge/noncopyable.hpp>
-#include <sge/gl.hpp>
 #include <sge/scene/common.hpp>
-#include <sge/scene/drawable.hpp>
 
-SGE_SCENE_BEGIN
+#define SGE_SCENE_RENDERER_BEGIN SGE_SCENE_BEGIN namespace renderer {
+#define SGE_SCENE_RENDERER_END } SGE_SCENE_END
 
-class renderer: public noncopyable {
-public:
-	renderer(void);
-	virtual ~renderer(void);
+SGE_SCENE_RENDERER_BEGIN
 
-public:
-	bool init(void);
-	void shutdown(void);
-	bool begin(void);
-	void end(void);
-	void draw(drawable *p);
+bool init(void);
+void shutdown(void);
+void begin(void);
+void end(void);
 
-private:
-	bool m_began;
-};
-
-SGE_SCENE_END
+SGE_SCENE_RENDERER_END
 
 #endif // SGE_SCENE_RENDERER_HPP
 

@@ -1,0 +1,9 @@
+//
+//
+#ifndef SGE_CONFIG_HPP
+#define SGE_CONFIG_HPP
+
+#cmakedefine SGE_DEBUG
+
+#endif // SGE_CONFIG_HPP
+

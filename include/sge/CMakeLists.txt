@@ -1,5 +1,6 @@
 
 sge_subdirectories(
+	db
 	gl
 	gui
 	scene
@@ -8,16 +9,17 @@ sge_subdirectories(
 
 sge_sources(
 	common.hpp
+	config.hpp.in
 	console.hpp
-	dentry.hpp
-	dir.hpp
-	engine.hpp
-	file.hpp
-	fs.hpp
+	db.hpp
 	gl.hpp
 	gui.hpp
-	noncopyable.hpp
 	scene.hpp
 	sound.hpp
+	)
+
+configure_file(
+	config.hpp.in
+	config.hpp
 	)
 

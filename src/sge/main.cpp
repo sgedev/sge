@@ -1,5 +1,7 @@
 //
 //
+#include <string>
+
 #include <sge/common.hpp>
 #include <sge/db.hpp>
 #include <sge/gl.hpp>
@@ -8,6 +10,10 @@
 #include <sge/game.hpp>
 
 SGE_BEGIN
+
+namespace options {
+	std::string db_filename;
+}
 
 static uv_loop_t *loop;
 static uv_timer_t frame_timer;
@@ -91,7 +97,7 @@ result main(void)
 {
 	loop = uv_default_loop();
 
-	db::init(NULL);
+	db::init(options::db_filename.c_str());
 
 	gl::init();
 	scene::init();
@@ -124,8 +130,11 @@ result main(void)
 
 SGE_END
 
+#include <argh.h>
+
 int main(int argc, char *argv[])
 {
+	
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 #ifdef SGE_DEBUG

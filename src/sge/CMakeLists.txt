@@ -16,7 +16,6 @@ else()
 endif()
 
 sge_subdirectories(
-	db
 	game
 	gl
 	gui
@@ -26,6 +25,7 @@ sge_subdirectories(
 
 sge_sources(
 	console.cpp
+	db.cpp
 	main.cpp
 	)
 

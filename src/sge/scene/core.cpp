@@ -40,11 +40,12 @@ bool load(const char *path)
 		return true;
 	}
 
-	db::blob_ptr p = db::get_blob(path);
-	if (!p)
-		return false;
-
-	glm::vec3 gravity = db::get_vector3f("/scene/1/gravity", glm::vec3(0.0f, 0.98f, 0.0f));
+	db scene_db = db::root().select(path);
+	db gravity_node = scene_db.select("/gravity");
+	glm::vec3 gravity(
+		gravity_node.select("/x").to_float(),
+		gravity_node.select("/y").to_float(),
+		gravity_node.select("/z").to_float());
 
 	return true;
 }

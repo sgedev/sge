@@ -1,6 +1,5 @@
 
 sge_subdirectories(
-	db
 	gl
 	gui
 	scene

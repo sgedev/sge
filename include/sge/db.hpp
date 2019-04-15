@@ -5,24 +5,70 @@
 
 #include <memory>
 
-#include <sge/db/common.hpp>
-#include <sge/db/blob.hpp>
+#include <miniz_zip.h>
+#include <pugixml.hpp>
 
-SGE_DB_BEGIN
+#include <sge/common.hpp>
 
-typedef std::shared_ptr<blob> blob_ptr;
+SGE_BEGIN
 
-bool init(const char *filename);
-void shutdown(void);
-bool get_boolean(const char *path, bool def_value = false);
-int get_integer(const char *path, int def_value = 0);
-double get_number(const char *path, double def_value = 0.0);
-const char *get_string(const char *path, const char *def_value = NULL);
-glm::ivec3 get_vector3i(const char *path, const glm::ivec3 def_value);
-glm::vec3 get_vector3f(const char *path, const glm::vec3 def_value);
-blob_ptr get_blob(const char *path);
+class db {
+public:
+	class blob {
+	public:
+		blob(const char *filename);
+		virtual ~blob(void);
 
-SGE_DB_END
+	public:
+		bool open(void);
+		void close(void);
+		size_t get_size(void) const;
+		const void *get_data(size_t offset = 0) const;
+		size_t read(size_t offset, void *buf, size_t buf_size) const;
+
+	private:
+		std::string m_filename;
+		void *m_data;
+		size_t m_size;
+	};
+
+	typedef std::shared_ptr<blob> blob_ptr;
+
+public:
+	db(void);
+	db(pugi::xml_node node);
+
+public:
+	const char *get_name(void) const;
+	db parent(void);
+	db first_child(void);
+	db next_sibling(void);
+	db select(const char *path);
+	bool to_bool(void);
+	int to_int(void);
+	float to_float(void);
+	double to_double(void);
+	const char *to_string(void);
+	bool is_blob(void) const;
+	blob_ptr to_blob(void);
+	static bool init(const char *filename);
+	static void shutdown(void);
+	static db root(void);
+
+private:
+	static bool init_manifest(void);
+	bool check_path(const char *path);
+
+private:
+	pugi::xml_node m_node;
+	static std::string c_filename;
+	static mz_zip_archive c_archive;
+	static pugi::xml_document c_manifest;
+	static pugi::xml_node c_root;
+	static int c_version;
+};
+
+SGE_END
 
 #endif // SGE_DB_HPP
 

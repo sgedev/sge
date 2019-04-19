@@ -1,5 +1,6 @@
 
 sge_subdirectories(
+	db
 	gl
 	gui
 	scene
@@ -9,8 +10,6 @@ sge_subdirectories(
 sge_sources(
 	common.hpp
 	config.hpp.in
-	console.hpp
-	db.hpp
 	gl.hpp
 	gui.hpp
 	scene.hpp

@@ -21,5 +21,6 @@ sge_sources(
 	miniz_zip.h
 	pugiconfig.hpp
 	pugixml.hpp
+	sge.hpp
 	)
 

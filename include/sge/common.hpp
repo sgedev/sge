@@ -5,8 +5,6 @@
 
 #include <cstdint>
 
-#include <uv.h>
-
 #define GLM_FORCE_CXX11
 #define GLM_FORCE_INLINE
 #define GLM_FORCE_NO_CTOR_INIT
@@ -72,10 +70,6 @@ typedef std::int32_t int32_t;
 typedef std::uint32_t uint32_t;
 typedef std::int64_t int64_t;
 typedef std::uint64_t uint64_t;
-
-uv_loop_t *get_loop(void);
-float get_elapsed(void);
-unsigned int get_fps(void);
 
 SGE_END
 

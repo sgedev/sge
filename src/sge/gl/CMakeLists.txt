@@ -1,6 +1,6 @@
 
 include(FindOpenGL)
-if(OpenGL_OpenGL_FOUND)
+if(OPENGL_FOUND)
 	sge_include_directories(${OPENGL_INCLUDE_DIR})
 	sge_link_libraries(${OPENGL_LIBRARIES})
 else()
@@ -9,9 +9,13 @@ endif()
 
 sge_sources(
 	buffer.cpp
-	core.cpp
+	context.cpp
+	drawable.cpp
+	object.cpp
 	program.cpp
 	shader.cpp
 	vertex_array.cpp
+	view.cpp
+	window.cpp
 	)
 

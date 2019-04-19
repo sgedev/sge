@@ -34,3 +34,4 @@ void vertex_array::destroy(void)
 }
 
 SGE_GL_END
+

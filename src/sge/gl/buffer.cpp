@@ -41,3 +41,4 @@ void buffer::destroy(void)
 }
 
 SGE_GL_END
+

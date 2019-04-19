@@ -1,5 +1,5 @@
 
-sge_sources(
-	core.cpp
-	)
+#sge_sources(
+#	core.cpp
+#	)
 

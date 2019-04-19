@@ -65,3 +65,4 @@ bool shader::compile(const char *src)
 }
 
 SGE_GL_END
+

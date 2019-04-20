@@ -1,12 +1,14 @@
 //
 //
-#ifndef SGE_SCENE_COMMON_HPP
-#define SGE_SCENE_COMMON_HPP
+#ifndef SGE_DB_COMMON_HPP
+#define SGE_DB_COMMON_HPP
+
+#include <miniz_zip.h>
+#include <pugixml.hpp>
 
 #include <sge/common.hpp>
 
-#define SGE_SCENE_BEGIN SGE_BEGIN namespace scene {
-#define SGE_SCENE_END } SGE_END
+#define SGE_DB_BEGIN SGE_BEGIN namespace db {
+#define SGE_DB_END } SGE_END
 
-#endif // SGE_SCENE_COMMON_HPP
-
+#endif // SGE_DB_COMMON_HPP

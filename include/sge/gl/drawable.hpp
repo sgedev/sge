@@ -17,4 +17,3 @@ public:
 SGE_GL_END
 
 #endif // SGE_GL_DRAWABLE_HPP
-

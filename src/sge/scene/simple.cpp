@@ -35,4 +35,3 @@ void simple::draw(camera *cam)
 }
 
 SGE_SCENE_END
-

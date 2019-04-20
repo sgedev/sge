@@ -1,0 +1,132 @@
+//
+//
+#ifndef SGE_DB_NODE_HPP
+#define SGE_DB_NODE_HPP
+
+#include <memory>
+
+#include <sge/db/common.hpp>
+#include <sge/db/blob.hpp>
+
+SGE_DB_BEGIN
+
+typedef std::shared_ptr<blob> blob_ptr;
+
+class node {
+public:
+	node(void);
+	node(mz_zip_archive *archive, pugi::xml_node node);
+	node(const node &that);
+
+public:
+	void set(mz_zip_archive *archive, pugi::xml_node node);
+	node child(const char *path);
+	node first_child(void);
+	node next_sibling(void);
+
+public:
+	bool to_bool(void);
+	int to_int(void);
+	float to_float(void);
+	double to_double(void);
+	const char *to_string(void);
+	blob_ptr to_blob(void);
+
+public:
+	operator bool(void);
+	bool operator==(const node &that);
+	bool operator!=(const node &that);
+	node &operator=(const node &that);
+
+protected:
+	bool check_path(const char *path);
+
+private:
+	mz_zip_archive *m_archive;
+	pugi::xml_node m_node;
+};
+
+inline node::node(void)
+	: m_archive(NULL)
+{
+}
+
+inline node::node(mz_zip_archive *archive, pugi::xml_node node)
+	: m_archive(archive)
+	, m_node(node)
+{
+}
+
+inline node::node(const node &that)
+	: m_archive(that.m_archive)
+	, m_node(that.m_node)
+{
+}
+
+inline void node::set(mz_zip_archive *archive, pugi::xml_node node)
+{
+	m_archive = archive;
+	m_node = node;
+}
+
+inline node node::first_child(void)
+{
+	return node(m_archive, m_node.first_child());
+}
+
+inline node node::next_sibling(void)
+{
+	return node(m_archive, m_node.next_sibling());
+}
+
+inline bool node::to_bool(void)
+{
+	return m_node.text().as_bool();
+}
+
+inline int node::to_int(void)
+{
+	return m_node.text().as_int();
+}
+
+inline float node::to_float(void)
+{
+	return m_node.text().as_float();
+}
+
+inline double node::to_double(void)
+{
+	return m_node.text().as_double();
+}
+
+inline const char *node::to_string(void)
+{
+	return m_node.value();
+}
+
+inline node::operator bool(void)
+{
+	return !!m_node;
+}
+
+inline bool node::operator==(const node &that)
+{
+	return (m_archive == that.m_archive && m_node == that.m_node);
+}
+
+inline bool node::operator!=(const node &that)
+{
+	return (m_archive != that.m_archive || m_node != that.m_node);
+}
+
+inline node &node::operator=(const node &that)
+{
+	m_archive = that.m_archive;
+	m_node = that.m_node;
+
+	return (*this);
+}
+
+SGE_DB_END
+
+#endif // SGE_DB_NODE_HPP

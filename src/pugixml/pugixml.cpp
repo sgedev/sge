@@ -1127,6 +1127,8 @@ namespace pugi
 		xml_node_struct* next_sibling;
 
 		xml_attribute_struct* first_attribute;
+
+		void* user_data;
 	};
 }
 #endif

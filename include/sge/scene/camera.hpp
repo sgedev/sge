@@ -24,32 +24,31 @@ public:
 	void set_background(const glm::vec3 &v);
 	void ortho(float left, float right, float bottom, float top, float znear, float zfar);
 	void frustum(float left, float right, float bottom, float top, float znear, float nfar);
-	void look_at(const glm::vec3 &eye, const glm::vec3 &center, const glm::vec3 &up);
+	void look_at(const glm::vec3 &eye, const glm::vec3 &target, const glm::vec3 &up);
+	void look_to(const glm::vec3 &eye, const glm::vec3 &direction, const glm::vec3 &up);
 
 private:
 	gl::view m_view;
-	glm::vec3 m_background;
-	bool m_background_enabled;
 };
 
 inline void camera::enable_background(void)
 {
-	m_background_enabled = true;
+	m_view.enable_clear();
 }
 
 inline void camera::disable_background(void)
 {
-	m_background_enabled = false;
+	m_view.disable_clear();
 }
 
 inline void camera::set_background(float red, float green, float blue)
 {
-	m_background = glm::vec3(red, green, blue);
+	m_view.set_clear_color(red, green, blue);
 }
 
 inline void camera::set_background(const glm::vec3 &v)
 {
-	m_background = v;
+	m_view.set_clear_color(v);
 }
 
 inline void camera::ortho(float left, float right, float bottom, float top, float znear, float zfar)
@@ -62,9 +61,14 @@ inline void camera::frustum(float left, float right, float bottom, float top, fl
 	m_view.set_projection(glm::frustum(left, right, bottom, top, znear, zfar));
 }
 
-inline void camera::look_at(const glm::vec3 &eye, const glm::vec3 &center, const glm::vec3 &up)
+inline void camera::look_at(const glm::vec3 &eye, const glm::vec3 &target, const glm::vec3 &up)
 {
-	m_view.set_projection(glm::lookAtLH(eye, center, up));
+	m_view.set_projection(glm::lookAtLH(eye, target, up));
+}
+
+inline void camera::look_to(const glm::vec3 &eye, const glm::vec3 &direction, const glm::vec3 &up)
+{
+	m_view.set_projection(glm::lookAtLH(eye, eye + direction, up));
 }
 
 SGE_SCENE_END

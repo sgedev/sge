@@ -5,8 +5,6 @@
 SGE_SCENE_BEGIN
 
 camera::camera(void)
-	: m_background(0.0f, 0.0f, 0.0f)
-	, m_background_enabled(false)
 {
 }
 
@@ -18,6 +16,15 @@ bool camera::init(void)
 {
 	m_view.init();
 
+	static int i = 0;
+
+	i++;
+
+	if (i == 1)
+		m_view.set_viewport(0, 0, 100, 100);
+	if (i == 2)
+		m_view.set_viewport(200, 200, 100, 100);
+
 	return true;
 }
 
@@ -28,11 +35,6 @@ void camera::shutdown(void)
 
 void camera::update(void)
 {
-	if (m_background_enabled) {
-		m_view.enable_clear();
-		m_view.set_clear_color(m_background);
-	}
-
 	m_view.set_transform(get_transform());
 
 	m_view.update();

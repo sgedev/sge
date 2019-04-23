@@ -59,6 +59,9 @@ inline bool context::make_current(void)
 	m_drawing = true;
 	c_current = this;
 
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
 	return true;
 }
 

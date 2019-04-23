@@ -6,6 +6,7 @@ SGE_DB_BEGIN
 
 node node::child(const char *path)
 {
+	SGE_ASSERT(m_archive != NULL);
 	SGE_ASSERT(check_path(path));
 
 	pugi::xpath_node xnode = m_node.select_node(path);
@@ -19,8 +20,14 @@ blob_ptr node::to_blob(void)
 {
 	blob_ptr p;
 
+	SGE_ASSERT(m_archive != NULL);
+
 	const char *filename = to_string();
 	if (filename == NULL)
+		return p;
+
+	int index = mz_zip_reader_locate_file(m_archive, filename, NULL, 0);
+	if (index < 0)
 		return p;
 
 	p.reset(new blob(m_archive, filename));

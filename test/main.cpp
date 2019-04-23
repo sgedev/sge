@@ -8,7 +8,8 @@ static bool run = true;
 static sge::gl::window window;
 static sge::gl::context context;
 static sge::scene::simple scene;
-static sge::scene::camera camera;
+static sge::scene::camera camera1;
+static sge::scene::camera camera2;
 
 static void handle_event(const SDL_Event &event)
 {
@@ -29,9 +30,12 @@ int main(int argc, char *argv[])
 	scene.init();
 
 	context.make_current();
-	camera.init();
-	camera.enable_background();
-	camera.set_background(0.3f, 0.3f, 0.3f);
+	camera1.init();
+	camera1.enable_background();
+	camera1.set_background(0.1f, 0.1f, 0.1f);
+	camera2.init();
+	camera2.enable_background();
+	camera2.set_background(0.9f, 0.9f, 0.9f);
 	context.swap_buffers();
 
 	while (run) {
@@ -39,17 +43,21 @@ int main(int argc, char *argv[])
 			handle_event(event);
 
 		scene.update(16.0f);
-		scene.draw(&camera);
+
+		scene.draw(&camera1);
+		scene.draw(&camera2);
 
 		context.make_current();
-		camera.update();
+		camera1.update();
+		camera2.update();
 		context.swap_buffers();
 
 		SDL_Delay(16);
 	}
 
+	camera2.shutdown();
+	camera1.shutdown();
 	scene.shutdown();
-	camera.shutdown();
 	context.shutdown();
 	window.shutdown();
 

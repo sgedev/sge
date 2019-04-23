@@ -48,6 +48,8 @@ void view::update(void)
 	glViewport(m_viewport[0], m_viewport[1], m_viewport[2], m_viewport[3]);
 
 	if (m_clear_enabled) {
+		glScissor(m_viewport[0], m_viewport[1], m_viewport[2], m_viewport[3]);
+		glEnable(GL_SCISSOR_TEST);
 		glClearColor(m_clear_color.r, m_clear_color.g, m_clear_color.b, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}

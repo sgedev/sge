@@ -4,63 +4,41 @@
 #define SGE_GL_CONTEXT_HPP
 
 #include <sge/gl/common.hpp>
-#include <sge/gl/window.hpp>
 #include <sge/gl/program.hpp>
 
 SGE_GL_BEGIN
 
 class context {
 public:
-	enum program_type {
-		PROGRAM_DEFAULT = 0,
-		PROGRAM_MAX
-	};
-
-public:
 	context(void);
 	virtual ~context(void);
 
 public:
 	bool init(SDL_Window *w);
-	bool init(window &w);
 	void shutdown(void);
 	bool make_current(void);
 	void swap_buffers(void);
-	SDL_GLContext to_sdl_gl_context(void);
+	SDL_GLContext to_sdl(void);
+	SDL_Window *get_window(void);
 	static context *get_current(void);
-
-private:
-	bool init_programs(void);
 
 private:
 	SDL_Window *m_window;
 	SDL_GLContext m_gl_context;
-	bool m_drawing;
-	program m_program_table[PROGRAM_MAX];
 	static context *c_current;
-	static const char *c_vs_sources[PROGRAM_MAX];
-	static const char *c_fs_sources[PROGRAM_MAX];
 };
-
-inline bool context::init(window &w)
-{
-	return init(w.to_sdl_window());
-}
 
 inline bool context::make_current(void)
 {
 	SGE_ASSERT(m_window != NULL);
 	SGE_ASSERT(m_gl_context != NULL);
-	SGE_ASSERT(!m_drawing);
+	SGE_ASSERT(c_current != this);
+	SGE_ASSERT(SDL_GL_GetCurrentContext() != m_gl_context);
 
 	if (SDL_GL_MakeCurrent(m_window, m_gl_context) < 0)
 		return false;
 
-	m_drawing = true;
 	c_current = this;
-
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
 
 	return true;
 }
@@ -68,22 +46,25 @@ inline bool context::make_current(void)
 inline void context::swap_buffers(void)
 {
 	SGE_ASSERT(m_window != NULL);
-	SGE_ASSERT(m_drawing);
 	SGE_ASSERT(c_current == this);
 	SGE_ASSERT(m_gl_context == SDL_GL_GetCurrentContext());
 
 	SDL_GL_SwapWindow(m_window);
-
-	m_drawing = false;
 	c_current = NULL;
 }
 
-inline SDL_GLContext context::to_sdl_gl_context(void)
+inline SDL_GLContext context::to_sdl(void)
 {
-	SGE_ASSERT(m_window != NULL);
 	SGE_ASSERT(m_gl_context != NULL);
 
 	return m_gl_context;
+}
+
+inline SDL_Window *context::get_window(void)
+{
+	SGE_ASSERT(m_window != NULL);
+
+	return m_window;
 }
 
 SGE_GL_END

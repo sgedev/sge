@@ -9,13 +9,10 @@ endif()
 
 sge_sources(
 	buffer.cpp
-	context.cpp
-	drawable.cpp
-	object.cpp
+	core.cpp
 	program.cpp
 	shader.cpp
 	vertex_array.cpp
-	view.cpp
 	window.cpp
 	)
 

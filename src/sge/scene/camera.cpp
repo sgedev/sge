@@ -2,43 +2,60 @@
 //
 #include <sge/scene/camera.hpp>
 
-SGE_SCENE_BEGIN
+SGE_SCENE_CAMERA_BEGIN
 
-camera::camera(void)
+static bool s_drawing;
+static glm::mat4 s_view_matrix;
+static glm::mat4 s_project_matrix;
+
+bool init(void)
 {
-}
+	s_drawing = false;
 
-camera::~camera(void)
-{
-}
-
-bool camera::init(void)
-{
-	m_view.init();
-
-	static int i = 0;
-
-	i++;
-
-	if (i == 1)
-		m_view.set_viewport(0, 0, 100, 100);
-	if (i == 2)
-		m_view.set_viewport(200, 200, 100, 100);
+	s_view_matrix = glm::mat4(1.0f);
+	s_project_matrix = glm::mat4(0.0f);
 
 	return true;
 }
 
-void camera::shutdown(void)
+void shutdown(void)
 {
-	m_view.shutdown();
+	SGE_ASSERT(!s_drawing);
 }
 
-void camera::update(void)
+void ortho(float left, float right, float bottom, float top, float znear, float zfar)
 {
-	m_view.set_transform(get_transform());
-
-	m_view.update();
+	s_project_matrix = glm::orthoLH(left, right, bottom, top, znear, zfar);
 }
 
-SGE_SCENE_END
+void frustum(float left, float right, float bottom, float top, float znear, float zfar)
+{
+	s_project_matrix = glm::frustum(left, right, bottom, top, znear, zfar);
+}
+
+void look_at(const glm::vec3 &eye, const glm::vec3 &target, const glm::vec3 &up)
+{
+	s_project_matrix = glm::lookAt(eye, target, up);
+}
+
+void look_to(const glm::vec3 &eye, const glm::vec3 &direction, const glm::vec3 &up)
+{
+	s_project_matrix = glm::lookAt(eye, eye + direction, up);
+}
+
+void reset(void)
+{
+	SGE_ASSERT(!s_drawing);
+
+	s_drawing = true;
+}
+
+void render(void)
+{
+	SGE_ASSERT(s_drawing);
+
+	s_drawing = false;
+}
+
+SGE_SCENE_CAMERA_END
 

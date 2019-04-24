@@ -8,6 +8,7 @@
 #include <sge/gui.hpp>
 #include <sge/scene.hpp>
 #include <sge/sound.hpp>
+#include <sge/game.hpp>
 
 #endif // SGE_HPP
 

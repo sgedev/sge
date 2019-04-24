@@ -48,22 +48,14 @@ endmacro()
 
 # sge
 
-include(FindSDL2)
-if(SDL2_FOUND)
-	include_directories(${SDL2_INCLUDE_DIR})
-	link_libraries(${SDL2_LIBRARY})
-else()
-	message(FATAL_ERROR "SDL2 not found.")
-endif()
+set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
 
-include_directories(
+add_executable(sge)
+
+sge_include_directories(
 	${CMAKE_SOURCE_DIR}/include
 	${CMAKE_BINARY_DIR}/include
 	)
-
-set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
-
-add_library(sge STATIC)
 
 sge_subdirectories(
 	docs

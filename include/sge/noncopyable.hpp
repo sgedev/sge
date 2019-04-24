@@ -8,6 +8,10 @@
 SGE_BEGIN
 
 class noncopyable {
+public:
+	noncopyable(void) { }
+	~noncopyable(void) { }
+
 private:
 	noncopyable(const noncopyable &);
 	noncopyable &operator=(const noncopyable&);

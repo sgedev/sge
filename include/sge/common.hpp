@@ -5,9 +5,11 @@
 
 #include <cstdint>
 
+#include <uv.h>
+
 //#define GLM_FORCE_CXX11
 #define GLM_FORCE_INLINE
-#define GLM_FORCE_NO_CTOR_INIT
+//#define GLM_FORCE_NO_CTOR_INIT
 #define GLM_FORCE_EXPLICIT_CTOR
 #include <glm/glm.hpp>
 #include <glm/gtc/bitfield.hpp>

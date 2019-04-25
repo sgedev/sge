@@ -21,6 +21,7 @@ public:
 	bool add_shader(GLuint shader_id);
 	bool add_shader(GLenum type, const char *src);
 	bool link(void);
+	const char *info_log(void) const;
 	GLint uniform_location(const char *name);
 	void uniform(GLint location, GLfloat v0);
 	void uniform(GLint location, GLfloat v0, GLfloat v1);
@@ -58,6 +59,11 @@ inline bool program::add_shader(GLuint shader_id)
 	SGE_ASSERT(shader_id > 0);
 
 	glAttachShader(m_id, shader_id);
+}
+
+inline const char *program::info_log(void) const
+{
+	return m_info_log.c_str();
 }
 
 inline GLint program::uniform_location(const char *name)

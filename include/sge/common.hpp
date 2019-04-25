@@ -38,18 +38,18 @@
 #		define SGE_LOGI(fmt, ...) SDL_LogInfo(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
 #		define SGE_LOGE(fmt, ...) SDL_LogError(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
 #		define SGE_LOGW(fmt, ...) SDL_LogWarn(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
-#		define SGE_LOGD(fmt, ...) SDL_LogDebug(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
+#		define SGE_LOGD(fmt, ...) SDL_LogDebug(SGE_LOG_CATEGORY, "%s(%d) " fmt, __func__, __LINE__, ##__VA_ARGS__)
 #	else
 #		define SGE_LOGI(fmt, ...) SDL_LogInfo(SGE_LOG_CATEGORY, fmt, __VA_ARGS__)
 #		define SGE_LOGE(fmt, ...) SDL_LogError(SGE_LOG_CATEGORY, fmt, __VA_ARGS__)
 #		define SGE_LOGW(fmt, ...) SDL_LogWarn(SGE_LOG_CATEGORY, fmt, __VA_ARGS__)
-#		define SGE_LOGD(fmt, ...) SDL_LogDebug(SGE_LOG_CATEGORY, fmt, __VA_ARGS__)
+#		define SGE_LOGD(fmt, ...) SDL_LogDebug(SGE_LOG_CATEGORY, "%s(%d) " fmt, __func__, __LINE__, __VA_ARGS__)
 #	endif
 #else
 #	define SGE_ASSERT(expr)
-#	define SGE_LOGI(fmt, ...)
-#	define SGE_LOGE(fmt, ...)
-#	define SGE_LOGW(fmt, ...)
+#	define SGE_LOGI(fmt, ...) SDL_LogInfo(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
+#	define SGE_LOGE(fmt, ...) SDL_LogError(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
+#	define SGE_LOGW(fmt, ...) SDL_LogWarn(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
 #	define SGE_LOGD(fmt, ...)
 #endif
 
@@ -72,6 +72,9 @@ typedef std::int32_t int32_t;
 typedef std::uint32_t uint32_t;
 typedef std::int64_t int64_t;
 typedef std::uint64_t uint64_t;
+
+uv_loop_t *main_loop(void);
+unsigned int fps(void);
 
 SGE_END
 

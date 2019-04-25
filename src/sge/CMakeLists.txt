@@ -25,6 +25,8 @@ sge_subdirectories(
 	)
 
 sge_sources(
+	console.cpp
+	loading.cpp
 	main.cpp
 	)
 

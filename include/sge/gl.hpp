@@ -11,8 +11,8 @@ SGE_GL_BEGIN
 
 bool init(void);
 void shutdown(void);
-bool begin(void);
-void end(void);
+bool make_current(void);
+void swap_buffers(void);
 void handle_event(const SDL_Event &event);
 SDL_Window *window(void);
 Uint32 window_id(void);

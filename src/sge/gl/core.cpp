@@ -12,6 +12,65 @@ static int s_window_height;
 static bool s_window_visibled = false;
 static SDL_GLContext s_context = NULL;
 
+#ifdef SGE_DEBUG
+
+static inline const char *debug_source(GLenum source)
+{
+	switch (source) {
+	case GL_DEBUG_SOURCE_API:             return "API";
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   return "WINDOW_SYSTEM";
+	case GL_DEBUG_SOURCE_SHADER_COMPILER: return "SHADER_COMPILER";
+	case GL_DEBUG_SOURCE_THIRD_PARTY:     return "THIRD_PART";
+	case GL_DEBUG_SOURCE_APPLICATION:     return "APPLICATION";
+	case GL_DEBUG_SOURCE_OTHER:           return "OTHER";
+	}
+	return "";
+}
+
+static inline const char *debug_type(GLenum type)
+{
+	switch (type) {
+	case GL_DEBUG_TYPE_ERROR:               return "ERROR";
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return "DEPRECATED_BEHAVIOR";
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  return "UNDEFINED_BEHAVIOR";
+	case GL_DEBUG_TYPE_PORTABILITY:         return "PORTABILITY";
+	case GL_DEBUG_TYPE_PERFORMANCE:         return "PERFORMANCE";
+	case GL_DEBUG_TYPE_MARKER:              return "MARKER";
+	case GL_DEBUG_TYPE_PUSH_GROUP:          return "PUSH_GROUP";
+	case GL_DEBUG_TYPE_POP_GROUP:           return "POP_GROUP";
+	case GL_DEBUG_TYPE_OTHER:               return "OTHER";
+	}
+	return "";
+}
+
+static inline const char *debug_severity(GLenum severity)
+{
+	switch (severity) {
+	case GL_DEBUG_SEVERITY_HIGH:         return "HIGH";
+	case GL_DEBUG_SEVERITY_MEDIUM:       return "MEDIUM";
+	case GL_DEBUG_SEVERITY_LOW:          return "LOW";
+	case GL_DEBUG_SEVERITY_NOTIFICATION: return "NOTIFICATION";
+	}
+	return "";
+}
+
+static void debug_output(GLenum source, GLenum type, GLuint id,
+	GLenum severity, GLsizei length, const GLchar *message, const void *data)
+{
+	switch (type) {
+	case GL_DEBUG_TYPE_ERROR:
+		SGE_LOGE("GL-%04d|%s|%s|%s] %s", id,
+			debug_source(source), debug_type(type), debug_severity(severity), message);
+		break;
+	default:
+		SGE_LOGI("GL-%04d|%s|%s|%s] %s", id,
+			debug_source(source), debug_type(type), debug_severity(severity), message);
+		break;
+	}
+}
+
+#endif // SGE_DEBUG
+
 bool init(void)
 {
 	SGE_ASSERT(s_window == NULL);
@@ -70,12 +129,13 @@ bool init(void)
 	}
 
 #ifdef SGE_DEBUG
-	//if (GL_KHR_debug) {
-	//	SGE_LOGD("Enable OpenGL debug output.\n");
-	//	glDebugMessageCallback(debug_output, NULL);
-	//}
+	if (GL_KHR_debug) {
+		SGE_LOGD("Enable OpenGL debug output.\n");
+		glDebugMessageCallback(debug_output, NULL);
+	}
 #endif
 
+	SGE_LOGI("GLEW: %s\n", glewGetString(GLEW_VERSION));
 	SGE_LOGI("OpenGL: %s\n", glGetString(GL_VERSION));
 
 	return true;
@@ -97,7 +157,7 @@ void shutdown(void)
 	s_window_id = 0;
 }
 
-bool begin(void)
+bool make_current(void)
 {
 	SGE_ASSERT(s_window != NULL);
 	SGE_ASSERT(s_context != NULL);
@@ -114,9 +174,11 @@ bool begin(void)
 	return true;
 }
 
-void end(void)
+void swap_buffers(void)
 {
 	SGE_ASSERT(s_window != NULL);
+	SGE_ASSERT(s_context != NULL);
+	SGE_ASSERT(s_context == SDL_GL_GetCurrentContext());
 
 	SDL_GL_SwapWindow(s_window);
 }
@@ -179,6 +241,9 @@ const glm::ivec2 &window_size(void)
 
 SDL_GLContext context(void)
 {
+	SGE_ASSERT(s_window != NULL);
+	SGE_ASSERT(s_context != NULL);
+
 	return s_context;
 }
 

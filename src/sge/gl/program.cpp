@@ -62,7 +62,7 @@ bool program::add_shader(GLenum type, const char *src)
 	glGetShaderInfoLog(shader, sizeof(info_log) - 1, &length, info_log);
 	m_info_log = info_log;
 
-	return true;
+	return false;
 }
 
 bool program::link(void)

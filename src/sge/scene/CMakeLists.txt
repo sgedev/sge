@@ -7,8 +7,11 @@ else()
 	message(FATAL_ERROR "BulletPhysics not found.")
 endif()
 
+sge_subdirectories(
+	camera
+	)
+
 sge_sources(
-	camera.cpp
 	core.cpp
 	node.cpp
 	)

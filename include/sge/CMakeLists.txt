@@ -1,6 +1,7 @@
 
 sge_subdirectories(
 	db
+	game
 	gl
 	gui
 	scene
@@ -10,10 +11,15 @@ sge_subdirectories(
 sge_sources(
 	common.hpp
 	config.hpp.in
+	console.hpp
 	db.hpp
+	game.hpp
 	gl.hpp
 	gui.hpp
+	loading.hpp
+	noncopyable.hpp
 	scene.hpp
+	signal.hpp
 	sound.hpp
 	)
 

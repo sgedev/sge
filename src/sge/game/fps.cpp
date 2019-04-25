@@ -1,30 +1,26 @@
 //
 //
-#include <sge/game.hpp>
+#include <sge/game/fps.hpp>
 
-SGE_GAME_BEGIN
+SGE_GAME_FPS_BEGIN
 
 bool init(void)
 {
-	fps::init();
-
 	return true;
 }
 
 void shutdown(void)
 {
-	fps::shutdown();
 }
 
 void update(float elapsed)
 {
-	fps::update(elapsed);
 }
 
 void handle_event(const SDL_Event &event)
 {
-	fps::handle_event(event);
+	// Simple ASDF&Mouse control sge::scene::camera
 }
 
-SGE_GAME_END
+SGE_GAME_FPS_END
 

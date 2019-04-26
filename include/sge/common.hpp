@@ -10,7 +10,7 @@
 //#define GLM_FORCE_CXX11
 #define GLM_FORCE_INLINE
 //#define GLM_FORCE_NO_CTOR_INIT
-#define GLM_FORCE_EXPLICIT_CTOR
+//#define GLM_FORCE_EXPLICIT_CTOR
 #include <glm/glm.hpp>
 #include <glm/gtc/bitfield.hpp>
 #include <glm/gtc/color_space.hpp>
@@ -22,6 +22,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -75,6 +76,7 @@ typedef std::uint64_t uint64_t;
 
 uv_loop_t *main_loop(void);
 unsigned int fps(void);
+float elapsed(void);
 
 SGE_END
 

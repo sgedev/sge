@@ -12,8 +12,15 @@ SGE_GAME_FPS_BEGIN
 
 bool init(void);
 void shutdown(void);
-void update(float elapsed);
-void handle_event(const SDL_Event &event);
+void update(void);
+void set_mouse_sensitivity(float v);
+void mouse_look(float dx, float dy);
+void set_move_speed(float v);
+void move_forward(void);
+void move_backward(void);
+void move_left(void);
+void move_right(void);
+void set_fov(float v);
 
 SGE_GAME_FPS_END
 

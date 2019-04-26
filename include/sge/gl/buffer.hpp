@@ -20,6 +20,7 @@ public:
 	GLenum type(void) const;
 	GLenum target(void) const;
 	int size(void) const;
+	void bind(void);
 	void *map(GLenum access);
 	void *map(GLenum access, int offset, int size);
 	bool unmap(void);
@@ -52,6 +53,13 @@ inline GLenum buffer::target(void) const
 inline int buffer::size(void) const
 {
 	return m_size;
+}
+
+inline void buffer::bind(void)
+{
+	SGE_ASSERT(m_id > 0);
+
+	glBindBuffer(m_target, m_id);
 }
 
 inline void *buffer::map(GLenum access)

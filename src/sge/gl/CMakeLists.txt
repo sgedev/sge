@@ -13,6 +13,5 @@ sge_sources(
 	program.cpp
 	shader.cpp
 	vertex_array.cpp
-	window.cpp
 	)
 

@@ -15,11 +15,11 @@ typedef std::shared_ptr<blob> blob_ptr;
 class node {
 public:
 	node(void);
-	node(mz_zip_archive *archive, pugi::xml_node node);
+	node(pugi::xml_node node);
 	node(const node &that);
 
 public:
-	void set(mz_zip_archive *archive, pugi::xml_node node);
+	void set(pugi::xml_node node);
 	node child(const char *path);
 	node first_child(void);
 	node next_sibling(void);
@@ -37,46 +37,42 @@ public:
 	bool operator==(const node &that);
 	bool operator!=(const node &that);
 	node &operator=(const node &that);
+	node &operator=(pugi::xml_node node);
 
 protected:
 	bool check_path(const char *path);
 
 private:
-	mz_zip_archive *m_archive;
 	pugi::xml_node m_node;
 };
 
 inline node::node(void)
-	: m_archive(NULL)
 {
 }
 
-inline node::node(mz_zip_archive *archive, pugi::xml_node node)
-	: m_archive(archive)
-	, m_node(node)
+inline node::node(pugi::xml_node node)
+	: m_node(node)
 {
 }
 
 inline node::node(const node &that)
-	: m_archive(that.m_archive)
-	, m_node(that.m_node)
+	: m_node(that.m_node)
 {
 }
 
-inline void node::set(mz_zip_archive *archive, pugi::xml_node node)
+inline void node::set(pugi::xml_node node)
 {
-	m_archive = archive;
 	m_node = node;
 }
 
 inline node node::first_child(void)
 {
-	return node(m_archive, m_node.first_child());
+	return node(m_node.first_child());
 }
 
 inline node node::next_sibling(void)
 {
-	return node(m_archive, m_node.next_sibling());
+	return node(m_node.next_sibling());
 }
 
 inline bool node::to_bool(void)
@@ -111,18 +107,24 @@ inline node::operator bool(void)
 
 inline bool node::operator==(const node &that)
 {
-	return (m_archive == that.m_archive && m_node == that.m_node);
+	return (m_node == that.m_node);
 }
 
 inline bool node::operator!=(const node &that)
 {
-	return (m_archive != that.m_archive || m_node != that.m_node);
+	return (m_node != that.m_node);
 }
 
 inline node &node::operator=(const node &that)
 {
-	m_archive = that.m_archive;
 	m_node = that.m_node;
+
+	return (*this);
+}
+
+inline node &node::operator=(pugi::xml_node n)
+{
+	m_node = n;
 
 	return (*this);
 }

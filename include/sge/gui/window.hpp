@@ -5,13 +5,13 @@
 
 #include <string>
 
-#include <sge/noncopyable.hpp>
 #include <sge/signal.hpp>
 #include <sge/gui/common.hpp>
+#include <sge/gui/node.hpp>
 
 SGE_GUI_BEGIN
 
-class window: public noncopyable {
+class window: public node {
 public:
 	enum {
 		FLAG_NO_TITLE = (1 << 0),
@@ -30,9 +30,11 @@ public:
 	virtual ~window(void);
 
 public:
-	bool create(const char *name, int x, int y, int width, int height, int flags = 0, window *parent = NULL);
+	bool create(const char *name, int x, int y, int width, int height,
+		window *parent, int flags = FLAG_VISIBLED);
+
 	void destroy(void);
-	void update(float elapsed);
+	virtual void update(void);
 	bool is_visibled(void) const;
 	void show(void);
 	void hide(void);
@@ -47,23 +49,19 @@ public:
 	void resize(const glm::ivec2 &v);
 	const char *name(void) const;
 	void set_name(const char *name);
-	window *parent(void);
-	window *first_child(void);
-	window *next_sibling(void);
+	int flags(void) const;
 
 public:
-	signal<> on_show;
-	signal<> on_hide;
-	signal<int, int> on_move;
-	signal<int, int> on_resize;
+	struct {
+		signal<> shown;
+		signal<> hidden;
+		signal<int, int> move;
+		signal<int, int> resize;
+		signal<const char *> name_changed;
+	} signals;
 
 protected:
-	virtual bool do_create(void);
-	virtual void do_destroy(void);
-	virtual void do_update(float elapsed);
-
-private:
-	void set_parent(window *parent);
+	void set_flags(int flags);
 
 private:
 	enum {
@@ -71,12 +69,10 @@ private:
 		INTERNAL_FLAG_VISIBLED = (1 << 1)
 	};
 
-	window *m_parent;
-	window *m_prev;
-	window *m_next;
-	window *m_first_child;
+private:
 	glm::ivec4 m_rect;
 	int m_flags;
+	int m_imgui_flags;
 	int m_internal_flags;
 	std::string m_name;
 	bool m_created;
@@ -93,7 +89,7 @@ inline void window::show(void)
 		return;
 
 	m_internal_flags |= INTERNAL_FLAG_VISIBLED;
-	on_show.emit();
+	signals.shown.emit();
 }
 
 inline void window::hide(void)
@@ -102,7 +98,7 @@ inline void window::hide(void)
 		return;
 
 	m_internal_flags &= ~INTERNAL_FLAG_VISIBLED;
-	on_hide.emit();
+	signals.hidden.emit();
 }
 
 inline const glm::ivec4 &window::rect(void) const
@@ -112,14 +108,14 @@ inline const glm::ivec4 &window::rect(void) const
 
 inline void window::set_rect(int x, int y, int width, int height)
 {
-	move(x, y);
 	resize(width, height);
+	move(x, y);
 }
 
 inline void window::set_rect(const glm::ivec4 &rc)
 {
-	move(rc[0], rc[1]);
 	resize(rc[2], rc[3]);
+	move(rc[0], rc[1]);
 }
 
 inline glm::ivec2 window::pos(void) const
@@ -135,7 +131,7 @@ inline void window::move(int x, int y)
 	m_rect[0] = x;
 	m_rect[1] = y;
 
-	on_move.emit(x, y);
+	signals.move.emit(x, y);
 }
 
 inline void window::move(const glm::ivec2 &v)
@@ -156,7 +152,7 @@ inline void window::resize(int width, int height)
 	m_rect[2] = width;
 	m_rect[3] = height;
 
-	on_resize.emit(width, height);
+	signals.resize.emit(width, height);
 }
 
 inline void window::resize(const glm::ivec2 &v)
@@ -172,21 +168,12 @@ inline const char *window::name(void) const
 inline void window::set_name(const char *name)
 {
 	m_name = name;
+	// TODO signals.name_changed(name);
 }
 
-inline window *window::parent(void)
+inline int window::flags(void) const
 {
-	return m_parent;
-}
-
-inline window *window::first_child(void)
-{
-	return m_first_child;
-}
-
-inline window *window::next_sibling(void)
-{
-	return m_next;
+	return m_flags;
 }
 
 SGE_GUI_END

@@ -9,22 +9,18 @@
 
 SGE_SCENE_BEGIN
 
-enum {
-	STATE_IDLE = 0,
-	STATE_LOADING,
-	STATE_READY,
-	STATE_CANCELING
-};
+namespace loading {
+	bool start(db::node node);
+	bool is_started(void);
+	void stop(void);
+	int percentage(void);
+}
 
 bool init(void);
 void shutdown(void);
-void update(float elapsed);
+void update(void);
 void draw(void);
-int state(void);
 void reset(void);
-bool start_loading(db::node node);
-bool cancel_loading(void);
-int loading_percentage(void);
 
 SGE_SCENE_END
 

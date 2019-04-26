@@ -6,13 +6,11 @@
 
 SGE_DB_BEGIN
 
-blob::blob(mz_zip_archive *archive, const char *filename)
-	: m_archive(archive)
-	, m_filename(filename)
+blob::blob(const char *filename)
+	: m_filename(filename)
 	, m_data(NULL)
 	, m_size(0)
 {
-	SGE_ASSERT(m_archive != NULL);
 	SGE_ASSERT(!m_filename.empty());
 }
 
@@ -24,11 +22,10 @@ blob::~blob(void)
 
 bool blob::open(void)
 {
-	SGE_ASSERT(m_archive != NULL);
 	SGE_ASSERT(m_data == NULL);
 
 	m_data = mz_zip_reader_extract_file_to_heap(
-		m_archive, m_filename.c_str(), &m_size, 0);
+		&internal::g_archive, m_filename.c_str(), &m_size, 0);
 
 	if (m_data == NULL)
 		return false;
@@ -41,6 +38,7 @@ void blob::close(void)
 	SGE_ASSERT(m_data != NULL);
 
 	free(m_data);
+	m_data = NULL;
 }
 
 size_t blob::get_size(void) const

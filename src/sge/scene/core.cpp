@@ -7,11 +7,15 @@
 
 SGE_SCENE_BEGIN
 
+enum state {
+	STATE_IDLE = 0,
+	STATE_LOADING,
+	STATE_READY,
+	STATE_CANCELING
+};
+
 static db::node s_node;
-static int s_state;
-static uv_work_t s_loading;
-static uv_async_t s_loading_progress;
-static int s_loading_percentage;
+static state s_state;
 static bool s_physics_enabled;
 static btDefaultCollisionConfiguration *s_bt_cc;
 static btCollisionDispatcher *s_bt_cd;
@@ -19,70 +23,114 @@ static btBroadphaseInterface *s_bt_bi;
 static btSequentialImpulseConstraintSolver *s_bt_sics;
 static btDiscreteDynamicsWorld *s_bt_world;
 
-static void update_physics(float elapsed)
+static void update_physics(void)
 {
 	if (!s_physics_enabled)
 		return;
 
-	s_bt_world->stepSimulation(elapsed);
+	s_bt_world->stepSimulation(elapsed());
 
 	for (int i = s_bt_world->getNumCollisionObjects() - 1; i >= 0; --i) {
 	}
 }
 
-static bool loading_progress_set(int percentage)
-{
-	if (s_state == STATE_CANCELING)
-		return false;
+namespace loading {
+	static uv_work_t s_work;
+	static uv_async_t s_progress;
+	static int s_percentage;
 
-	s_loading_progress.data = (void *)(long)percentage;
-	uv_async_send(&s_loading_progress);
+	static bool progress_set(int percentage)
+	{
+		if (s_state == STATE_CANCELING)
+			return false;
 
-	return true;
-}
+		s_progress.data = (void *)(long)percentage;
+		uv_async_send(&s_progress);
 
-static void loading(uv_work_t *req)
-{
-	if (!s_node) {
-		s_loading_progress.data = (void *)100;
-		uv_async_send(&s_loading_progress);
-		return;
+		return true;
 	}
 
-	db::node physics_node = s_node.child("/physics");
-
-	s_physics_enabled = (physics_node && physics_node.to_bool());
-	if (s_physics_enabled) {
-		db::node gravity_node = physics_node.child("/gravity");
-		if (gravity_node) {
-			s_bt_world->setGravity(btVector3(
-				gravity_node.child("/x").to_float(),
-				gravity_node.child("/y").to_float(),
-				gravity_node.child("/z").to_float()));
+	static void work(uv_work_t *req)
+	{
+		if (!s_node) {
+			s_progress.data = (void *)100;
+			uv_async_send(&s_progress);
+			return;
 		}
+
+		db::node physics_node = s_node.child("/physics");
+
+		s_physics_enabled = (physics_node && physics_node.to_bool());
+		if (s_physics_enabled) {
+			db::node gravity_node = physics_node.child("/gravity");
+			if (gravity_node) {
+				s_bt_world->setGravity(btVector3(
+					gravity_node.child("/x").to_float(),
+					gravity_node.child("/y").to_float(),
+					gravity_node.child("/z").to_float()));
+			}
+		}
+
+		if (!progress_set(1))
+			return;
 	}
 
-	if (!loading_progress_set(1))
-		return;
-}
+	static void work_done(uv_work_t *req, int status)
+	{
+		SGE_ASSERT(s_state == STATE_LOADING);
 
-static void loaded(uv_work_t *req, int status)
-{
-	SGE_ASSERT(s_state == STATE_LOADING);
+		if (status) {
+			s_state = STATE_IDLE;
+			return;
+		}
 
-	if (status) {
-		s_state = STATE_IDLE;
-		return;
+		s_state = STATE_READY;
 	}
 
-	s_state = STATE_READY;
-}
+	static void progress(uv_async_t *handle)
+	{
+		SGE_ASSERT(s_state == STATE_LOADING);
 
-static void loading_progress(uv_async_t *handle)
-{
-	SGE_ASSERT(s_state == STATE_LOADING);
+		s_percentage = (int)(long)(handle->data);
+	}
 
-	s_loading_percentage = (int)(long)(handle->data);
+	bool start(db::node node)
+	{
+		if (s_state != STATE_IDLE)
+			return false;
+
+		s_node = node;
+		s_state = STATE_LOADING;
+		s_progress.data = (void *)0;
+		s_percentage = 0;
+
+		uv_queue_work(main_loop(), &s_work, work, work_done);
+
+		return true;
+	}
+
+	bool is_started(void)
+	{
+		return (s_state == STATE_LOADING);
+	}
+
+	void stop(void)
+	{
+		if (s_state != STATE_LOADING)
+			return;
+
+		s_state = STATE_CANCELING;
+
+		// TODO
+	}
+
+	int percentage(void)
+	{
+		if (s_state != STATE_LOADING)
+			return -1;
+
+		return s_percentage;
+	}
 }
 
 bool init(void)
@@ -97,7 +145,7 @@ bool init(void)
 
 	camera::init();
 
-	uv_async_init(main_loop(), &s_loading_progress, loading_progress);
+	uv_async_init(main_loop(), &loading::s_progress, loading::progress);
 
 	s_physics_enabled = false;
 	s_state = STATE_IDLE;
@@ -116,29 +164,24 @@ void shutdown(void)
 	delete s_bt_cc;
 }
 
-void update(float elapsed)
+void update(void)
 {
-	update_physics(elapsed);
+	update_physics();
 
-	if (s_state != STATE_READY)
-		return;
+	//if (s_state != STATE_READY)
+	//	return;
 
-	camera::reset();
+	camera::clear();
 
 	// drawing...
 }
 
 void draw(void)
 {
-	if (s_state != STATE_READY)
-		return;
+	//if (s_state != STATE_READY)
+	//	return;
 
 	camera::render();
-}
-
-int state(void)
-{
-	return s_state;
 }
 
 void reset(void)
@@ -151,39 +194,6 @@ void reset(void)
 	case STATE_READY:
 		break;
 	}
-}
-
-bool start_loading(db::node node)
-{
-	if (s_state != STATE_IDLE)
-		return false;
-
-	s_node = node;
-	s_state = STATE_LOADING;
-	s_loading_progress.data = (void *)0;
-	s_loading_percentage = 0;
-
-	uv_queue_work(main_loop(), &s_loading, loading, loaded);
-
-	return true;
-}
-
-bool cancel_loading(void)
-{
-	if (s_state != STATE_LOADING)
-		return false;
-
-	s_state = STATE_CANCELING;
-
-	return true;
-}
-
-int loading_percentage(void)
-{
-	if (s_state != STATE_LOADING)
-		return -1;
-
-	return s_loading_percentage;
 }
 
 SGE_SCENE_END

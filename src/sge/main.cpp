@@ -10,6 +10,7 @@
 #include <sge/gl.hpp>
 #include <sge/scene.hpp>
 #include <sge/gui.hpp>
+#include <sge/console.hpp>
 #include <sge/game.hpp>
 
 SGE_BEGIN
@@ -19,11 +20,21 @@ static uv_timer_t s_frame_timer;
 static uv_timer_t s_state_timer;
 static unsigned int s_fps = 0;
 static unsigned int s_fps_count;
-static Uint32 s_last_time;
+static uint64_t s_last_time;
+static float s_elapsed;
+static bool s_gui_mode;
 
 static void handle_event(const SDL_Event &event)
 {
 	switch (event.type) {
+	case SDL_KEYUP:
+		if (event.key.keysym.sym == SDLK_ESCAPE)
+			s_gui_mode = !s_gui_mode;
+		if (s_gui_mode)
+			console::enable();
+		else
+			console::disable();
+		break;	
 	case SDL_QUIT:
 		SGE_ASSERT(s_loop != NULL);
 		uv_timer_stop(&s_frame_timer);
@@ -35,8 +46,11 @@ static void handle_event(const SDL_Event &event)
 	}
 
 	gl::handle_event(event);
-	gui::handle_event(event);
-	game::handle_event(event);
+
+	if (s_gui_mode)
+		gui::handle_event(event);
+	else
+		game::handle_event(event);
 }
 
 static void poll_events(void)
@@ -49,17 +63,17 @@ static void poll_events(void)
 
 static void frame(uv_timer_t *timer)
 {
-	Uint32 pass = SDL_GetTicks() - s_last_time;
+	int64_t pass = uv_now(s_loop) - s_last_time;
 	if (pass < 0)
 		return;
 
 	poll_events();
 
-	float elapsed = float(pass) / 1000.0f;
+	s_elapsed = float(pass) / 1000.0f;
 
-	scene::update(elapsed);
-	gui::update(elapsed);
-	game::update(elapsed);
+	scene::update();
+	game::update();
+	gui::update();
 
 	if (gl::make_current()) {
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -68,7 +82,7 @@ static void frame(uv_timer_t *timer)
 		gl::swap_buffers();
 	}
 
-	s_last_time = SDL_GetTicks();
+	s_last_time = uv_now(s_loop);
 	s_fps_count++;
 
 	uv_update_time(s_loop);
@@ -111,7 +125,7 @@ static bool init(uv_loop_t *loop)
 
 	scene::init();
 	gui::init();
-
+	console::init();
 	game::init();
 
 	uv_timer_init(loop, &s_frame_timer);
@@ -122,7 +136,9 @@ static bool init(uv_loop_t *loop)
 
 	s_fps = 0;
 	s_fps_count = 0;
-	s_last_time = SDL_GetTicks();
+	s_last_time = uv_now(s_loop);
+	s_elapsed = 0.0f;
+	s_gui_mode = true;
 
 	return true;
 }
@@ -135,7 +151,7 @@ static void shutdown(void)
 	uv_timer_stop(&s_state_timer);
 
 	game::shutdown();
-
+	console::shutdown();
 	gui::shutdown();
 	scene::shutdown();
 
@@ -156,6 +172,11 @@ uv_loop_t *main_loop(void)
 unsigned int fps(void)
 {
 	return s_fps;
+}
+
+float elapsed(void)
+{
+	return s_elapsed;
 }
 
 SGE_END

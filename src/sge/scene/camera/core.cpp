@@ -14,25 +14,98 @@ enum uniform_mat4 {
 	UNIFORM_MODEL_MATRIX = 0,
 	UNIFORM_VIEW_MATRIX,
 	UNIFORM_PROJECTION_MATRIX,
-	UNIFORM_MODEL_VIEW_MATRIX,
-	UNIFORM_MVP_MATRIX,
 	UNIFORM_NORMAL_MATRIX,
 	UNIFORM_MAT4_MAX
 };
-
-extern const char *g_vertex_shader_source;
-extern const char *g_fragment_shader_source;
 
 static bool s_drawing;
 static gl::program s_program;
 
 // float uniforms
-static int   s_uniform_float_loc[UNIFORM_FLOAT_MAX];
+static int s_uniform_float_loc[UNIFORM_FLOAT_MAX];
 static float s_uniform_float[UNIFORM_FLOAT_MAX];
 
 // mat4 uniforms
-static int       s_uniform_mat4_loc[UNIFORM_MAT4_MAX];
+static int s_uniform_mat4_loc[UNIFORM_MAT4_MAX];
 static glm::mat4 s_uniform_mat4[UNIFORM_MAT4_MAX];
+
+const char *s_vertex_shader_source =
+	"#version 330\n"
+	"uniform mat4 sge_model_matrix;\n"
+	"uniform mat4 sge_view_matrix;\n"
+	"uniform mat4 sge_projection_matrix;\n"
+	"layout (location = 0) in vec4 position;\n"
+	"void main() {\n"
+	"	gl_Position = sge_projection_matrix * sge_view_matrix * sge_model_matrix * position;\n"
+	"}\n"
+	;
+
+const char *s_fragment_shader_source =
+	"#version 330\n"
+	"out vec4 frag_color;\n"
+	"void main() {\n"
+	"	frag_color = vec4(1.0, 1.0, 1.0, 1.0);\n"
+	"}\n"
+	;
+
+static gl::buffer s_test_vertex(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+static gl::buffer s_test_index(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
+static gl::vertex_array s_test_vertex_array;
+
+static void init_test(void)
+{
+	GLfloat test_vertex[] = {
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f
+	};
+
+	GLuint test_index[] = {
+		0, 3, 2,
+		0, 1, 3,
+		1, 5, 3,
+		3, 5, 7,
+		0, 2, 4,
+		4, 2, 6,
+		2, 3, 6,
+		3, 7, 6,
+		5, 4, 6,
+		7, 5, 4,
+		0, 4, 1,
+		1, 4, 5
+	};
+
+	s_test_vertex.create(test_vertex, sizeof(test_vertex));
+	s_test_index.create(test_index, sizeof(test_index));
+	s_test_vertex_array.create();
+
+	s_test_vertex_array.bind();
+	s_test_vertex.bind();
+	s_test_index.bind();
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+}
+
+static void shutdown_test(void)
+{
+	s_test_vertex_array.destroy();
+	s_test_index.destroy();
+	s_test_vertex.destroy();
+}
+
+static void draw_test(void)
+{
+	glBindVertexArray(s_test_vertex_array.id());
+	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
 
 static bool init_program(void)
 {
@@ -40,14 +113,14 @@ static bool init_program(void)
 		return false;
 
 	SGE_LOGD("Building vertex shader...\n");
-	if (!s_program.add_shader(GL_VERTEX_SHADER, g_vertex_shader_source)) {
+	if (!s_program.add_shader(GL_VERTEX_SHADER, s_vertex_shader_source)) {
 		SGE_LOGE("Failed to build vertex shader: %s\n", s_program.info_log());
 		s_program.destroy();
 		return false;
 	}
 
 	SGE_LOGD("Building fragment shader...\n");
-	if (!s_program.add_shader(GL_FRAGMENT_SHADER, g_fragment_shader_source)) {
+	if (!s_program.add_shader(GL_FRAGMENT_SHADER, s_fragment_shader_source)) {
 		SGE_LOGE("Failed to build fragment shader: %s\n", s_program.info_log());
 		s_program.destroy();
 		return false;
@@ -60,39 +133,35 @@ static bool init_program(void)
 		return false;
 	}
 
-	// float
-	s_uniform_float_loc[UNIFORM_ELAPSED] = s_program.uniform_location("sge_elapsed");
+	// clearing uniform locations...
 
-	// mat4
+	for (int i = 0; i < UNIFORM_FLOAT_MAX; ++i)
+		s_uniform_float_loc[i] = -1;
+
+	for (int i = 0; i < UNIFORM_MAT4_MAX; ++i)
+		s_uniform_mat4_loc[i] = -1;
+
+	// getting uniform locations...
 	s_uniform_mat4_loc[UNIFORM_MODEL_MATRIX] = s_program.uniform_location("sge_model_matrix");
 	s_uniform_mat4_loc[UNIFORM_VIEW_MATRIX] = s_program.uniform_location("sge_view_matrix");
 	s_uniform_mat4_loc[UNIFORM_PROJECTION_MATRIX] = s_program.uniform_location("sge_projection_matrix");
-	s_uniform_mat4_loc[UNIFORM_MODEL_VIEW_MATRIX] = s_program.uniform_location("sge_model_view_matrix");
-	s_uniform_mat4_loc[UNIFORM_MVP_MATRIX] = s_program.uniform_location("sge_mvp_matrix");
-	s_uniform_mat4_loc[UNIFORM_NORMAL_MATRIX] = s_program.uniform_location("sge_normal_matrix");
 
 	return true;
 }
 
 static void commit_uniforms(void)
 {
-	int i;
-
 	// float
-	for (i = 0; i < UNIFORM_FLOAT_MAX; ++i) {
+	for (int i = 0; i < UNIFORM_FLOAT_MAX; ++i) {
 		if (s_uniform_float_loc[i] >= 0)
 			s_program.uniform(s_uniform_float_loc[i], s_uniform_float[i]);
 	}
 
 	// mat4
-	for (i = 0; i < UNIFORM_MAT4_MAX; ++i) {
+	for (int i = 0; i < UNIFORM_MAT4_MAX; ++i) {
 		if (s_uniform_mat4_loc[i] >= 0)
 			s_program.uniform(s_uniform_mat4_loc[i], 1, false, &s_uniform_mat4[i]);
 	}
-}
-
-static void init_test_cube(void)
-{
 }
 
 bool init(void)
@@ -100,10 +169,15 @@ bool init(void)
 	if (!init_program())
 		return false;
 
-	s_drawing = false;
-
+	s_uniform_mat4[UNIFORM_MODEL_MATRIX] = glm::mat4(1.0f);
 	s_uniform_mat4[UNIFORM_VIEW_MATRIX] = glm::mat4(1.0f);
-	s_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = glm::mat4(0.0f);
+	s_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = glm::frustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.5f, 999.0f);
+
+	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	init_test();
+
+	s_drawing = false;
 
 	return true;
 }
@@ -112,30 +186,12 @@ void shutdown(void)
 {
 	SGE_ASSERT(!s_drawing);
 
+	shutdown_test();
+
 	s_program.destroy();
 }
 
-void ortho(float left, float right, float bottom, float top, float znear, float zfar)
-{
-	s_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = glm::orthoLH(left, right, bottom, top, znear, zfar);
-}
-
-void frustum(float left, float right, float bottom, float top, float znear, float zfar)
-{
-	s_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = glm::frustum(left, right, bottom, top, znear, zfar);
-}
-
-void look_at(const glm::vec3 &eye, const glm::vec3 &target, const glm::vec3 &up)
-{
-	s_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = glm::lookAt(eye, target, up);
-}
-
-void look_to(const glm::vec3 &eye, const glm::vec3 &direction, const glm::vec3 &up)
-{
-	s_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = glm::lookAt(eye, eye + direction, up);
-}
-
-void reset(void)
+void clear(void)
 {
 	SGE_ASSERT(!s_drawing);
 
@@ -148,14 +204,21 @@ void render(void)
 
 	s_drawing = false;
 
-	glUseProgram(s_program.id());
+	s_program.use();
 
 	commit_uniforms();
+
+	draw_test();
 }
 
-void draw_test_cube(const glm::mat4 &transform)
+void set_transform(const glm::mat4 &v)
 {
-	SGE_ASSERT(s_drawing);
+	s_uniform_mat4[UNIFORM_VIEW_MATRIX] = v;
+}
+
+void set_projection(const glm::mat4 &v)
+{
+	s_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = v;
 }
 
 SGE_SCENE_CAMERA_END

@@ -11,9 +11,8 @@ SGE_GUI_BEGIN
 bool init(void);
 void shutdown(void);
 void handle_event(const SDL_Event &event);
-void update(float elapsed);
+void update(void);
 void draw(void);
-window *root(void);
 
 SGE_GUI_END
 

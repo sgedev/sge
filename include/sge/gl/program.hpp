@@ -18,10 +18,11 @@ public:
 	bool create(void);
 	void destroy(void);
 	GLuint id(void) const;
+	const char *info_log(void) const;
 	bool add_shader(GLuint shader_id);
 	bool add_shader(GLenum type, const char *src);
 	bool link(void);
-	const char *info_log(void) const;
+	void use(void);
 	GLint uniform_location(const char *name);
 	void uniform(GLint location, GLfloat v0);
 	void uniform(GLint location, GLfloat v0, GLfloat v1);
@@ -53,6 +54,11 @@ inline GLuint program::id(void) const
 	return m_id;
 }
 
+inline const char *program::info_log(void) const
+{
+	return m_info_log.c_str();
+}
+
 inline bool program::add_shader(GLuint shader_id)
 {
 	SGE_ASSERT(m_id > 0);
@@ -61,9 +67,11 @@ inline bool program::add_shader(GLuint shader_id)
 	glAttachShader(m_id, shader_id);
 }
 
-inline const char *program::info_log(void) const
+inline void program::use(void)
 {
-	return m_info_log.c_str();
+	SGE_ASSERT(m_id > 0);
+
+	glUseProgram(m_id);
 }
 
 inline GLint program::uniform_location(const char *name)

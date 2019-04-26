@@ -9,14 +9,10 @@ SGE_SCENE_CAMERA_BEGIN
 
 bool init(void);
 void shutdown(void);
-void ortho(float left, float right, float bottom, float top, float znear, float zfar);
-void frustum(float left, float right, float bottom, float top, float znear, float nfar);
-void look_at(const glm::vec3 &eye, const glm::vec3 &target, const glm::vec3 &up);
-void look_to(const glm::vec3 &eye, const glm::vec3 &direction, const glm::vec3 &up);
-void reset(void);
+void clear(void);
 void render(void);
-
-void draw_test_cube(const glm::mat4 &transform);
+void set_transform(const glm::mat4 &v);
+void set_projection(const glm::mat4 &v);
 
 SGE_SCENE_CAMERA_END
 

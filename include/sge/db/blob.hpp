@@ -11,7 +11,7 @@ SGE_DB_BEGIN
 
 class blob {
 public:
-	blob(mz_zip_archive *archive, const char *filename);
+	blob(const char *filename);
 	virtual ~blob(void);
 
 public:
@@ -22,7 +22,6 @@ public:
 	size_t read(size_t offset, void *buf, size_t len);
 
 private:
-	mz_zip_archive *m_archive;
 	std::string m_filename;
 	void *m_data;
 	size_t m_size;

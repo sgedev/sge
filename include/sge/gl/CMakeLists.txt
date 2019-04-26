@@ -8,6 +8,5 @@ sge_sources(
 	program.hpp
 	shader.hpp
 	vertex_array.hpp
-	window.hpp
 	)
 

@@ -23,5 +23,6 @@ set_target_properties(sge PROPERTIES OUTPUT_NAME ${SGE_GAME})
 
 sge_sources(
 	fps.cpp
+	input.cpp
 	)
 

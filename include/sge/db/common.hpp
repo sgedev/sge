@@ -11,4 +11,13 @@
 #define SGE_DB_BEGIN SGE_BEGIN namespace db {
 #define SGE_DB_END } SGE_END
 
+SGE_DB_BEGIN
+
+namespace internal {
+	extern mz_zip_archive g_archive;
+	extern pugi::xml_document g_manifest;
+}
+
+SGE_DB_END
+
 #endif // SGE_DB_COMMON_HPP

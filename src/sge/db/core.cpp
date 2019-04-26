@@ -7,8 +7,11 @@
 
 SGE_DB_BEGIN
 
-static mz_zip_archive s_archive;
-static pugi::xml_document s_manifest;
+namespace internal {
+	mz_zip_archive g_archive;
+	pugi::xml_document g_manifest;
+}
+
 static node s_root;
 
 bool init(const char *filename)
@@ -16,44 +19,47 @@ bool init(const char *filename)
 	mz_bool zret;
 	pugi::xml_parse_result xret;
 
-	mz_zip_zero_struct(&s_archive);
+	mz_zip_zero_struct(&internal::g_archive);
 
 	SGE_ASSERT(filename != NULL);
 
-	zret = mz_zip_reader_init_file(&s_archive, filename, 0);
+	zret = mz_zip_reader_init_file(&internal::g_archive, filename, 0);
 	if (!zret)
 		return false;
 
 	size_t size;
-	void *p = mz_zip_reader_extract_file_to_heap(&s_archive, "manifest.xml", &size, 0);
+
+	void *p = mz_zip_reader_extract_file_to_heap(
+		&internal::g_archive, "manifest.xml", &size, 0);
+
 	if (p == NULL) {
-		mz_zip_reader_end(&s_archive);
+		mz_zip_reader_end(&internal::g_archive);
 		return false;
 	}
 
-	xret = s_manifest.load_buffer(p, size);
+	xret = internal::g_manifest.load_buffer(p, size);
 	free(p);
 
 	if (!xret) {
-		mz_zip_reader_end(&s_archive);
+		mz_zip_reader_end(&internal::g_archive);
 		return false;
 	}
 
-	pugi::xml_node n = s_manifest.child("SGE");
+	pugi::xml_node n = internal::g_manifest.child("SGE");
 	if (!n) {
-		mz_zip_reader_end(&s_archive);
+		mz_zip_reader_end(&internal::g_archive);
 		return false;
 	}
 
-	s_root = node(&s_archive, n);
+	s_root = node(n);
 
 	return true;
 }
 
 void shutdown(void)
 {
-	mz_zip_reader_end(&s_archive);
-	s_root.set(NULL, pugi::xml_node());
+	mz_zip_reader_end(&internal::g_archive);
+	s_root.set(pugi::xml_node());
 }
 
 node root(void)

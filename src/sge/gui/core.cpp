@@ -42,11 +42,11 @@ void shutdown(void)
 	ImGui::DestroyContext();
 }
 
-void handle_event(const SDL_Event &event)
+bool handle_event(const SDL_Event &event)
 {
 	SGE_ASSERT(s_gl_window != NULL);
 
-	ImGui_ImplSDL2_ProcessEvent(&event);
+	return ImGui_ImplSDL2_ProcessEvent(&event);
 }
 
 void update(void)
@@ -56,6 +56,8 @@ void update(void)
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(s_gl_window);
 	ImGui::NewFrame();
+
+	ImGui::Text("fps %d", fps());
 
 	node::update_all();
 

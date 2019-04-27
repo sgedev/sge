@@ -10,5 +10,11 @@
 #include <sge/sound.hpp>
 #include <sge/game.hpp>
 
+SGE_BEGIN
+
+void run(game *g);
+
+SGE_END
+
 #endif // SGE_HPP
 

@@ -21,9 +21,9 @@ bool init(void)
 	s_camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
 	s_camera_rotate = glm::vec2(0.0f, 0.0f);
 
-	s_camera_fov = 90.0f;
-	s_camera_move_speed = 0.1f;
-	s_mouse_sensitivity = 0.3f;
+	set_fov(90.0f);
+	set_move_speed(0.1f);
+	set_mouse_sensitivity(0.3f);
 
 	update();
 	
@@ -45,6 +45,11 @@ void update(void)
 		glm::lookAt(s_camera_pos, s_camera_pos + s_camera_direction, s_camera_up));
 }
 
+float mouse_sensitivity(void)
+{
+	return s_mouse_sensitivity;
+}
+
 void set_mouse_sensitivity(float v)
 {
 	s_mouse_sensitivity = glm::clamp(v, 0.001f, 30.0f);
@@ -52,21 +57,26 @@ void set_mouse_sensitivity(float v)
 
 void mouse_look(float dx, float dy)
 {
-	dx *= s_mouse_sensitivity;
-	dx *= s_mouse_sensitivity;
+	float xoffset = dx * s_mouse_sensitivity;
+	float yoffset = dy * s_mouse_sensitivity;
 
-	s_camera_rotate.x += dx;
-	s_camera_rotate.y += dy;
+	s_camera_rotate.x += xoffset;
+	s_camera_rotate.y -= yoffset;
 
-	s_camera_rotate.y = glm::clamp(s_camera_rotate.y, -89.0f, 89.0f);
+	s_camera_rotate.y = glm::clamp(s_camera_rotate.y, -89.0f, 98.0f);
 
-	glm::vec3 front;
+	glm::vec3 direction;
 
-	front.x = cos(glm::radians(s_camera_rotate.x)) * cos(glm::radians(s_camera_rotate.y));
-	front.y = sin(glm::radians(s_camera_rotate.y));
-	front.z = sin(glm::radians(s_camera_rotate.x)) * cos(glm::radians(s_camera_rotate.y));
+	direction.x = glm::cos(glm::radians(s_camera_rotate.x)) * glm::cos(glm::radians(s_camera_rotate.y));
+	direction.y = glm::sin(glm::radians(s_camera_rotate.y));
+	direction.z = glm::sin(glm::radians(s_camera_rotate.x)) * glm::cos(glm::radians(s_camera_rotate.y));
 
-	s_camera_direction = glm::normalize(front);
+	s_camera_direction = glm::normalize(direction);
+}
+
+float move_speed(void)
+{
+	return s_camera_move_speed;
 }
 
 void set_move_speed(float v)
@@ -98,10 +108,14 @@ void move_right(void)
 	s_camera_pos += d * glm::normalize(glm::cross(s_camera_direction, s_camera_up));
 }
 
+float fov(void)
+{
+	return s_camera_fov;
+}
+
 void set_fov(float v)
 {
 	s_camera_fov = glm::clamp(v, 1.0f, 170.0f);
 }
 
 SGE_GAME_FPS_END
-

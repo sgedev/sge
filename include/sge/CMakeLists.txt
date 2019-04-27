@@ -13,6 +13,7 @@ sge_sources(
 	config.hpp.in
 	console.hpp
 	db.hpp
+	engine.hpp
 	game.hpp
 	gl.hpp
 	gui.hpp

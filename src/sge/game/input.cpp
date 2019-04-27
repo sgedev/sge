@@ -34,7 +34,7 @@ static void handle_mouse_motion(const SDL_MouseMotionEvent &event)
 	if (s_mouse_motion_handler == NULL)
 		return;
 
-	s_mouse_motion_handler(event.x, event.y, s_mouse_motion_data);
+	s_mouse_motion_handler(event.xrel, event.yrel, s_mouse_motion_data);
 }
 
 bool init(void)

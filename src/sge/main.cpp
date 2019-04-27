@@ -27,14 +27,18 @@ static bool s_gui_mode;
 static void handle_event(const SDL_Event &event)
 {
 	switch (event.type) {
-	case SDL_KEYUP:
-		if (event.key.keysym.sym == SDLK_ESCAPE)
+	case SDL_KEYDOWN:
+		if (event.key.keysym.sym == SDLK_ESCAPE) {
 			s_gui_mode = !s_gui_mode;
-		if (s_gui_mode)
-			console::enable();
-		else
-			console::disable();
-		break;	
+			if (s_gui_mode) {
+				console::enable();
+				SDL_SetRelativeMouseMode(SDL_FALSE);
+			} else {
+				console::disable();
+				SDL_SetRelativeMouseMode(SDL_TRUE);
+			}
+		}
+		break;
 	case SDL_QUIT:
 		SGE_ASSERT(s_loop != NULL);
 		uv_timer_stop(&s_frame_timer);
@@ -53,23 +57,19 @@ static void handle_event(const SDL_Event &event)
 		game::handle_event(event);
 }
 
-static void poll_events(void)
+static void frame(uv_timer_t *timer)
 {
 	SDL_Event event;
+	int64_t elapsed;
+	
+	elapsed = uv_now(s_loop) - s_last_time;
+	if (elapsed < 0)
+		return;
+
+	s_elapsed = float(elapsed) / 1000.0f;
 
 	while (SDL_PollEvent(&event))
 		handle_event(event);
-}
-
-static void frame(uv_timer_t *timer)
-{
-	int64_t pass = uv_now(s_loop) - s_last_time;
-	if (pass < 0)
-		return;
-
-	poll_events();
-
-	s_elapsed = float(pass) / 1000.0f;
 
 	scene::update();
 	game::update();
@@ -96,14 +96,15 @@ static void state(uv_timer_t *timer)
 
 static void show_info(void)
 {
-	SGE_LOGI("SGE: %d.%d.%d [%s]\n",
-		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH,
+	const char *type =
 #ifdef SGE_DEBUG
-		"DEBUG"
+		"DEBUG";
 #else
-		"RELEASE"
+		"RELEASE";
 #endif
-		);
+
+	SGE_LOGI("SGE: %d.%d.%d [%s]\n",
+		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH, type);
 
 	SGE_LOGI("Platform: %s, CPUs %d, Memory %dMB\n",
 		SDL_GetPlatform(), SDL_GetCPUCount(), SDL_GetSystemRAM());
@@ -198,8 +199,6 @@ struct SDL_Initializer {
 
 int main(int argc, char *argv[])
 {
-	int ret;
-
 	SDL_SetMainReady();
 
 	SDL_Initializer SDL;
@@ -212,10 +211,10 @@ int main(int argc, char *argv[])
 
 	argh::parser opts(argv);
 
-	if (opts.size() != 2) {
-		SGE_LOGE("No game database specified.\n");
-		return EXIT_FAILURE;
-	}
+	//if (opts.size() != 2) {
+	//	SGE_LOGE("No game database specified.\n");
+	//	return EXIT_FAILURE;
+	//}
 
 	if (opts["--version"]) {
         sge::show_info();
@@ -237,4 +236,3 @@ int main(int argc, char *argv[])
 
 	return EXIT_SUCCESS;
 }
-

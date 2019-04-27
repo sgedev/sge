@@ -42,9 +42,9 @@ const char *s_vertex_shader_source =
 
 const char *s_fragment_shader_source =
 	"#version 330\n"
-	"out vec4 frag_color;\n"
+	"out vec4 gl_FragColor;\n"
 	"void main() {\n"
-	"	frag_color = vec4(1.0, 1.0, 1.0, 1.0);\n"
+	"	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
 	"}\n"
 	;
 
@@ -102,8 +102,23 @@ static void shutdown_test(void)
 
 static void draw_test(void)
 {
+	float x, y, z;
+	float size = 80.0f;
+	float step = 4.0f;
+	glm::mat4 m;
+
 	glBindVertexArray(s_test_vertex_array.id());
-	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
+
+	for (x = 0.0f; x < size; x += step) {
+		for (y = 0.0f; y < size; y += step) {
+			for (z = 0.0f; z < size; z += step) {
+				m = glm::translate(glm::vec3(x, y, z));
+				s_program.uniform(s_uniform_mat4_loc[UNIFORM_MODEL_MATRIX], 1, false, &m);
+				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+			}
+		}
+	}
+
 	glBindVertexArray(0);
 }
 
@@ -173,7 +188,7 @@ bool init(void)
 	s_uniform_mat4[UNIFORM_VIEW_MATRIX] = glm::mat4(1.0f);
 	s_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = glm::frustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.5f, 999.0f);
 
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	init_test();
 

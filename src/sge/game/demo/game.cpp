@@ -33,7 +33,7 @@ bool init(void)
 {
 	fps::init();
 	fps::set_move_speed(8.0f);
-	fps::set_mouse_sensitivity(0.001f);
+	fps::set_mouse_sensitivity(0.1f);
 
 	input::init();
 	input::set_mouse_motion_handler(mouse_look, NULL);
@@ -60,7 +60,9 @@ void update(void)
 void handle_event(const SDL_Event &event)
 {
 	input::handle_event(event);
+
+	if (event.type == SDL_MOUSEWHEEL)
+		fps::set_fov(fps::fov() + event.wheel.y);
 }
 
 SGE_GAME_END
-

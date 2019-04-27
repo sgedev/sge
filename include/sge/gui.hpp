@@ -10,7 +10,7 @@ SGE_GUI_BEGIN
 
 bool init(void);
 void shutdown(void);
-void handle_event(const SDL_Event &event);
+bool handle_event(const SDL_Event &event);
 void update(void);
 void draw(void);
 

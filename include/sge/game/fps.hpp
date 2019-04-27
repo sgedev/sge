@@ -13,13 +13,16 @@ SGE_GAME_FPS_BEGIN
 bool init(void);
 void shutdown(void);
 void update(void);
+float mouse_sensitivity(void);
 void set_mouse_sensitivity(float v);
 void mouse_look(float dx, float dy);
+float move_speed(void);
 void set_move_speed(float v);
 void move_forward(void);
 void move_backward(void);
 void move_left(void);
 void move_right(void);
+float fov(void);
 void set_fov(float v);
 
 SGE_GAME_FPS_END

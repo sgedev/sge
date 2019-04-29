@@ -18,23 +18,27 @@ static keymap s_keymap;
 static mouse_motion_handler s_mouse_motion_handler;
 static void *s_mouse_motion_data;
 
-static void handle_key_state(const SDL_KeyboardEvent &event)
+static bool handle_key_state(const SDL_KeyboardEvent &event)
 {
 	keymap::iterator it = s_keymap.find(event.keysym.sym);
 	if (it == s_keymap.end())
-		return;
+		return false;
 
 	SGE_ASSERT(it->second.handler != NULL);
 
 	it->second.state = event.state;
+
+	return true;
 }
 
-static void handle_mouse_motion(const SDL_MouseMotionEvent &event)
+static bool handle_mouse_motion(const SDL_MouseMotionEvent &event)
 {
 	if (s_mouse_motion_handler == NULL)
-		return;
+		return false;
 
 	s_mouse_motion_handler(event.xrel, event.yrel, s_mouse_motion_data);
+
+	return true;
 }
 
 bool init(void)
@@ -62,17 +66,17 @@ void update(void)
 	}
 }
 
-void handle_event(const SDL_Event &event)
+bool handle_event(const SDL_Event &event)
 {
 	switch (event.type) {
 	case SDL_KEYDOWN:
 	case SDL_KEYUP:
-		handle_key_state(event.key);
-		break;
+		return handle_key_state(event.key);
 	case SDL_MOUSEMOTION:
-		handle_mouse_motion(event.motion);
-		break;
+		return handle_mouse_motion(event.motion);
 	}
+
+	return false;
 }
 
 void bind(SDL_Keycode key, key_handler handler, void *data)

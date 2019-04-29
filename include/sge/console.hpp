@@ -12,6 +12,8 @@ SGE_CONSOLE_BEGIN
 
 bool init(void);
 void shutdown(void);
+void update(void);
+void draw(void);
 void enable(void);
 void disable(void);
 

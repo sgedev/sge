@@ -19,14 +19,13 @@ sge_subdirectories(
 	db
 	game
 	gl
-	gui
 	scene
+	renderer
 	sound
 	)
 
 sge_sources(
 	console.cpp
-	game.cpp
 	loading.cpp
 	main.cpp
 	)

@@ -16,7 +16,7 @@ typedef void (* mouse_motion_handler)(float xoffset, float yoffset, void *data);
 bool init(void);
 void shutdown(void);
 void update(void);
-void handle_event(const SDL_Event &event);
+bool handle_event(const SDL_Event &event);
 void bind(SDL_Keycode key, key_handler handler, void *data);
 void unbind(SDL_Keycode key);
 void unbindall(void);

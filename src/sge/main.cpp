@@ -7,9 +7,8 @@
 
 #include <sge/common.hpp>
 #include <sge/db.hpp>
-#include <sge/gl.hpp>
+#include <sge/renderer.hpp>
 #include <sge/scene.hpp>
-#include <sge/gui.hpp>
 #include <sge/console.hpp>
 #include <sge/game.hpp>
 
@@ -28,33 +27,19 @@ static void handle_event(const SDL_Event &event)
 {
 	switch (event.type) {
 	case SDL_KEYDOWN:
-		if (event.key.keysym.sym == SDLK_ESCAPE) {
-			s_gui_mode = !s_gui_mode;
-			if (s_gui_mode) {
-				console::enable();
-				SDL_SetRelativeMouseMode(SDL_FALSE);
-			} else {
-				console::disable();
-				SDL_SetRelativeMouseMode(SDL_TRUE);
-			}
-		}
 		break;
 	case SDL_QUIT:
 		SGE_ASSERT(s_loop != NULL);
 		uv_timer_stop(&s_frame_timer);
 		uv_timer_stop(&s_state_timer);
 		uv_stop(s_loop);
-		break;
-	default:
-		break;
+		return;
 	}
 
-	gl::handle_event(event);
+	if (renderer::handle_event(event))
+		return;
 
-	if (s_gui_mode)
-		gui::handle_event(event);
-	else
-		game::handle_event(event);
+	game::handle_event(event);
 }
 
 static void frame(uv_timer_t *timer)
@@ -71,15 +56,14 @@ static void frame(uv_timer_t *timer)
 	while (SDL_PollEvent(&event))
 		handle_event(event);
 
-	scene::update();
 	game::update();
-	gui::update();
+	scene::update();
+	console::update();
 
-	if (gl::make_current()) {
-		glClear(GL_COLOR_BUFFER_BIT);
+	if (renderer::begin()) {
 		scene::draw();
-		gui::draw();
-		gl::swap_buffers();
+		console::draw();
+		renderer::end();
 	}
 
 	s_last_time = uv_now(s_loop);
@@ -120,12 +104,8 @@ static bool init(uv_loop_t *loop)
 	show_info();
 
 	//db::init(NULL);
-
-	gl::init();
-	gl::make_current();
-
+	renderer::init();
 	scene::init();
-	gui::init();
 	console::init();
 	game::init();
 
@@ -153,11 +133,8 @@ static void shutdown(void)
 
 	game::shutdown();
 	console::shutdown();
-	gui::shutdown();
 	scene::shutdown();
-
-	gl::shutdown();
-
+	renderer::shutdown();
 	//db::shutdown();
 
 	SGE_LOGI("Shutdown.\n");

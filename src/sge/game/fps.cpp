@@ -1,7 +1,7 @@
 //
 //
-#include <sge/gl.hpp>
 #include <sge/scene.hpp>
+#include <sge/renderer.hpp>
 #include <sge/game/fps.hpp>
 
 SGE_GAME_FPS_BEGIN
@@ -36,12 +36,12 @@ void shutdown(void)
 
 void update(void)
 {
-	glm::vec2 size = gl::window_size();
+	glm::vec2 size = renderer::window_size();
 
-	scene::camera::set_projection(
+	renderer::set_projection_matrix(
 		glm::perspective(glm::radians(s_camera_fov), size.x / size.y, 0.1f, 100.0f));
 
-	scene::camera::set_transform(
+	renderer::set_view_matrix(
 		glm::lookAt(s_camera_pos, s_camera_pos + s_camera_direction, s_camera_up));
 }
 

@@ -3,31 +3,17 @@
 #ifndef SGE_GAME_HPP
 #define SGE_GAME_HPP
 
-#include <sge/common.hpp>
-#include <sge/noncopyable.hpp>
-#include <sge/console.hpp>
+#include <sge/game/common.hpp>
+#include <sge/game/input.hpp>
+#include <sge/game/fps.hpp>
 
-SGE_BEGIN
+SGE_GAME_BEGIN
 
-class game: public noncopyable {
-public:
-	game(void);
-	virtual ~game(void);
+bool init(void);
+void shutdown(void);
+void update(void);
+bool handle_event(const SDL_Event &event);
 
-public:
-	bool init(void);
-	void shutdown(void);
-	void frame(float elapsed);
-	void handle_event(const SDL_Event &event);
-
-protected:
-	virtual void update(float elapsed);
-	virtual void draw(void);
-
-private:
-	console m_console;
-};
-
-SGE_END
+SGE_GAME_END
 
 #endif // SGE_GAME_HPP

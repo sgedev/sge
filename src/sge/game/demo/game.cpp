@@ -57,12 +57,16 @@ void update(void)
 	fps::update();
 }
 
-void handle_event(const SDL_Event &event)
+bool handle_event(const SDL_Event &event)
 {
-	input::handle_event(event);
+	bool ret = input::handle_event(event);
 
-	if (event.type == SDL_MOUSEWHEEL)
+	if (event.type == SDL_MOUSEWHEEL) {
 		fps::set_fov(fps::fov() + event.wheel.y);
+		return true;
+	}
+
+	return ret;
 }
 
 SGE_GAME_END

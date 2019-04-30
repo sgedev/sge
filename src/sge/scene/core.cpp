@@ -73,6 +73,20 @@ namespace loading {
 
 		if (!progress_set(1))
 			return;
+
+		db::node camera_node = s_node.child("/camera");
+		if (!camera_node) {
+			// TODO abort.
+			return;
+		}
+
+		if (!camera::load(camera_node)) {
+			// TODO abort.
+			return;
+		}
+
+		// load world.
+		// load entities.
 	}
 
 	static void work_done(uv_work_t *req, int status)
@@ -92,6 +106,11 @@ namespace loading {
 		SGE_ASSERT(s_state == STATE_LOADING);
 
 		s_percentage = (int)(long)(handle->data);
+	}
+
+	static void init(void)
+	{
+		uv_async_init(main_loop(), &s_progress, progress);
 	}
 
 	bool start(db::node node)
@@ -144,8 +163,7 @@ bool init(void)
 	s_bt_world = new btDiscreteDynamicsWorld(s_bt_cd, s_bt_bi, s_bt_sics, s_bt_cc);
 
 	camera::init();
-
-	uv_async_init(main_loop(), &loading::s_progress, loading::progress);
+	loading::init();
 
 	s_physics_enabled = false;
 	s_state = STATE_IDLE;
@@ -170,10 +188,6 @@ void update(void)
 
 	//if (s_state != STATE_READY)
 	//	return;
-
-	camera::clear();
-
-	// drawing...
 }
 
 void draw(void)
@@ -181,7 +195,7 @@ void draw(void)
 	//if (s_state != STATE_READY)
 	//	return;
 
-	camera::render();
+	camera::update();
 }
 
 void reset(void)

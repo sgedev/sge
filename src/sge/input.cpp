@@ -2,9 +2,9 @@
 //
 #include <map>
 
-#include <sge/game/input.hpp>
+#include <sge/input.hpp>
 
-SGE_GAME_INPUT_BEGIN
+SGE_INPUT_BEGIN
 
 struct key_state {
 	int state;
@@ -15,6 +15,7 @@ struct key_state {
 typedef std::map<SDL_Keycode, key_state> keymap;
 
 static keymap s_keymap;
+static float s_mouse_sensitivity;
 static mouse_motion_handler s_mouse_motion_handler;
 static void *s_mouse_motion_data;
 
@@ -36,7 +37,10 @@ static bool handle_mouse_motion(const SDL_MouseMotionEvent &event)
 	if (s_mouse_motion_handler == NULL)
 		return false;
 
-	s_mouse_motion_handler(event.xrel, event.yrel, s_mouse_motion_data);
+	float xoffset = event.xrel * s_mouse_sensitivity;
+	float yoffset = event.yrel * s_mouse_sensitivity;
+
+	s_mouse_motion_handler(xoffset, yoffset, s_mouse_motion_data);
 
 	return true;
 }
@@ -44,7 +48,10 @@ static bool handle_mouse_motion(const SDL_MouseMotionEvent &event)
 bool init(void)
 {
 	s_keymap.clear();
+
+	s_mouse_sensitivity = 1.0f;
 	s_mouse_motion_handler = NULL;
+	s_mouse_motion_data = NULL;
 
 	return true;
 }
@@ -52,6 +59,7 @@ bool init(void)
 void shutdown(void)
 {
 	s_keymap.clear();
+
 	s_mouse_motion_handler = NULL;
 }
 
@@ -60,7 +68,6 @@ void update(void)
 	for (auto it = s_keymap.begin(); it != s_keymap.end(); ++it) {
 		if (it->second.state != SDL_PRESSED)
 			continue;
-
 		SGE_ASSERT(it->second.handler != NULL);
 		it->second.handler(it->first, it->second.data);
 	}
@@ -84,6 +91,7 @@ void bind(SDL_Keycode key, key_handler handler, void *data)
 	SGE_ASSERT(handler != NULL);
 
 	key_state &ks = s_keymap[key];
+
 	ks.handler = handler;
 	ks.data = data;
 	ks.state = SDL_RELEASED;
@@ -101,10 +109,16 @@ void unbindall(void)
 	s_keymap.clear();
 }
 
+void set_mouse_sensitivity(float v)
+{
+	s_mouse_sensitivity = glm::clamp(v, 0.001f, 30.0f);
+}
+
 void set_mouse_motion_handler(mouse_motion_handler handler, void *data)
 {
 	s_mouse_motion_handler = handler;
 	s_mouse_motion_data = data;
 }
 
-SGE_GAME_INPUT_END
+SGE_INPUT_END
+

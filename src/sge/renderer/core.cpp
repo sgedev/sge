@@ -268,7 +268,7 @@ bool init(void)
 #endif
 
 	s_window = SDL_CreateWindow("SGE",
-		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
+		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 400, 300,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
 
 	if (s_window == NULL)
@@ -386,14 +386,17 @@ void shutdown(void)
 bool handle_event(const SDL_Event &event)
 {
 	SGE_ASSERT(s_window != NULL);
+	SGE_ASSERT(s_imgui_context != NULL);
 
-	bool ret = ImGui_ImplSDL2_ProcessEvent(&event);
+	ImGui::SetCurrentContext(s_imgui_context);
+	ImGui_ImplSDL2_ProcessEvent(&event);
+	ImGui::SetCurrentContext(NULL);
 
 	if (event.type != SDL_WINDOWEVENT)
-		return ret;
+		return false;
 
 	if (event.window.windowID != s_window_id)
-		return ret;
+		return false;
 
 	switch (event.window.event) {
 	case SDL_WINDOWEVENT_MOVED:
@@ -414,7 +417,7 @@ bool handle_event(const SDL_Event &event)
 		return true;
 	}
 
-	return ret;
+	return false;
 }
 
 SDL_Window *window(void)

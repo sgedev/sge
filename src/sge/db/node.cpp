@@ -23,6 +23,8 @@ blob_ptr node::to_blob(void)
 	if (filename == NULL)
 		return p;
 
+	// TODO use blob cache.
+
 	int index = mz_zip_reader_locate_file(&internal::g_archive, filename, NULL, 0);
 	if (index < 0)
 		return p;

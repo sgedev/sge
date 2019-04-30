@@ -1,7 +1,6 @@
 
 sge_subdirectories(
 	db
-	game
 	gl
 	renderer
 	scene
@@ -14,6 +13,8 @@ sge_sources(
 	console.hpp
 	db.hpp
 	game.hpp
+	gl.hpp
+	input.hpp
 	loading.hpp
 	noncopyable.hpp
 	renderer.hpp

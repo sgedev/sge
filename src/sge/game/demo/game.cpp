@@ -1,42 +1,43 @@
 //
 //
+#include <sge/input.hpp>
+#include <sge/scene.hpp>
 #include <sge/game.hpp>
 
 SGE_GAME_BEGIN
 
 static void move_left(SDL_Keycode key, void *data)
 {
-	fps::move_left();
+	scene::camera::move_left();
 }
 
 static void move_right(SDL_Keycode key, void *data)
 {
-	fps::move_right();
+	scene::camera::move_right();
 }
 
 static void move_forward(SDL_Keycode key, void *data)
 {
-	fps::move_forward();
+	scene::camera::move_forward();
 }
 
 static void move_backward(SDL_Keycode key, void *data)
 {
-	fps::move_backward();
+	scene::camera::move_backward();
 }
 
 static void mouse_look(float xoffset, float yoffset, void *data)
 {
-	fps::mouse_look(xoffset, yoffset);
+	scene::camera::mouse_look(xoffset, yoffset);
 }
 
 bool init(void)
 {
-	fps::init();
-	fps::set_move_speed(8.0f);
-	fps::set_mouse_sensitivity(0.1f);
+	scene::camera::set_move_speed(8.0f);
 
-	input::init();
+	input::set_mouse_sensitivity(0.1f);
 	input::set_mouse_motion_handler(mouse_look, NULL);
+
 	input::bind(SDLK_a, move_left, NULL);
 	input::bind(SDLK_s, move_backward, NULL);
 	input::bind(SDLK_d, move_right, NULL);
@@ -47,26 +48,15 @@ bool init(void)
 
 void shutdown(void)
 {
-	input::shutdown();
-	fps::shutdown();
 }
 
 void update(void)
 {
-	input::update();
-	fps::update();
 }
 
-bool handle_event(const SDL_Event &event)
+bool can_quit(void)
 {
-	bool ret = input::handle_event(event);
-
-	if (event.type == SDL_MOUSEWHEEL) {
-		fps::set_fov(fps::fov() + event.wheel.y);
-		return true;
-	}
-
-	return ret;
+	return true;
 }
 
 SGE_GAME_END

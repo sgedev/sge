@@ -10,6 +10,7 @@
 #include <sge/renderer.hpp>
 #include <sge/scene.hpp>
 #include <sge/console.hpp>
+#include <sge/input.hpp>
 #include <sge/game.hpp>
 
 SGE_BEGIN
@@ -23,46 +24,60 @@ static uint64_t s_last_time;
 static float s_elapsed;
 static bool s_gui_mode;
 
-static void handle_event(const SDL_Event &event)
+static void poll_events(void)
 {
-	switch (event.type) {
-	case SDL_KEYDOWN:
-		break;
-	case SDL_QUIT:
-		SGE_ASSERT(s_loop != NULL);
-		uv_timer_stop(&s_frame_timer);
-		uv_timer_stop(&s_state_timer);
-		uv_stop(s_loop);
-		return;
+	SDL_Event event;
+
+	while (SDL_PollEvent(&event)) {
+		if (event.type == SDL_QUIT) {
+			SGE_ASSERT(s_loop != NULL);
+			if (game::can_quit())
+				uv_stop(s_loop);
+			return;
+		}
+
+		input::handle_event(event);
+		renderer::handle_event(event);
 	}
+}
 
-	if (renderer::handle_event(event))
-		return;
+static void draw(void)
+{
+	scene::draw();
+	console::draw();
 
-	game::handle_event(event);
+	/* show fps */
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::Begin("fps", NULL,
+		ImGuiWindowFlags_NoInputs |
+		ImGuiWindowFlags_NoDecoration |
+		ImGuiWindowFlags_NoBackground |
+		ImGuiWindowFlags_AlwaysAutoResize);
+	ImGui::Text("fps %d", s_fps);
+	ImGui::End();
 }
 
 static void frame(uv_timer_t *timer)
 {
-	SDL_Event event;
 	int64_t elapsed;
 	
 	elapsed = uv_now(s_loop) - s_last_time;
-	if (elapsed < 0)
+	if (elapsed < 0) {
+		s_last_time = uv_now(s_loop);
 		return;
+	}
 
 	s_elapsed = float(elapsed) / 1000.0f;
 
-	while (SDL_PollEvent(&event))
-		handle_event(event);
+	poll_events();
 
+	input::update();
 	game::update();
 	scene::update();
 	console::update();
 
 	if (renderer::begin()) {
-		scene::draw();
-		console::draw();
+		draw();
 		renderer::end();
 	}
 
@@ -105,6 +120,7 @@ static bool init(uv_loop_t *loop)
 
 	//db::init(NULL);
 	renderer::init();
+	input::init();
 	scene::init();
 	console::init();
 	game::init();
@@ -134,6 +150,7 @@ static void shutdown(void)
 	game::shutdown();
 	console::shutdown();
 	scene::shutdown();
+	input::shutdown();
 	renderer::shutdown();
 	//db::shutdown();
 

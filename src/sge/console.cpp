@@ -21,7 +21,6 @@ void update(void)
 
 void draw(void)
 {
-	ImGui::Text("fps %d", fps());
 }
 
 void enable(void)

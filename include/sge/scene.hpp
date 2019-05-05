@@ -6,23 +6,7 @@
 #include <sge/db.hpp>
 #include <sge/scene/common.hpp>
 #include <sge/scene/camera.hpp>
-
-SGE_SCENE_BEGIN
-
-namespace loading {
-	bool start(db::node node);
-	bool is_started(void);
-	void stop(void);
-	int percentage(void);
-}
-
-bool init(void);
-void shutdown(void);
-void update(void);
-void draw(void);
-void reset(void);
-
-SGE_SCENE_END
+#include <sge/scene/base.hpp>
 
 #endif // SGE_SCENE_HPP
 

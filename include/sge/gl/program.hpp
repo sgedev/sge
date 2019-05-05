@@ -6,10 +6,11 @@
 #include <string>
 
 #include <sge/gl/common.hpp>
+#include <sge/gl/context.hpp>
 
 SGE_GL_BEGIN
 
-class program {
+class program: public context::object {
 public:
 	program(void);
 	virtual ~program(void);
@@ -44,6 +45,9 @@ public:
 	void uniform(GLint location, GLsizei count, GLboolean transpose, const glm::mat3 *value);
 	void uniform(GLint location, GLsizei count, GLboolean transpose, const glm::mat4 *value);
 
+protected:
+	bool check_state(void) const;
+
 private:
 	GLuint m_id;
 	std::string m_info_log;
@@ -61,6 +65,7 @@ inline const char *program::info_log(void) const
 
 inline bool program::add_shader(GLuint shader_id)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(shader_id > 0);
 
@@ -69,6 +74,7 @@ inline bool program::add_shader(GLuint shader_id)
 
 inline void program::use(void)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 
 	glUseProgram(m_id);
@@ -76,7 +82,7 @@ inline void program::use(void)
 
 inline GLint program::uniform_location(const char *name)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(name != NULL);
 
 	return glGetUniformLocation(m_id, name);
@@ -84,7 +90,7 @@ inline GLint program::uniform_location(const char *name)
 
 inline void program::uniform(GLint location, GLfloat v0)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform1f(location, v0);
@@ -92,7 +98,7 @@ inline void program::uniform(GLint location, GLfloat v0)
 
 inline void program::uniform(GLint location, GLfloat v0, GLfloat v1)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform2f(location, v0, v1);
@@ -100,7 +106,7 @@ inline void program::uniform(GLint location, GLfloat v0, GLfloat v1)
 
 inline void program::uniform(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform3f(location, v0, v1, v2);
@@ -108,7 +114,7 @@ inline void program::uniform(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
 
 inline void program::uniform(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform4f(location, v0, v1, v2, v3);
@@ -116,7 +122,7 @@ inline void program::uniform(GLint location, GLfloat v0, GLfloat v1, GLfloat v2,
 
 inline void program::uniform(GLint location, GLint v0)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform1i(location, v0);
@@ -124,7 +130,7 @@ inline void program::uniform(GLint location, GLint v0)
 
 inline void program::uniform(GLint location, GLint v0, GLint v1)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform2i(location, v0, v1);
@@ -132,7 +138,7 @@ inline void program::uniform(GLint location, GLint v0, GLint v1)
 
 inline void program::uniform(GLint location, GLint v0, GLint v1, GLint v2)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform3i(location, v0, v1, v2);
@@ -140,7 +146,7 @@ inline void program::uniform(GLint location, GLint v0, GLint v1, GLint v2)
 
 inline void program::uniform(GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform3i(location, v0, v2, v3);
@@ -148,7 +154,7 @@ inline void program::uniform(GLint location, GLint v0, GLint v1, GLint v2, GLint
 
 inline void program::uniform(GLint location, GLsizei count, const GLfloat *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform1fv(location, count, value);
@@ -156,7 +162,7 @@ inline void program::uniform(GLint location, GLsizei count, const GLfloat *value
 
 inline void program::uniform(GLint location, GLsizei count, const GLint *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform1iv(location, count, value);
@@ -164,7 +170,7 @@ inline void program::uniform(GLint location, GLsizei count, const GLint *value)
 
 inline void program::uniform(GLint location, GLsizei count, const glm::vec2 *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform2fv(location, count, glm::value_ptr(*value));
@@ -172,7 +178,7 @@ inline void program::uniform(GLint location, GLsizei count, const glm::vec2 *val
 
 inline void program::uniform(GLint location, GLsizei count, const glm::ivec2 *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform2iv(location, count, glm::value_ptr(*value));
@@ -180,7 +186,7 @@ inline void program::uniform(GLint location, GLsizei count, const glm::ivec2 *va
 
 inline void program::uniform(GLint location, GLsizei count, const glm::vec3 *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform3fv(location, count, glm::value_ptr(*value));
@@ -188,7 +194,7 @@ inline void program::uniform(GLint location, GLsizei count, const glm::vec3 *val
 
 inline void program::uniform(GLint location, GLsizei count, const glm::ivec3 *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform3iv(location, count, glm::value_ptr(*value));
@@ -196,7 +202,7 @@ inline void program::uniform(GLint location, GLsizei count, const glm::ivec3 *va
 
 inline void program::uniform(GLint location, GLsizei count, const glm::vec4 *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform4fv(location, count, glm::value_ptr(*value));
@@ -204,7 +210,7 @@ inline void program::uniform(GLint location, GLsizei count, const glm::vec4 *val
 
 inline void program::uniform(GLint location, GLsizei count, const glm::ivec4 *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniform4iv(location, count, glm::value_ptr(*value));
@@ -212,7 +218,7 @@ inline void program::uniform(GLint location, GLsizei count, const glm::ivec4 *va
 
 inline void program::uniform(GLint location, GLsizei count, GLboolean transpose, const glm::mat2 *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniformMatrix2fv(location, count, transpose, glm::value_ptr(*value));
@@ -220,7 +226,7 @@ inline void program::uniform(GLint location, GLsizei count, GLboolean transpose,
 
 inline void program::uniform(GLint location, GLsizei count, GLboolean transpose, const glm::mat3 *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniformMatrix3fv(location, count, transpose, glm::value_ptr(*value));
@@ -228,10 +234,23 @@ inline void program::uniform(GLint location, GLsizei count, GLboolean transpose,
 
 inline void program::uniform(GLint location, GLsizei count, GLboolean transpose, const glm::mat4 *value)
 {
-	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(check_state());
 	SGE_ASSERT(location >= 0);
 
 	glUniformMatrix4fv(location, count, transpose, glm::value_ptr(*value));
+}
+
+bool program::check_state(void) const
+{
+	if (!check_context())
+		return false;
+	if (m_id < 1)
+		return false;
+	GLint id;
+	glGetIntegeri_v(GL_CURRENT_PROGRAM, 0, &id);
+	if (id != m_id)
+		return false;
+	return true;
 }
 
 SGE_GL_END

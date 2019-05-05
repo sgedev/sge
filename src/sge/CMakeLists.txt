@@ -17,7 +17,7 @@ endif()
 
 sge_subdirectories(
 	db
-	game
+	fs
 	gl
 	scene
 	renderer
@@ -26,6 +26,7 @@ sge_subdirectories(
 
 sge_sources(
 	console.cpp
+	game.cpp
 	input.cpp
 	loading.cpp
 	main.cpp

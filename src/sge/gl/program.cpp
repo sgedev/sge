@@ -11,12 +11,15 @@ program::program(void)
 
 program::~program(void)
 {
-	destroy();
+	if (m_id > 0)
+		destroy();
 }
 
 bool program::create(void)
 {
 	SGE_ASSERT(m_id == 0);
+
+	context::object::init();
 
 	m_id = glCreateProgram();
 	if (m_id == 0)
@@ -27,14 +30,17 @@ bool program::create(void)
 
 void program::destroy(void)
 {
-	if (m_id != 0) {
-		glDeleteProgram(m_id);
-		m_id = 0;
-	}
+	SGE_ASSERT(m_id != 0);
+
+	glDeleteProgram(m_id);
+	m_id = 0;
+	
+	context::object::shutdown();
 }
 
 bool program::add_shader(GLenum type, const char *src)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(src != NULL);
 
@@ -67,6 +73,7 @@ bool program::add_shader(GLenum type, const char *src)
 
 bool program::link(void)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 
 	glLinkProgram(m_id);

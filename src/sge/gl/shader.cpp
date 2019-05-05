@@ -14,12 +14,15 @@ shader::shader(GLenum type)
 
 shader::~shader(void)
 {
-	destroy();
+	if (m_id > 0)
+		destroy();
 }
 
 bool shader::create(void)
 {
 	SGE_ASSERT(m_id == 0);
+
+	context::object::init();
 
 	m_id = glCreateShader(m_type);
 	if (m_id == 0)
@@ -30,16 +33,19 @@ bool shader::create(void)
 
 void shader::destroy(void)
 {
-	if (m_id > 0) {
-		glDeleteShader(m_id);
-		m_id = 0;
-	}
+	SGE_ASSERT(m_id > 0);
+
+	glDeleteShader(m_id);
+	m_id = 0;
 
 	m_info_log.clear();
+
+	context::object::shutdown();
 }
 
 bool shader::compile(const char *src)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id != 0);
 	SGE_ASSERT(src != NULL);
 

@@ -22,6 +22,8 @@ bool buffer::create(const void *data, int size)
 	SGE_ASSERT(m_id == 0);
 	SGE_ASSERT(size > 0);
 
+	context::object::init();
+
 	glGenBuffers(1, &m_id);
 	if (m_id == 0)
 		return false;
@@ -38,6 +40,8 @@ void buffer::destroy(void)
 {
 	if (m_id > 0)
 		glDeleteBuffers(1, &m_id);
+
+	context::object::shutdown();
 }
 
 SGE_GL_END

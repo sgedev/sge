@@ -4,10 +4,11 @@
 #define SGE_GL_VERTEX_ARRAY_HPP
 
 #include <sge/gl/common.hpp>
+#include <sge/gl/context.hpp>
 
 SGE_GL_BEGIN
 
-class vertex_array {
+class vertex_array: public context::object {
 public:
 	vertex_array(void);
 	virtual ~vertex_array(void);
@@ -29,6 +30,7 @@ inline GLuint vertex_array::id(void) const
 
 inline void vertex_array::bind(void)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 
 	glBindVertexArray(m_id);

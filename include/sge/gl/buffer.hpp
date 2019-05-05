@@ -4,10 +4,11 @@
 #define SGE_GL_BUFFER_HPP
 
 #include <sge/gl/common.hpp>
+#include <sge/gl/context.hpp>
 
 SGE_GL_BEGIN
 
-class buffer {
+class buffer: public context::object {
 public:
 	buffer(GLenum target, GLenum usage);
 	virtual ~buffer(void);
@@ -57,6 +58,7 @@ inline int buffer::size(void) const
 
 inline void buffer::bind(void)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 
 	glBindBuffer(m_target, m_id);
@@ -64,6 +66,7 @@ inline void buffer::bind(void)
 
 inline void *buffer::map(GLenum access)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(!m_mapped);
 
@@ -76,12 +79,16 @@ inline void *buffer::map(GLenum access)
 
 inline void *buffer::map(GLenum access, int offset, int size)
 {
+	SGE_ASSERT(check_context());
+	SGE_ASSERT(m_id > 0);
+
 	/* TODO */
 	return NULL;
 }
 
 inline bool buffer::unmap(void)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(m_mapped);
 
@@ -95,6 +102,7 @@ inline bool buffer::unmap(void)
 
 inline bool buffer::read(int offset, void *buff, int size)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(offset >= 0);
 	SGE_ASSERT(offset < m_size);
@@ -110,6 +118,7 @@ inline bool buffer::read(int offset, void *buff, int size)
 
 inline bool buffer::write(int offset, const void *data, int size)
 {
+	SGE_ASSERT(check_context());
 	SGE_ASSERT(m_id > 0);
 	SGE_ASSERT(offset >= 0);
 	SGE_ASSERT(offset < m_size);

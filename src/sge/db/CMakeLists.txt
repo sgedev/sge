@@ -1,6 +1,5 @@
 
 sge_sources(
-	blob.cpp
-	core.cpp
+	connection.cpp
 	node.cpp
 	)

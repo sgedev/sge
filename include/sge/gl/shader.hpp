@@ -6,10 +6,11 @@
 #include <string>
 
 #include <sge/gl/common.hpp>
+#include <sge/gl/context.hpp>
 
 SGE_GL_BEGIN
 
-class shader {
+class shader: public context::object {
 public:
 	shader(GLenum type);
 	virtual ~shader(void);

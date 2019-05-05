@@ -5,21 +5,21 @@
 
 #include <memory>
 
+#include <pugixml.hpp>
+
+#include <sge/fs.hpp>
 #include <sge/db/common.hpp>
-#include <sge/db/blob.hpp>
 
 SGE_DB_BEGIN
-
-typedef std::shared_ptr<blob> blob_ptr;
 
 class node {
 public:
 	node(void);
-	node(pugi::xml_node node);
+	node(fs::base *fs, pugi::xml_node node);
 	node(const node &that);
 
 public:
-	void set(pugi::xml_node node);
+	void set(fs::base *fs, pugi::xml_node node);
 	node child(const char *path);
 	node first_child(void);
 	node next_sibling(void);
@@ -30,49 +30,53 @@ public:
 	float to_float(void);
 	double to_double(void);
 	const char *to_string(void);
-	blob_ptr to_blob(void);
+	fs::file_ptr to_file(void);
 
 public:
 	operator bool(void);
 	bool operator==(const node &that);
 	bool operator!=(const node &that);
 	node &operator=(const node &that);
-	node &operator=(pugi::xml_node node);
 
 protected:
 	bool check_path(const char *path);
 
 private:
+	fs::base *m_fs;
 	pugi::xml_node m_node;
 };
 
 inline node::node(void)
+	: m_fs(NULL)
 {
 }
 
-inline node::node(pugi::xml_node node)
-	: m_node(node)
+inline node::node(fs::base *fs, pugi::xml_node node)
+	: m_fs(fs)
+	, m_node(node)
 {
 }
 
 inline node::node(const node &that)
-	: m_node(that.m_node)
+	: m_fs(that.m_fs)
+	, m_node(that.m_node)
 {
 }
 
-inline void node::set(pugi::xml_node node)
+inline void node::set(fs::base *fs, pugi::xml_node node)
 {
+	m_fs = fs;
 	m_node = node;
 }
 
 inline node node::first_child(void)
 {
-	return node(m_node.first_child());
+	return node(m_fs, m_node.first_child());
 }
 
 inline node node::next_sibling(void)
 {
-	return node(m_node.next_sibling());
+	return node(m_fs, m_node.next_sibling());
 }
 
 inline bool node::to_bool(void)
@@ -107,24 +111,18 @@ inline node::operator bool(void)
 
 inline bool node::operator==(const node &that)
 {
-	return (m_node == that.m_node);
+	return (m_fs == that.m_fs && m_node == that.m_node);
 }
 
 inline bool node::operator!=(const node &that)
 {
-	return (m_node != that.m_node);
+	return !((*this) == that);
 }
 
 inline node &node::operator=(const node &that)
 {
+	m_fs = that.m_fs;
 	m_node = that.m_node;
-
-	return (*this);
-}
-
-inline node &node::operator=(pugi::xml_node n)
-{
-	m_node = n;
 
 	return (*this);
 }

@@ -8,9 +8,11 @@ else()
 endif()
 
 sge_sources(
+	context.cpp
 	buffer.cpp
 	program.cpp
 	shader.cpp
 	vertex_array.cpp
+	window.cpp
 	)
 

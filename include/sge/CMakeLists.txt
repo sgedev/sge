@@ -1,6 +1,7 @@
 
 sge_subdirectories(
 	db
+	fs
 	gl
 	renderer
 	scene
@@ -12,6 +13,7 @@ sge_sources(
 	config.hpp.in
 	console.hpp
 	db.hpp
+	fs.hpp
 	game.hpp
 	gl.hpp
 	input.hpp

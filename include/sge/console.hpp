@@ -12,10 +12,9 @@ SGE_CONSOLE_BEGIN
 
 bool init(void);
 void shutdown(void);
-void update(void);
+bool handle_event(const SDL_Event &event);
+void update(float elapsed);
 void draw(void);
-void enable(void);
-void disable(void);
 
 SGE_CONSOLE_END
 

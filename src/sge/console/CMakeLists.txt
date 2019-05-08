@@ -1,6 +1,4 @@
 
 sge_sources(
 	core.cpp
-	vm.cpp
 	)
-

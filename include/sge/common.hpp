@@ -7,22 +7,7 @@
 
 #include <uv.h>
 
-//#define GLM_FORCE_CXX11
-#define GLM_FORCE_INLINE
-//#define GLM_FORCE_NO_CTOR_INIT
-//#define GLM_FORCE_EXPLICIT_CTOR
-#include <glm/glm.hpp>
-#include <glm/gtc/bitfield.hpp>
-#include <glm/gtc/color_space.hpp>
-#include <glm/gtc/constants.hpp>
-#include <glm/gtc/epsilon.hpp>
-#include <glm/gtc/functions.hpp>
-#include <glm/gtc/integer.hpp>
-#include <glm/gtc/matrix_access.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/transform.hpp>
+#include <glm.hpp>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -60,6 +45,15 @@
 #define SGE_STRIZE(x) SGE_STRIZE_IMPL(x)
 #define SGE_STRIZE_IMPL(x) #x
 
+#define SGE_PMOVB(p, offset) \
+	(((unsigned char *)(p)) + (offset))
+
+#define SGE_OFFSETOF(struct_type, member_name) \
+	((long)(&(((struct_type *)0)->member_name)))
+
+#define SGE_MEMBEROF(p, struct_type, member_name) \
+	((struct_type *)SGE_PMOVB(p, -SGE_OFFSETOF(struct_type, member_name)))
+
 #define SGE_BEGIN namespace sge {
 #define SGE_END }
 
@@ -73,10 +67,6 @@ typedef std::int32_t int32_t;
 typedef std::uint32_t uint32_t;
 typedef std::int64_t int64_t;
 typedef std::uint64_t uint64_t;
-
-uv_loop_t *main_loop(void);
-unsigned int fps(void);
-float elapsed(void);
 
 SGE_END
 

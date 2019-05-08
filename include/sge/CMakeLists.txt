@@ -1,8 +1,7 @@
 
 sge_subdirectories(
 	db
-	fs
-	gl
+	game
 	renderer
 	scene
 	sound
@@ -13,9 +12,7 @@ sge_sources(
 	config.hpp.in
 	console.hpp
 	db.hpp
-	fs.hpp
 	game.hpp
-	gl.hpp
 	input.hpp
 	loading.hpp
 	noncopyable.hpp

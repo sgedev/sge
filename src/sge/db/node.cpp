@@ -12,23 +12,51 @@ node node::child(const char *path)
 	if (!xnode)
 		return node();
 
-	return node(m_fs, xnode.node());
+	return node(xnode.node());
 }
 
-fs::file_ptr node::to_file(void)
+blob_ptr node::to_blob(void)
 {
-	fs::file_ptr fp;
+	blob_ptr p;
 
 	const char *filename = to_string();
 	if (filename == NULL)
-		return fp;
+		return p;
 
-	return m_fs->get_file(filename);
+	// TODO use blob cache.
+
+	int index = mz_zip_reader_locate_file(&internal::g_archive, filename, NULL, 0);
+	if (index < 0)
+		return p;
+
+	p.reset(new blob(filename));
+
+	return p;
 }
 
 bool node::check_path(const char *path)
 {
-	return m_fs->check_path(path);
+	if (path == NULL)
+		return false;
+
+	if (*path != '/')
+		return false;
+
+	bool slashed = true;
+
+	for (const char *p = path + 1; *p != '\0'; ++p) {
+		if (isalnum(*p) || *p == '_') {
+			slashed = false;
+			continue;
+		}
+		if (*p != '/')
+			return false;
+		if (slashed)
+			return false;
+		slashed = true;
+	}
+
+	return true;
 }
 
 SGE_DB_END

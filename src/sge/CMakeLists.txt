@@ -16,17 +16,15 @@ else()
 endif()
 
 sge_subdirectories(
+	console
 	db
-	fs
-	gl
+	game
 	scene
 	renderer
 	sound
 	)
 
 sge_sources(
-	console.cpp
-	game.cpp
 	input.cpp
 	loading.cpp
 	main.cpp

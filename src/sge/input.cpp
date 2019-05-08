@@ -63,13 +63,13 @@ void shutdown(void)
 	s_mouse_motion_handler = NULL;
 }
 
-void update(void)
+void update(float elapsed)
 {
 	for (auto it = s_keymap.begin(); it != s_keymap.end(); ++it) {
 		if (it->second.state != SDL_PRESSED)
 			continue;
 		SGE_ASSERT(it->second.handler != NULL);
-		it->second.handler(it->first, it->second.data);
+		it->second.handler(it->first, elapsed, it->second.data);
 	}
 }
 

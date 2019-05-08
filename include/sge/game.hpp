@@ -4,7 +4,6 @@
 #define SGE_GAME_HPP
 
 #include <sge/game/common.hpp>
-#include <sge/game/vm.hpp>
 
 SGE_GAME_BEGIN
 

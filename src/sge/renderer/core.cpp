@@ -499,6 +499,7 @@ void end(void)
 
 	SDL_GL_MakeCurrent(s_window, s_gl_context);
 
+	glViewport(0, 0, s_window_rect[2], s_window_rect[3]);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	s_program.Use();

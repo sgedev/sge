@@ -10,7 +10,7 @@
 
 SGE_INPUT_BEGIN
 
-typedef void (* key_handler)(SDL_Keycode key, float elapsed, void *data);
+typedef void (* key_handler)(SDL_Keycode key, void *data);
 typedef void (* mouse_motion_handler)(float xoffset, float yoffset, void *data);
 
 bool init(void);

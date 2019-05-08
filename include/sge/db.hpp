@@ -11,7 +11,7 @@ SGE_DB_BEGIN
 bool init(const char *filename);
 void shutdown(void);
 node root(void);
-node get_node(const char *path);
+node get(const char *path);
 
 SGE_DB_END
 

@@ -206,6 +206,7 @@ int main(int argc, char *argv[])
 
 	SGE_LOGI("Running...\n");
 	uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+
 	sge::shutdown();
 
 	SGE_LOGI("Quit.\n");

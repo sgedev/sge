@@ -69,7 +69,7 @@ void update(float elapsed)
 		if (it->second.state != SDL_PRESSED)
 			continue;
 		SGE_ASSERT(it->second.handler != NULL);
-		it->second.handler(it->first, elapsed, it->second.data);
+		it->second.handler(it->first, it->second.data);
 	}
 }
 

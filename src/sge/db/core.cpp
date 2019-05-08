@@ -67,7 +67,7 @@ node root(void)
 	return s_root;
 }
 
-node get_node(const char *path)
+node get(const char *path)
 {
 	return s_root.child(path);
 }

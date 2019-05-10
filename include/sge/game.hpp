@@ -7,6 +7,15 @@
 
 SGE_GAME_BEGIN
 
+typedef struct {
+	struct {
+		void (*set_fov)(float fov);
+		void (*move_left)(int steps);
+		void (*move_right)(int steps);
+		void (*move_forward)(int steps);
+	} camera;
+} traps_t;
+
 bool init(void);
 void shutdown(void);
 void update(float elapsed);

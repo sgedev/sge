@@ -1,10 +1,9 @@
 //
 //
-#include <imgui.h>
+#include <sge/renderer.hpp>
+
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl.h>
-
-#include <sge/renderer.hpp>
 
 SGE_RENDERER_BEGIN
 
@@ -237,7 +236,7 @@ static void gl_debug_output(GLenum source, GLenum type, GLuint id,
 			gl_debug_source(source), gl_debug_type(type), gl_debug_severity(severity), message);
 		break;
 	default:
-		SGE_LOGI("GL-%04d|%s|%s|%s] %s", id,
+		SGE_LOGD("GL-%04d|%s|%s|%s] %s", id,
 			gl_debug_source(source), gl_debug_type(type), gl_debug_severity(severity), message);
 		break;
 	}

@@ -26,7 +26,6 @@ bool blob::open(void)
 
 	m_data = mz_zip_reader_extract_file_to_heap(
 		&internal::g_archive, m_filename.c_str(), &m_size, 0);
-
 	if (m_data == NULL)
 		return false;
 

@@ -1,14 +1,21 @@
 //
 //
+#include <string>
+
 #include <sge/db/node.hpp>
 
 SGE_DB_BEGIN
 
 node node::child(const char *path)
 {
+	SGE_LOGI("path '%s'\n", path);
+
 	SGE_ASSERT(check_path(path));
 
-	pugi::xpath_node xnode = m_node.select_node(path);
+	std::string real_path = "/sge";
+	real_path += path;
+
+	pugi::xpath_node xnode = m_node.select_node(real_path.c_str());
 	if (!xnode)
 		return node();
 
@@ -25,11 +32,14 @@ blob_ptr node::to_blob(void)
 
 	// TODO use blob cache.
 
-	int index = mz_zip_reader_locate_file(&internal::g_archive, filename, NULL, 0);
-	if (index < 0)
+	int index = mz_zip_reader_locate_file(&internal::g_archive, filename + 1, NULL, 0);
+	SGE_LOGD("index %d\n", index);
+	if (index < 0) {
+		SGE_LOGE("File '%s' not found in database.\n", filename);
 		return p;
+	}
 
-	p.reset(new blob(filename));
+	p.reset(new blob(filename + 1));
 
 	return p;
 }

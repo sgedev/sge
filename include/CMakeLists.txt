@@ -6,7 +6,7 @@ sge_subdirectories(
 	)
 
 sge_sources(
-	cxxopts.hpp
+	argh.h
 	imconfig.h
 	imgui.h
 	imgui_impl_opengl3.h

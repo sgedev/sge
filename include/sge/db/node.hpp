@@ -97,7 +97,7 @@ inline double node::to_double(void)
 
 inline const char *node::to_string(void)
 {
-	return m_node.value();
+	return m_node.text().as_string();
 }
 
 inline node::operator bool(void)

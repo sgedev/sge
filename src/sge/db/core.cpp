@@ -16,6 +16,8 @@ static node s_root;
 
 bool init(const char *filename)
 {
+	SGE_LOGI("Opening database '%s'...\n", filename);
+
 	mz_bool zret;
 	pugi::xml_parse_result xret;
 
@@ -24,8 +26,10 @@ bool init(const char *filename)
 	SGE_ASSERT(filename != NULL);
 
 	zret = mz_zip_reader_init_file(&internal::g_archive, filename, 0);
-	if (!zret)
+	if (!zret) {
+		SGE_LOGE("Failed to open database '%s'.\n", filename);
 		return false;
+	}
 
 	size_t size;
 
@@ -33,6 +37,7 @@ bool init(const char *filename)
 		&internal::g_archive, "manifest.xml", &size, 0);
 
 	if (p == NULL) {
+		SGE_LOGE("Invalid database '%s', no manifest.xml found.\n", filename);
 		mz_zip_reader_end(&internal::g_archive);
 		return false;
 	}
@@ -41,12 +46,14 @@ bool init(const char *filename)
 	free(p);
 
 	if (!xret) {
+		SGE_LOGE("Invalid manifest.xml.\n");
 		mz_zip_reader_end(&internal::g_archive);
 		return false;
 	}
 
-	pugi::xml_node n = internal::g_manifest.child("SGE");
+	pugi::xml_node n = internal::g_manifest.child("sge");
 	if (!n) {
+		SGE_LOGE("Invalid manifest.xml, root not found.\n");
 		mz_zip_reader_end(&internal::g_archive);
 		return false;
 	}

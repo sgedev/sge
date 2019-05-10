@@ -1,10 +1,13 @@
 //
 //
+#include <string>
+#include <iostream>
+
+#include <argh.h>
+
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include <iostream>
-#include <cxxopts.hpp>
 #include <sge/common.hpp>
 #include <sge/db.hpp>
 #include <sge/renderer.hpp>
@@ -21,7 +24,6 @@ static uv_timer_t s_state_timer;
 static unsigned int s_fps = 0;
 static unsigned int s_fps_count;
 static uint64_t s_last_time;
-static float s_elapsed;
 static bool s_console_mode;
 
 static inline void handle_event(const SDL_Event &event)
@@ -37,8 +39,11 @@ static inline void handle_event(const SDL_Event &event)
 		break;
 	case SDL_QUIT:
 		SGE_ASSERT(s_loop != NULL);
-		if (game::can_quit())
+		if (game::can_quit()) {
+			uv_timer_stop(&s_frame_timer);
+			uv_timer_stop(&s_state_timer);
 			uv_stop(s_loop);
+		}
 		return;
 	}
 
@@ -108,32 +113,15 @@ static void state(uv_timer_t *timer)
 	s_fps_count = 0;
 }
 
-static void show_info(void)
-{
-	const char *type =
-#ifdef SGE_DEBUG
-		"DEBUG";
-#else
-		"RELEASE";
-#endif
-
-	SGE_LOGI("SGE: %d.%d.%d [%s]\n",
-		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH, type);
-
-	SGE_LOGI("Platform: %s, CPUs %d, Memory %dMB\n",
-		SDL_GetPlatform(), SDL_GetCPUCount(), SDL_GetSystemRAM());
-}
-
-static bool init(uv_loop_t *loop)
+static bool init(uv_loop_t *loop, const char *db_filename)
 {
 	SGE_ASSERT(s_loop == NULL);
 	SGE_ASSERT(loop != NULL);
+	SGE_ASSERT(db_filename != NULL);
 
 	s_loop = loop;
 
-	show_info();
-
-	//db::init(NULL);
+	db::init(db_filename);
 	renderer::init();
 	input::init();
 	scene::init();
@@ -149,7 +137,6 @@ static bool init(uv_loop_t *loop)
 	s_fps = 0;
 	s_fps_count = 0;
 	s_last_time = uv_now(s_loop);
-	s_elapsed = 0.0f;
 	s_console_mode = true;
 
 	return true;
@@ -161,9 +148,12 @@ static void shutdown(void)
 
 	uv_timer_stop(&s_frame_timer);
 	uv_timer_stop(&s_state_timer);
+	SGE_LOGD("\n");
 
 	game::shutdown();
+	SGE_LOGD("\n");
 	console::shutdown();
+	SGE_LOGD("\n");
 	scene::shutdown();
 	input::shutdown();
 	renderer::shutdown();
@@ -174,34 +164,76 @@ static void shutdown(void)
 
 SGE_END
 
-struct SDL_Initializer {
+struct SDL_Session {
 	int InitResult;
 
-	SDL_Initializer(void)
+	SDL_Session(void)
 	{
 		InitResult = SDL_Init(SDL_INIT_EVERYTHING);
 	}
 
-	~SDL_Initializer(void)
+	~SDL_Session(void)
 	{
 		if (InitResult == 0)
 			SDL_Quit();
 	}
+
+	operator bool(void) const
+	{
+		return (InitResult == 0);
+	}
 };
+
+static void show_version(void)
+{
+	const char *type =
+#ifdef SGE_DEBUG
+		"DEBUG";
+#else
+		"RELEASE";
+#endif
+
+	SGE_LOGI("SGE: %d.%d.%d [%s]\n",
+		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH, type);
+
+	SGE_LOGI("Platform: %s, CPUs %d, Memory %dMB\n",
+		SDL_GetPlatform(), SDL_GetCPUCount(), SDL_GetSystemRAM());
+}
+
+static void show_help(void)
+{
+}
 
 int main(int argc, char *argv[])
 {
+	argh::parser cmdline(argv);
+	
+	if (cmdline[{ "-v", "--version" }]) {
+		show_version();
+		return EXIT_SUCCESS;
+	}
+
+	if (cmdline[{ "-h", "--help" }]) {
+		show_help();
+		return EXIT_SUCCESS;
+	}
+
+	std::string db_filename;
+	cmdline(1) >> db_filename;
+	if (db_filename.empty())
+		db_filename = "default.zip";
+
 	SDL_SetMainReady();
 
-	SDL_Initializer SDL;
-	if (SDL.InitResult < 0)
+	SDL_Session SDL;
+	if (!SDL)
 		return EXIT_FAILURE;
 
 #ifdef SGE_DEBUG
 	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
-	if (!sge::init(uv_default_loop()))
+	if (!sge::init(uv_default_loop(), db_filename.c_str()))
 		return EXIT_FAILURE;
 
 	SGE_LOGI("Running...\n");

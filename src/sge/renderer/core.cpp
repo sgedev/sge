@@ -20,11 +20,14 @@ enum uniform_mat4 {
 	UNIFORM_MAT4_MAX
 };
 
-static SDL_Window *s_window = NULL;
-static Uint32 s_window_id = 0;
-static int s_window_rect[4];
-static bool s_window_visibled = false;
-static SDL_GLContext s_gl_context = NULL;
+namespace details {
+	SDL_Window *g_window;
+	Uint32 g_window_id;
+	int g_window_rect[4];
+	bool g_window_visibled;
+	SDL_GLContext g_gl_context;
+};
+
 static ImGuiContext *s_imgui_context = NULL;
 static GL::Program s_program;
 
@@ -246,8 +249,8 @@ static void gl_debug_output(GLenum source, GLenum type, GLuint id,
 
 bool init(void)
 {
-	SGE_ASSERT(s_window == NULL);
-	SGE_ASSERT(s_gl_context == NULL);
+	SGE_ASSERT(details::g_window == NULL);
+	SGE_ASSERT(details::g_gl_context == NULL);
 
 	SGE_LOGD("Creating OpenGL window...\n");
 
@@ -266,37 +269,37 @@ bool init(void)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
-	s_window = SDL_CreateWindow("SGE",
-		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 400, 300,
+	details::g_window = SDL_CreateWindow("SGE",
+		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
 
-	if (s_window == NULL)
+	if (details::g_window == NULL)
 		return false;
 
-	s_window_id = SDL_GetWindowID(s_window);
-	SDL_GetWindowPosition(s_window, &s_window_rect[0], &s_window_rect[1]);
-	SDL_GetWindowSize(s_window, &s_window_rect[2], &s_window_rect[3]);
+	details::g_window_id = SDL_GetWindowID(details::g_window);
+	SDL_GetWindowPosition(details::g_window, &details::g_window_rect[0], &details::g_window_rect[1]);
+	SDL_GetWindowSize(details::g_window, &details::g_window_rect[2], &details::g_window_rect[3]);
 
 	SGE_LOGD("Initializing OpenGL...\n");
 
-	s_gl_context = SDL_GL_CreateContext(s_window);
-	if (s_gl_context == NULL) {
+	details::g_gl_context = SDL_GL_CreateContext(details::g_window);
+	if (details::g_gl_context == NULL) {
 		SGE_LOGE("Failed to create OpenGL context.\n");
-		SDL_DestroyWindow(s_window);
-		s_window = NULL;
+		SDL_DestroyWindow(details::g_window);
+		details::g_window = NULL;
 		return false;
 	}
 
-	SDL_GL_MakeCurrent(s_window, s_gl_context);
+	SDL_GL_MakeCurrent(details::g_window, details::g_gl_context);
 
 	glewExperimental = GL_TRUE;
 
 	if (glewInit() != GLEW_OK) {
 		SGE_LOGE("Failed to initialize GLEW.\n");
-		SDL_GL_DeleteContext(s_gl_context);
-		s_gl_context = NULL;
-		SDL_DestroyWindow(s_window);
-		s_window = NULL;
+		SDL_GL_DeleteContext(details::g_gl_context);
+		details::g_gl_context = NULL;
+		SDL_DestroyWindow(details::g_window);
+		details::g_window = NULL;
 		return false;
 	}
 
@@ -315,10 +318,10 @@ bool init(void)
     s_imgui_context = ImGui::CreateContext();
 	if (s_imgui_context == NULL) {
 		SGE_LOGE("Failed to initialize ImGui.\n");
-		SDL_GL_DeleteContext(s_gl_context);
-		s_gl_context = NULL;
-		SDL_DestroyWindow(s_window);
-		s_window = NULL;
+		SDL_GL_DeleteContext(details::g_gl_context);
+		details::g_gl_context = NULL;
+		SDL_DestroyWindow(details::g_window);
+		details::g_window = NULL;
 		return false;
 	}
 
@@ -331,15 +334,24 @@ bool init(void)
 
     ImGui::StyleColorsDark();
 
-    ImGui_ImplSDL2_InitForOpenGL(s_window, s_gl_context);
+	ImGuiStyle &style = ImGui::GetStyle();
+	style.Alpha = 1.1f;
+	style.WindowRounding = 0.0f;
+	style.WindowBorderSize = 1.0f;
+	style.ChildRounding = 0.0f;
+	style.ChildBorderSize = 0.0f;
+	style.PopupRounding = 0.0f;
+	style.PopupBorderSize = 0.0f;
+
+    ImGui_ImplSDL2_InitForOpenGL(details::g_window, details::g_gl_context);
     ImGui_ImplOpenGL3_Init("#version 130");
 
 	if (!init_program()) {
 		SGE_LOGE("Failed to initialize ImGui.\n");
-		SDL_GL_DeleteContext(s_gl_context);
-		s_gl_context = NULL;
-		SDL_DestroyWindow(s_window);
-		s_window = NULL;
+		SDL_GL_DeleteContext(details::g_gl_context);
+		details::g_gl_context = NULL;
+		SDL_DestroyWindow(details::g_window);
+		details::g_window = NULL;
 		return false;
 	}
 
@@ -356,8 +368,8 @@ bool init(void)
 
 void shutdown(void)
 {
-	SGE_ASSERT(s_window != NULL);
-	SGE_ASSERT(s_gl_context != NULL);
+	SGE_ASSERT(details::g_window != NULL);
+	SGE_ASSERT(details::g_gl_context != NULL);
 	SGE_ASSERT(s_imgui_context != NULL);
 
 	shutdown_test();
@@ -371,20 +383,20 @@ void shutdown(void)
 	ImGui::DestroyContext(s_imgui_context);
 	s_imgui_context = NULL;
 
-	if (s_gl_context == SDL_GL_GetCurrentContext())
-		SDL_GL_MakeCurrent(s_window, NULL);
+	if (details::g_gl_context == SDL_GL_GetCurrentContext())
+		SDL_GL_MakeCurrent(details::g_window, NULL);
 
-	SDL_GL_DeleteContext(s_gl_context);
-	s_gl_context = NULL;
+	SDL_GL_DeleteContext(details::g_gl_context);
+	details::g_gl_context = NULL;
 
-	SDL_DestroyWindow(s_window);
-	s_window = NULL;
-	s_window_id = 0;
+	SDL_DestroyWindow(details::g_window);
+	details::g_window = NULL;
+	details::g_window_id = 0;
 }
 
 bool handle_event(const SDL_Event &event)
 {
-	SGE_ASSERT(s_window != NULL);
+	SGE_ASSERT(details::g_window != NULL);
 	SGE_ASSERT(s_imgui_context != NULL);
 
 	ImGui::SetCurrentContext(s_imgui_context);
@@ -394,72 +406,29 @@ bool handle_event(const SDL_Event &event)
 	if (event.type != SDL_WINDOWEVENT)
 		return false;
 
-	if (event.window.windowID != s_window_id)
+	if (event.window.windowID != details::g_window_id)
 		return false;
 
 	switch (event.window.event) {
 	case SDL_WINDOWEVENT_MOVED:
-		s_window_rect[0] = event.window.data1;
-		s_window_rect[1] = event.window.data2;
+		details::g_window_rect[0] = event.window.data1;
+		details::g_window_rect[1] = event.window.data2;
 		return true;
 	case SDL_WINDOWEVENT_RESIZED:
-		s_window_rect[2] = event.window.data1;
-		s_window_rect[3] = event.window.data2;
+		details::g_window_rect[2] = event.window.data1;
+		details::g_window_rect[3] = event.window.data2;
 		return true;
 	case SDL_WINDOWEVENT_EXPOSED:
 	case SDL_WINDOWEVENT_SHOWN:
-		s_window_visibled = true;
+		details::g_window_visibled = true;
 		return true;
 	case SDL_WINDOWEVENT_HIDDEN:
 	case SDL_WINDOWEVENT_MINIMIZED:
-		s_window_visibled = false;
+		details::g_window_visibled = false;
 		return true;
 	}
 
 	return false;
-}
-
-SDL_Window *window(void)
-{
-	SGE_ASSERT(s_window != NULL);
-
-	return s_window;
-}
-
-Uint32 window_id(void)
-{
-	SGE_ASSERT(s_window != NULL);
-
-	return s_window_id;
-}
-
-glm::ivec2 window_pos(void)
-{
-	SGE_ASSERT(s_window != NULL);
-
-	return glm::ivec2(s_window_rect[0], s_window_rect[1]);
-}
-
-glm::ivec2 window_size(void)
-{
-	SGE_ASSERT(s_window != NULL);
-
-	return glm::ivec2(s_window_rect[2], s_window_rect[3]);
-}
-
-glm::ivec4 window_rect(void)
-{
-	SGE_ASSERT(s_window != NULL);
-
-	return glm::ivec4(s_window_rect[0], s_window_rect[1], s_window_rect[2], s_window_rect[3]);
-}
-
-SDL_GLContext gl_context(void)
-{
-	SGE_ASSERT(s_window != NULL);
-	SGE_ASSERT(s_gl_context != NULL);
-
-	return s_gl_context;
 }
 
 void set_view_matrix(const glm::mat4 &v)
@@ -474,16 +443,16 @@ void set_projection_matrix(const glm::mat4 &v)
 
 bool begin(void)
 {
-	SGE_ASSERT(s_window != NULL);
-	SGE_ASSERT(s_gl_context != NULL);
+	SGE_ASSERT(details::g_window != NULL);
+	SGE_ASSERT(details::g_gl_context != NULL);
 	SGE_ASSERT(s_imgui_context != NULL);
 
-	if (!s_window_visibled)
+	if (!details::g_window_visibled)
 		return false;
 
 	ImGui::SetCurrentContext(s_imgui_context);
 	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame(s_window);
+	ImGui_ImplSDL2_NewFrame(details::g_window);
 	ImGui::NewFrame();
 
 	return true;
@@ -491,14 +460,14 @@ bool begin(void)
 
 void end(void)
 {
-	SGE_ASSERT(s_window != NULL);
-	SGE_ASSERT(s_gl_context != NULL);
+	SGE_ASSERT(details::g_window != NULL);
+	SGE_ASSERT(details::g_gl_context != NULL);
 
 	ImGui::Render();
 
-	SDL_GL_MakeCurrent(s_window, s_gl_context);
+	SDL_GL_MakeCurrent(details::g_window, details::g_gl_context);
 
-	glViewport(0, 0, s_window_rect[2], s_window_rect[3]);
+	glViewport(0, 0, details::g_window_rect[2], details::g_window_rect[3]);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	s_program.Use();
@@ -510,7 +479,17 @@ void end(void)
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	ImGui::SetCurrentContext(NULL);
 
-	SDL_GL_SwapWindow(s_window);
+	SDL_GL_SwapWindow(details::g_window);
+}
+
+void center_next_imgui_window(const ImVec2& size)
+{
+	ImVec2 pos;
+
+	pos.x = details::g_window_rect[2] / 2.0f - size.x / 0.2f;
+	pos.y = details::g_window_rect[3] / 2.0f - size.x / 0.2f;
+
+	ImGui::SetNextWindowPos(pos);
 }
 
 SGE_RENDERER_END

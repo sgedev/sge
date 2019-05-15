@@ -2,10 +2,14 @@
 //
 #include <future>
 
+#include <imgui.h>
 #include <lua.hpp>
 
 #include <sge/db.hpp>
+#include <sge/scene.hpp>
 #include <sge/game.hpp>
+
+#include "input.hpp"
 
 SGE_GAME_BEGIN
 
@@ -223,6 +227,7 @@ static void schedule(void)
 		T = SGE_MEMBEROF(node, task_t, node);
 		L = task_to_lua(T);
 		int ret = lua_resume(L, s_lua, 0);
+		lua_gc(s_lua, LUA_GCRESTART, 0);
 		if (ret != LUA_YIELD && ret != LUA_OK) {
 			SGE_LOGD("LUA_ERROR: %s\n", luaL_checkstring(L, -1));
 			// TODO
@@ -296,6 +301,8 @@ static int pmain(lua_State *L)
 	init_result->set_value(true);
 
 	while (s_running) {
+		if (xlist_empty(&s_task_list))
+			break;
 		schedule();
 		uv_run(s_loop, UV_RUN_ONCE);
 	}
@@ -331,6 +338,8 @@ static void main(std::promise<bool> *init_result)
 
 bool init(void)
 {
+	input::init();
+
 	s_running = false;
 
 	xlist_reset(&s_task_list);
@@ -358,15 +367,32 @@ void shutdown(void)
 		uv_async_send(&s_quit_async);
 		s_thread.join();
 	}
+
+	input::shutdown();
+}
+
+bool handle_event(const SDL_Event &event)
+{
+	if (event.type == SDL_QUIT) {
+		uv_stop(uv_default_loop());
+		return true;
+	}
+
+	return input::handle_event(event);
 }
 
 void update(float elapsed)
 {
+	input::update(elapsed);
+
+	// TODO game logic update.
+
+	scene::update(elapsed);
 }
 
-bool can_quit(void)
+void draw(void)
 {
-	return true;
+	scene::draw();
 }
 
 SGE_GAME_END

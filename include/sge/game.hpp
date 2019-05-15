@@ -18,8 +18,9 @@ typedef struct {
 
 bool init(void);
 void shutdown(void);
+bool handle_event(const SDL_Event &event);
 void update(float elapsed);
-bool can_quit(void);
+void draw(void);
 
 SGE_GAME_END
 

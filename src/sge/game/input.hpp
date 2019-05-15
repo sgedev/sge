@@ -1,14 +1,14 @@
 //
 //
-#ifndef SGE_INPUT_HPP
-#define SGE_INPUT_HPP
+#ifndef SGE_GAME_INPUT_HPP
+#define SGE_GAME_INPUT_HPP
 
-#include <sge/common.hpp>
+#include <sge/game/common.hpp>
 
-#define SGE_INPUT_BEGIN SGE_BEGIN namespace input {
-#define SGE_INPUT_END } SGE_END
+#define SGE_GAME_INPUT_BEGIN SGE_GAME_BEGIN namespace input {
+#define SGE_GAME_INPUT_END } SGE_GAME_END
 
-SGE_INPUT_BEGIN
+SGE_GAME_INPUT_BEGIN
 
 typedef void (* key_handler)(SDL_Keycode key, void *data);
 typedef void (* mouse_motion_handler)(float xoffset, float yoffset, void *data);
@@ -23,7 +23,7 @@ void unbindall(void);
 void set_mouse_sensitivity(float v);
 void set_mouse_motion_handler(mouse_motion_handler handler, void *data);
 
-SGE_INPUT_END
+SGE_GAME_INPUT_END
 
-#endif // SGE_INPUT_HPP
+#endif // SGE_GAME_INPUT_HPP
 

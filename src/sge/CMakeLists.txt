@@ -18,6 +18,7 @@ endif()
 sge_subdirectories(
 	console
 	db
+	editor
 	game
 	scene
 	renderer
@@ -25,8 +26,6 @@ sge_subdirectories(
 	)
 
 sge_sources(
-	input.cpp
-	loading.cpp
 	main.cpp
 	)
 

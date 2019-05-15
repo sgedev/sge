@@ -2,9 +2,9 @@
 //
 #include <map>
 
-#include <sge/input.hpp>
+#include "input.hpp"
 
-SGE_INPUT_BEGIN
+SGE_GAME_INPUT_BEGIN
 
 struct key_state {
 	int state;
@@ -120,5 +120,5 @@ void set_mouse_motion_handler(mouse_motion_handler handler, void *data)
 	s_mouse_motion_data = data;
 }
 
-SGE_INPUT_END
+SGE_GAME_INPUT_END
 

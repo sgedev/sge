@@ -13,8 +13,6 @@ sge_sources(
 	console.hpp
 	db.hpp
 	game.hpp
-	input.hpp
-	loading.hpp
 	noncopyable.hpp
 	renderer.hpp
 	scene.hpp

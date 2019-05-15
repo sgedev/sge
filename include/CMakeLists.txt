@@ -24,5 +24,6 @@ sge_sources(
 	pugiconfig.hpp
 	pugixml.hpp
 	sge.hpp
+	tinyfiledialogs.h
 	)
 

@@ -36,7 +36,7 @@ namespace ImGui {
 			if (ImGui::Button("Cancel", ImVec2(100, 0)))
 				ret = MessageBoxResult_cancel;
 			ImGui::SameLine();
-			/* passthrough */
+			/* fall through */
 		case MessageBoxType_yesno:
 			if (ImGui::Button("Yes", ImVec2(100, 0)))
 				ret = MessageBoxResult_yes;

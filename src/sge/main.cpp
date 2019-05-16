@@ -17,15 +17,8 @@
 #include <sge/scene.hpp>
 #include <sge/game.hpp>
 #include <sge/console.hpp>
-#include <sge/editor.hpp>
 
 SGE_BEGIN
-
-enum mode {
-	MODE_GAME = 0,
-	MODE_CONSOLE,
-	MODE_EDITOR
-};
 
 static uv_loop_t *s_loop = NULL;
 static uv_timer_t s_frame_timer;
@@ -33,26 +26,7 @@ static uv_timer_t s_state_timer;
 static unsigned int s_fps = 0;
 static unsigned int s_fps_count;
 static uint64_t s_last_time;
-static mode s_mode;
-static bool s_editor_enabled;
-
-static void set_mode(mode m)
-{
-	s_mode = m;
-
-	switch (s_mode) {
-	case MODE_GAME:
-		SDL_SetRelativeMouseMode(SDL_TRUE);
-		break;
-	case MODE_CONSOLE:
-	case MODE_EDITOR:
-		SDL_SetRelativeMouseMode(SDL_FALSE);
-		break;
-	default:
-		SGE_ASSERT(false);
-		break;
-	}
-}
+static bool s_console_enabled;
 
 static inline bool handle_key_event(const SDL_Event &event)
 {
@@ -61,78 +35,45 @@ static inline bool handle_key_event(const SDL_Event &event)
 
 	switch (event.key.keysym.sym) {
 	case SDLK_ESCAPE:
-		switch (s_mode) {
-		case MODE_GAME:
-			set_mode(MODE_CONSOLE);
-			return true;
-		case MODE_CONSOLE:
-			set_mode(MODE_GAME);
-			return true;
+		if (!s_console_enabled) {
+			s_console_enabled = true;
+			SDL_SetRelativeMouseMode(SDL_FALSE);
 		}
 		break;
-	case SDLK_BACKQUOTE:
-		switch (s_mode) {
-		case MODE_GAME:
-			set_mode(MODE_CONSOLE);
-			return true;
-		}
-		break;
-	case SDLK_F2:
-		if (!s_editor_enabled)
-			break;
-		set_mode(MODE_EDITOR);
-		return true;
 	case SDLK_F5:
-		if (!s_editor_enabled || s_mode != MODE_EDITOR)
-			break;
-		set_mode(MODE_GAME);
+		if (s_console_enabled) {
+			s_console_enabled = false;
+			SDL_SetRelativeMouseMode(SDL_TRUE);
+		}
 		break;
 	}
 
 	return false;
 }
 
-static inline void handle_event(const SDL_Event &event)
-{
-	handle_key_event(event);
-
-	if (renderer::handle_event(event))
-		return;
-
-	switch (s_mode) {
-	case MODE_GAME:
-		game::handle_event(event);
-		break;
-	case MODE_CONSOLE:
-		console::handle_event(event);
-		break;
-	case MODE_EDITOR:
-		editor::handle_event(event);
-		break;
-	}
-}
-
 static inline void poll_events(void)
 {
 	SDL_Event event;
 
-	while (SDL_PollEvent(&event))
-		handle_event(event);
+	while (SDL_PollEvent(&event)) {
+		handle_key_event(event);
+
+		if (renderer::handle_event(event))
+			continue;
+
+		if (s_console_enabled)
+			console::handle_event(event);
+		else
+			game::handle_event(event);
+	}
 }
 
 static inline void draw(void)
 {
-	switch (s_mode) {
-	case MODE_GAME:
-		game::draw();
-		break;
-	case MODE_CONSOLE:
+	if (s_console_enabled)
 		console::draw();
-		break;
-	case MODE_EDITOR:
-		editor::draw();
-		break;
-	}
+	else
+		game::draw();
 
 	ImGui::ShowDemoWindow(NULL);
 
@@ -155,12 +96,17 @@ static inline void draw(void)
 
 	static bool v = true;
 	if (v) {
-		ImGui::MessageBoxResult rc = ImGui::MessageBox("test", ImGui::MessageBoxType_ok, "test %d", s_fps);
-		switch (rc) {
-		case ImGui::MessageBoxResult_ok:
+		ImGui::Utils::Result res = ImGui::Utils::MessageBox("test", ImGui::Utils::MessageBoxType_ok, "test %d", s_fps);
+		switch (res) {
+		case ImGui::Utils::Result_ok:
 			v = false;
 			break;
 		}
+	} else {
+		std::string path;
+		ImGui::Utils::Result res = ImGui::Utils::OpenFileDialog("New", path);
+		if (res == ImGui::Utils::Result_ok)
+			SGE_LOGD("path '%s'\n", path.c_str());
 	}
 }
 
@@ -178,17 +124,10 @@ static void frame(uv_timer_t *timer)
 
 	poll_events();
 
-	switch (s_mode) {
-	case MODE_GAME:
-		game::update(elapsed);
-		break;
-	case MODE_CONSOLE:
+	if (s_console_enabled)
 		console::update(elapsed);
-		break;
-	case MODE_EDITOR:
-		editor::update(elapsed);
-		break;
-	}
+	else
+		game::update(elapsed);
 
 	if (renderer::begin()) {
 		draw();
@@ -229,6 +168,9 @@ static bool init(uv_loop_t *loop, const char *db_filename)
 	s_fps = 0;
 	s_fps_count = 0;
 	s_last_time = uv_now(s_loop);
+	s_console_enabled = true;
+
+	SDL_SetRelativeMouseMode(SDL_FALSE);
 
 	return true;
 }
@@ -308,16 +250,9 @@ int main(int argc, char *argv[])
 		return EXIT_SUCCESS;
 	}
 
-	if (cmdline[{ "-e", "--edit" }]) {
-		sge::s_editor_enabled = true;
-		sge::s_mode = sge::MODE_EDITOR;
-	}
-
 	std::string db_filename;
 	cmdline(1) >> db_filename;
 	if (db_filename.empty()) {
-		sge::s_editor_enabled = true;
-		sge::s_mode = sge::MODE_EDITOR;
 	}
 
 	SDL_SetMainReady();
@@ -342,3 +277,4 @@ int main(int argc, char *argv[])
 
 	return EXIT_SUCCESS;
 }
+

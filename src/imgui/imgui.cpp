@@ -5183,7 +5183,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
 
         // Default item width. Make it proportional to window size if window manually resizes
         if (Window->Size.x > 0.0f && !(flags & ImGuiWindowFlags_Tooltip) && !(flags & ImGuiWindowFlags_AlwaysAutoResize))
-            Window->ItemWidthDefault = (float)(int)(Window->Size.x * 0.65f);
+            Window->ItemWidthDefault = (float)(int)(Window->Size.x * 0.9f);
         else
             Window->ItemWidthDefault = (float)(int)(g.FontSize * 16.0f);
 

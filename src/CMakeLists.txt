@@ -6,6 +6,5 @@ sge_subdirectories(
 	miniz
 	pugixml
 	sge
-	tinyfiledialogs
 	)
 

@@ -11,6 +11,7 @@ sge_sources(
 	imgui.h
 	imgui_impl_opengl3.h
 	imgui_impl_sdl.h
+	imgui_stdlib.h
 	lauxlib.h
 	lua.h
 	lua.hpp
@@ -24,6 +25,5 @@ sge_sources(
 	pugiconfig.hpp
 	pugixml.hpp
 	sge.hpp
-	tinyfiledialogs.h
 	)
 

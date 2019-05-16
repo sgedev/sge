@@ -75,8 +75,6 @@ static inline void draw(void)
 	else
 		game::draw();
 
-	ImGui::ShowDemoWindow(NULL);
-
 	glm::ivec2 size = renderer::window_size();
 	ImGui::SetNextWindowPos(ImVec2(0, size.y - 24));
 	ImGui::Begin("fps", NULL, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration |
@@ -103,10 +101,15 @@ static inline void draw(void)
 			break;
 		}
 	} else {
-		std::string path;
-		ImGui::Utils::Result res = ImGui::Utils::OpenFileDialog("New", path);
-		if (res == ImGui::Utils::Result_ok)
-			SGE_LOGD("path '%s'\n", path.c_str());
+		static bool v = true;
+		if (v) {
+			std::string path;
+			ImGui::Utils::Result res = ImGui::Utils::SelectFolderDialog("New", path);
+			if (res == ImGui::Utils::Result_ok) {
+				SGE_LOGD("path '%s'\n", path.c_str());
+				v = false;
+			}
+		}
 	}
 }
 

@@ -24,7 +24,7 @@ namespace ImGui { namespace Utils {
 
 	IMGUI_API Result OpenFileDialog(const char *str_id, std::string &path);
 	//IMGUI_API Result SaveFileDialog(const char *str_id, std::string &path);
-	//IMGUI_API Result SelectFolderDialog(const char *str_id, std::string &path);
+	IMGUI_API Result SelectFolderDialog(const char *str_id, std::string &path);
 	IMGUI_API Result MessageBox(const char *str_id, MessageBoxType type, const char *fmt, ...);
 } }
 

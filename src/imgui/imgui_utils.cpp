@@ -9,6 +9,7 @@
 #if defined(WIN32)
 #elif defined(__linux__)
 #	include <sys/types.h>
+#	include <sys/stat.h>
 #	include <dirent.h>
 #	include <unistd.h>
 #	include <limits.h>
@@ -22,85 +23,118 @@
 #include <imgui_utils.h>
 
 namespace ImGui { namespace Utils {
-	typedef std::vector<std::string> EntryListType;
+	enum Type {
+		TYPE_DIR = 0,
+		TYPE_FILE
+	};
+
+	struct Entry {
+		std::string name;
+		Type type;
+		int64_t size;
+	};
+
+	typedef std::vector<Entry> EntryListType;
+
 	static EntryListType EntryList;
 
+	static void AddDirEntry(const char *name)
+	{
+		if (strcmp(name, ".") == 0)
+			return;
+
+		Entry ent = { name, TYPE_DIR, -1 };
+		EntryList.push_back(ent);
+	}
+
+	static void AddFileEntry(const char *name, int64_t size)
+	{
+		if (strcmp(name, ".") == 0)
+			return;
+
+		Entry ent = { name, TYPE_FILE, size };
+		EntryList.push_back(ent);
+	}
+
+	namespace OS {
 #if defined(WIN32)
-	static const char PathSP = '\\';
-	static bool UpdateEntryList(std::string &path)
-	{
-		EntryList.clear();
-		return false;
-	}
-#elif defined(__linux__)
-	static const char PathSP = '/';
-	static bool UpdateEntryList(std::string &path)
-	{
-		int ret;
-		DIR *dir;
-		struct dirent *d;
-		char tmp[PATH_MAX];
-
-		if (path.empty()) {
-			if (getcwd(tmp, PATH_MAX) == NULL)
-				return false;
-			path = tmp;
-		}
-
-		if (realpath(path.c_str(), tmp) != NULL)
-			path = tmp;
-
-		dir = opendir(path.c_str());
-		if (dir == NULL)
+		static const char PathSP = '\\';
+		static bool UpdateEntryList(std::string &path)
+		{
+			EntryList.clear();
 			return false;
-
-		std::string name;
-		EntryList.clear();
-
-		while ((d = readdir(dir)) != NULL) {
-			if (strcmp(d->d_name, ".") == 0)
-				continue;
-			switch (d->d_type) {
-			case DT_DIR:
-				name = "0[DIR]  ";
-				name += d->d_name;
-				EntryList.push_back(name);
-				break;
-			case DT_REG:
-				name = "1[FILE] ";
-				name += d->d_name;
-				EntryList.push_back(name);
-				break;
-			}
 		}
+#elif defined(__linux__)
+		static const char PathSP = '/';
+		static bool UpdateEntryList(std::string &path)
+		{
+			int ret;
+			DIR *dir;
+			struct dirent *d;
+			char tmp[PATH_MAX];
 
-		std::sort(EntryList.begin(), EntryList.end(), [](std::string &a, std::string &b) {
-			return a < b;
-		});
+			if (path.empty()) {
+				if (getcwd(tmp, PATH_MAX) == NULL)
+					return false;
+				path = tmp;
+			}
 
-		closedir(dir);
+			if (realpath(path.c_str(), tmp) != NULL)
+				path = tmp;
 
-		return true;
-	}
+			dir = opendir(path.c_str());
+			if (dir == NULL)
+				return false;
+
+			while ((d = readdir(dir)) != NULL) {
+				switch (d->d_type) {
+				case DT_DIR:
+					AddDirEntry(d->d_name);
+					break;
+				case DT_REG:
+					struct stat st;
+					int ret = lstat((path + '/' + d->d_name).c_str(), &st);
+					AddFileEntry(d->d_name, !ret ? st.st_size : -1);
+					break;
+				}
+			}
+
+			closedir(dir);
+
+			return true;
+		}
 #else
 #	error unknown os.
 #endif
+	}
 
-	static bool EntryGetter(void *data, int idx, const char **out_text)
+	static bool UpdateEntryList(std::string &path)
 	{
-		*out_text = EntryList[idx].c_str() + 1;
+		EntryList.clear();
+
+		if (!OS::UpdateEntryList(path))
+			return false;
+
+		std::sort(EntryList.begin(), EntryList.end(), [](const Entry &a, const Entry &b) {
+			if (a.type < b.type)
+				return true;
+			if (a.type > b.type)
+				return false;
+			return a.name < b.name;
+		});
+
 		return true;
 	}
 
 	IMGUI_API Result OpenFileDialog(const char *str_id, std::string &path)
 	{
-		static int sel = 0;
+		static int sel = -1;
 		static std::string cur_path = path;
 
 		IM_ASSERT(str_id != NULL);
 
 		if (!ImGui::IsPopupOpen(str_id)) {
-			sel = 0;
+			sel = -1;
 			UpdateEntryList(cur_path);
 			ImGui::OpenPopup(str_id);
 		}
@@ -111,43 +145,60 @@ namespace ImGui { namespace Utils {
 		ImGui::PushItemWidth(600.0f);
 
 		if (ImGui::Button("Up")) {
-			sel = 0;
-			cur_path += PathSP;
+			sel = -1;
+			cur_path += OS::PathSP;
 			cur_path += "..";
 			UpdateEntryList(cur_path);
 		}
 
-		ImGui::SameLine();
+		ImGui::Separator();
 
-		if (EntryList[sel][0] == '1')
-			ImGui::Text("%s%c%s", cur_path.c_str(), PathSP, EntryList[sel].c_str() + 8);
+		if (EntryList[sel].type == TYPE_FILE)
+			ImGui::Text("%s%c%s", cur_path.c_str(), OS::PathSP, EntryList[sel].name.c_str());
 		else
 			ImGui::TextUnformatted(cur_path.c_str());
 
-		if (ImGui::ListBox("", &sel, EntryGetter, NULL, EntryList.size())) {
-			const char *n = EntryList[sel].c_str();
-			if (*n == '0') {
-				sel = 0;
-				cur_path += PathSP;
-				cur_path += n + 8;
-				UpdateEntryList(cur_path);
+		ImGui::BeginChild("filelist", ImVec2(600, 300));
+
+		ImGui::Columns(3, "mycolumns"); // 4-ways, with border
+
+        ImGui::Separator();
+        ImGui::Text("Name"); ImGui::NextColumn();
+        ImGui::Text("Type"); ImGui::NextColumn();
+        ImGui::Text("Size"); ImGui::NextColumn();
+        ImGui::Separator();
+
+		for (int i = 0; i < EntryList.size(); ++i) {
+			Entry &ent = EntryList[i];
+            if (ImGui::Selectable(ent.name.c_str(), sel == i, ImGuiSelectableFlags_SpanAllColumns)) {
+                sel = i;
+				// TODO
 			}
+			ImGui::NextColumn();
+			switch (ent.type) {
+			case TYPE_DIR:
+				ImGui::TextUnformatted("DIR");
+				break;
+			case TYPE_FILE:
+				ImGui::TextUnformatted("FILE");
+				break;
+			}
+			ImGui::NextColumn();
+			if (ent.size < 0)
+				ImGui::TextUnformatted("");
+			else
+				ImGui::Text("%ld", ent.size);
+			ImGui::NextColumn();
 		}
+
+		ImGui::EndChild();
 
 		ImGui::Separator();
 
 		Result res = Result_none;
 
 		if (ImGui::Button("OK", ImVec2(100, 0))) {
-			const char *n = EntryList[sel].c_str();
-			if (*n == '0') {
-				cur_path += PathSP;
-				cur_path += n + 8;
-				UpdateEntryList(cur_path);
-			} else {
-				path = cur_path + PathSP + (EntryList[sel].c_str() + 8);
-				res = Result_ok;
-			}
+
 		}
 
 		ImGui::SameLine();
@@ -166,6 +217,7 @@ namespace ImGui { namespace Utils {
 
 	IMGUI_API Result SelectFolderDialog(const char *str_id, std::string &path)
 	{
+#if 0
 		static int sel = 0;
 		static std::string cur_path = path;
 
@@ -222,8 +274,8 @@ namespace ImGui { namespace Utils {
 
 		ImGui::PopItemWidth();
 		ImGui::EndPopup();
-
-		return res;
+#endif
+		return Result_none;
 	}
 
 	IMGUI_API Result MessageBox(const char *str_id, MessageBoxType type, const char *fmt, ...)

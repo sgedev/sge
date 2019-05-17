@@ -72,8 +72,10 @@ static inline void draw(void)
 {
 	if (s_console_enabled)
 		console::draw();
-	else
-		game::draw();
+
+	game::draw();
+
+	ImGui::ShowDemoWindow(NULL);
 
 	glm::ivec2 size = renderer::window_size();
 	ImGui::SetNextWindowPos(ImVec2(0, size.y - 24));
@@ -104,7 +106,7 @@ static inline void draw(void)
 		static bool v = true;
 		if (v) {
 			std::string path;
-			ImGui::Utils::Result res = ImGui::Utils::SelectFolderDialog("New", path);
+			ImGui::Utils::Result res = ImGui::Utils::OpenFileDialog("New", path);
 			if (res == ImGui::Utils::Result_ok) {
 				SGE_LOGD("path '%s'\n", path.c_str());
 				v = false;
@@ -115,9 +117,7 @@ static inline void draw(void)
 
 static void frame(uv_timer_t *timer)
 {
-	int64_t pass;
-	
-	pass = uv_now(s_loop) - s_last_time;
+	int64_t pass = uv_now(s_loop) - s_last_time;
 	if (pass < 0) {
 		s_last_time = uv_now(s_loop);
 		return;

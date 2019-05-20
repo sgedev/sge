@@ -3,7 +3,7 @@
 #include <string>
 
 #include <imgui.h>
-#include <imgui_utils.h>
+#include <imgui_dialogs.h>
 
 #include <sge/db.hpp>
 #include <sge/console.hpp>

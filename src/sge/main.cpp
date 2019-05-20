@@ -6,7 +6,7 @@
 #include <argh.h>
 
 #include <imgui.h>
-#include <imgui_utils.h>
+#include <imgui_dialogs.h>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -96,9 +96,9 @@ static inline void draw(void)
 
 	static bool v = true;
 	if (v) {
-		ImGui::Utils::Result res = ImGui::Utils::MessageBox("test", ImGui::Utils::MessageBoxType_ok, "test %d", s_fps);
+		ImGui::Dialogs::Result res = ImGui::Dialogs::MessageBox("test", ImGui::Dialogs::MessageBoxType_ok, "test %d", s_fps);
 		switch (res) {
-		case ImGui::Utils::Result_ok:
+		case ImGui::Dialogs::Result_ok:
 			v = false;
 			break;
 		}
@@ -106,8 +106,8 @@ static inline void draw(void)
 		static bool v = true;
 		if (v) {
 			std::string path;
-			ImGui::Utils::Result res = ImGui::Utils::OpenFileDialog("New", path);
-			if (res == ImGui::Utils::Result_ok) {
+			ImGui::Dialogs::Result res = ImGui::Dialogs::OpenFile("New", path);
+			if (res == ImGui::Dialogs::Result_ok) {
 				SGE_LOGD("path '%s'\n", path.c_str());
 				v = false;
 			}

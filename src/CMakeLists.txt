@@ -4,6 +4,7 @@ sge_subdirectories(
 	imgui
 	lua
 	miniz
+	pfs
 	pugixml
 	sge
 	)

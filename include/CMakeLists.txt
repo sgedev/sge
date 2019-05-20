@@ -9,6 +9,7 @@ sge_sources(
 	argh.h
 	imconfig.h
 	imgui.h
+	imgui_dialogs.h
 	imgui_impl_opengl3.h
 	imgui_impl_sdl.h
 	imgui_stdlib.h
@@ -22,8 +23,10 @@ sge_sources(
 	miniz_tdef.h
 	miniz_tinfl.h
 	miniz_zip.h
+	pfs.hpp
 	pugiconfig.hpp
 	pugixml.hpp
 	sge.hpp
+	xlist.h
 	)
 

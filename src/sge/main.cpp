@@ -106,7 +106,7 @@ static inline void draw(void)
 		static bool v = true;
 		if (v) {
 			std::string path;
-			ImGui::Dialogs::Result res = ImGui::Dialogs::OpenFile("New", path);
+			ImGui::Dialogs::Result res = ImGui::Dialogs::SelectFolder("New", path);
 			if (res == ImGui::Dialogs::Result_ok) {
 				SGE_LOGD("path '%s'\n", path.c_str());
 				v = false;

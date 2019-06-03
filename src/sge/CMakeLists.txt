@@ -17,7 +17,6 @@ endif()
 
 sge_subdirectories(
 	console
-	db
 	game
 	scene
 	renderer

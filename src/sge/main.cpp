@@ -4,15 +4,16 @@
 #include <iostream>
 
 #include <argh.h>
-
+#include <physfs.h>
 #include <imgui.h>
 #include <imgui_dialogs.h>
+#include <filesystem/path.h>
+#include <filesystem/resolver.h>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
 #include <sge/common.hpp>
-#include <sge/db.hpp>
 #include <sge/renderer.hpp>
 #include <sge/scene.hpp>
 #include <sge/game.hpp>
@@ -148,15 +149,13 @@ static void state(uv_timer_t *timer)
 	s_fps_count = 0;
 }
 
-static bool init(uv_loop_t *loop, const char *db_filename)
+static bool init(uv_loop_t *loop)
 {
 	SGE_ASSERT(s_loop == NULL);
 	SGE_ASSERT(loop != NULL);
-	SGE_ASSERT(db_filename != NULL);
 
 	s_loop = loop;
 
-	db::init(db_filename);
 	renderer::init();
 	scene::init();
 	console::init();
@@ -184,40 +183,16 @@ static void shutdown(void)
 
 	uv_timer_stop(&s_frame_timer);
 	uv_timer_stop(&s_state_timer);
-	SGE_LOGD("\n");
 
 	game::shutdown();
-	SGE_LOGD("\n");
 	console::shutdown();
-	SGE_LOGD("\n");
 	scene::shutdown();
 	renderer::shutdown();
-	//db::shutdown();
 
 	SGE_LOGI("Shutdown.\n");
 }
 
 SGE_END
-
-struct SDL_Session {
-	int InitResult;
-
-	SDL_Session(void)
-	{
-		InitResult = SDL_Init(SDL_INIT_EVERYTHING);
-	}
-
-	~SDL_Session(void)
-	{
-		if (InitResult == 0)
-			SDL_Quit();
-	}
-
-	operator bool(void) const
-	{
-		return (InitResult == 0);
-	}
-};
 
 static void show_version(void)
 {
@@ -239,45 +214,84 @@ static void show_help(void)
 {
 }
 
-int main(int argc, char *argv[])
+static bool parse_cmdline(argh::parser &cmdline)
 {
-	argh::parser cmdline(argv);
-	
+	std::string game;
+	filesystem::path path;
+	filesystem::resolver resolver;
+
 	if (cmdline[{ "-v", "--version" }]) {
 		show_version();
-		return EXIT_SUCCESS;
+		return false;
 	}
 
 	if (cmdline[{ "-h", "--help" }]) {
 		show_help();
-		return EXIT_SUCCESS;
+		return false;
 	}
 
-	std::string db_filename;
-	cmdline(1) >> db_filename;
-	if (db_filename.empty()) {
+	if (cmdline.size() != 2) {
+		SGE_LOGE("Invalid game package or directory.\n");
+		return false;
 	}
+
+	cmdline(1) >> game;
+	path = game;
+	path = resolver.resolve(path);	
+	SGE_LOGI("Game path: '%s'\n", path.str().c_str());
+
+	if (cmdline[{ "-e", "--edit" }] && !path.is_directory()) {
+		SGE_LOGE("editor should works with directory.\n");
+		return false;
+	}
+
+	if (!PHYSFS_mount(path.str().c_str(), "/", 0)) {
+		SGE_LOGE("failed to mount root (%d).\n", PHYSFS_getLastErrorCode());
+		return false;
+	}
+
+	return true;
+}
+
+int main(int argc, char *argv[])
+{
+	int ret = EXIT_FAILURE;
+	argh::parser cmdline(argv);
 
 	SDL_SetMainReady();
 
-	SDL_Session SDL;
-	if (!SDL)
-		return EXIT_FAILURE;
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+		goto end0;
 
 #ifdef SGE_DEBUG
 	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
-	if (!sge::init(uv_default_loop(), db_filename.c_str()))
-		return EXIT_FAILURE;
+	if (!PHYSFS_init(NULL))
+		goto end1;
+	
+	if (!parse_cmdline(cmdline))
+		goto end2;
+
+	if (!sge::init(uv_default_loop()))
+		goto end2;
 
 	SGE_LOGI("Running...\n");
 	uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 
+	ret = EXIT_SUCCESS;
+
 	sge::shutdown();
 
+end2:
+	PHYSFS_deinit();
+
+end1:
+	SDL_Quit();
+
+end0:
 	SGE_LOGI("Quit.\n");
 
-	return EXIT_SUCCESS;
+	return ret;
 }
 

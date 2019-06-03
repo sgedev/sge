@@ -3,7 +3,6 @@
 #ifndef SGE_SCENE_CAMERA_HPP
 #define SGE_SCENE_CAMERA_HPP
 
-#include <sge/db.hpp>
 #include <sge/scene/camera/common.hpp>
 
 SGE_SCENE_CAMERA_BEGIN
@@ -11,7 +10,7 @@ SGE_SCENE_CAMERA_BEGIN
 bool init(void);
 void shutdown(void);
 void reset(void);
-bool load(db::node node);
+bool load(void);
 void update(void);
 void mouse_look(float dx, float dy);
 float move_speed(void);

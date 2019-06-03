@@ -1,6 +1,5 @@
 
 sge_subdirectories(
-	db
 	game
 	renderer
 	scene
@@ -11,7 +10,6 @@ sge_sources(
 	common.hpp
 	config.hpp.in
 	console.hpp
-	db.hpp
 	game.hpp
 	noncopyable.hpp
 	renderer.hpp

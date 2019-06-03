@@ -5,13 +5,11 @@
 #include <imgui.h>
 #include <imgui_dialogs.h>
 
-#include <sge/db.hpp>
 #include <sge/console.hpp>
 
 SGE_CONSOLE_BEGIN
 
 static std::string s_path;
-static pugi::xml_document s_manifest;
 static bool s_dirty;
 
 static void on_game_save(void);

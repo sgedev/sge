@@ -2,7 +2,6 @@
 //
 #include <btBulletDynamicsCommon.h>
 
-#include <sge/db.hpp>
 #include <sge/scene.hpp>
 
 SGE_SCENE_BEGIN
@@ -14,7 +13,6 @@ enum state {
 	STATE_CANCELING
 };
 
-static db::node s_node;
 static state s_state;
 static bool s_physics_enabled;
 static btDefaultCollisionConfiguration *s_bt_cc;
@@ -52,39 +50,6 @@ namespace loading {
 
 	static void work(uv_work_t *req)
 	{
-		if (!s_node) {
-			s_progress.data = (void *)100;
-			uv_async_send(&s_progress);
-			return;
-		}
-
-		db::node physics_node = s_node.child("/physics");
-
-		s_physics_enabled = (physics_node && physics_node.to_bool());
-		if (s_physics_enabled) {
-			db::node gravity_node = physics_node.child("/gravity");
-			if (gravity_node) {
-				s_bt_world->setGravity(btVector3(
-					gravity_node.child("/x").to_float(),
-					gravity_node.child("/y").to_float(),
-					gravity_node.child("/z").to_float()));
-			}
-		}
-
-		if (!progress_set(1))
-			return;
-
-		db::node camera_node = s_node.child("/camera");
-		if (!camera_node) {
-			// TODO abort.
-			return;
-		}
-
-		if (!camera::load(camera_node)) {
-			// TODO abort.
-			return;
-		}
-
 		// load world.
 		// load entities.
 	}
@@ -113,12 +78,11 @@ namespace loading {
 		uv_async_init(uv_default_loop(), &s_progress, progress);
 	}
 
-	bool start(db::node node)
+	bool start(void)
 	{
 		if (s_state != STATE_IDLE)
 			return false;
 
-		s_node = node;
 		s_state = STATE_LOADING;
 		s_progress.data = (void *)0;
 		s_percentage = 0;

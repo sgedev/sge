@@ -52,17 +52,11 @@ static inline xlist_node_t *xlist_node_next(xlist_node_t *node)
 
 typedef struct {
 	xlist_node_t knot;
-#ifdef XLIST_STATIC_LENGTH
-	int length;
-#endif
 } xlist_t;
 
 static inline void xlist_reset(xlist_t *list)
 {
 	xlist_node_reset(&list->knot);
-#ifdef XLIST_STATIC_LENGTH
-	list->length = 0;
-#endif
 }
 
 static inline int xlist_empty(xlist_t *list)
@@ -88,26 +82,18 @@ static inline xlist_node_t *xlist_tail(xlist_t *list)
 static inline void xlist_add_head(xlist_t *list, xlist_node_t *node)
 {
 	xlist_node_link(node, xlist_knot(list), xlist_head(list));
-#ifdef XLIST_STATIC_LENGTH
-	list->length += 1;
-#endif
 }
 
 static inline void xlist_add_tail(xlist_t *list, xlist_node_t *node)
 {
 	xlist_node_link(node, xlist_tail(list), xlist_knot(list));
-#ifdef XLIST_STATIC_LENGTH
-	list->length += 1;
-#endif
 }
 
 static inline xlist_node_t *xlist_del_head(xlist_t *list)
 {
 	xlist_node_t *node = xlist_head(list);
 	xlist_node_unlink(node);
-#ifdef XLIST_STATIC_LENGTH
-	list->length -= 1;
-#endif
+
 	return node;
 }
 
@@ -115,9 +101,7 @@ static inline xlist_node_t *xlist_del_tail(xlist_t *list)
 {
 	xlist_node_t *node = xlist_tail(list);
 	xlist_node_unlink(node);
-#ifdef XLIST_STATIC_LENGTH
-	list->length -= 1;
-#endif
+
 	return node;
 }
 
@@ -138,19 +122,12 @@ static inline int xlist_has(xlist_t *list, xlist_node_t *node)
 
 static inline void xlist_del(xlist_t *list, xlist_node_t *node)
 {
-	if (xlist_has(list, node)) {
+	if (xlist_has(list, node))
 		xlist_node_unlink(node);
-#ifdef XLIST_STATIC_LENGTH
-		list->length -= 1;
-#endif
-	}
 }
 
 static inline int xlist_length(xlist_t *list)
 {
-#ifdef XLIST_STATIC_LENGTH
-	return list->length;
-#else
 	int length = 0;
 	xlist_node_t *node;
 
@@ -158,7 +135,6 @@ static inline int xlist_length(xlist_t *list)
 		length += 1;
 
 	return length;
-#endif
 }
 
 #ifdef __cplusplus

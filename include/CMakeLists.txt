@@ -18,15 +18,8 @@ sge_sources(
 	lua.hpp
 	luaconf.h
 	lualib.h
-	miniz.h
-	miniz_common.h
-	miniz_tdef.h
-	miniz_tinfl.h
-	miniz_zip.h
-	pfs.hpp
-	pugiconfig.hpp
-	pugixml.hpp
-	sge.hpp
+	pfs.h
+	physfs.h
 	xlist.h
 	)
 

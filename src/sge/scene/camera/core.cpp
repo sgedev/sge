@@ -35,7 +35,7 @@ void reset(void)
 
 }
 
-bool load(db::node node)
+bool load(void)
 {
 	return true;
 }

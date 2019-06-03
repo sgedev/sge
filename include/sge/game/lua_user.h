@@ -42,23 +42,24 @@ extern "C" {
 typedef struct {
 	xlist_node_t node;
 	uv_timer_t sleep_timer;
-} sge_game_task_t;
+	void *data;
+} sge_game_vm_task_t;
 
-#define LUA_EXTRASPACE sizeof(sge_game_task_t)
+#define LUA_EXTRASPACE sizeof(sge_game_vm_task_t)
 
-extern void sge_game_open(lua_State *L);
-extern void sge_game_close(lua_State *L);
-extern void sge_game_thread(lua_State *L, lua_State *L1);
-extern void sge_game_free(lua_State *L, lua_State *L1);
-extern void sge_game_resume(lua_State *L, int n);
-extern void sge_game_yield(lua_State *L, int n);
+extern void sge_game_vm_open(lua_State *L);
+extern void sge_game_vm_close(lua_State *L);
+extern void sge_game_vm_thread(lua_State *L, lua_State *L1);
+extern void sge_game_vm_free(lua_State *L, lua_State *L1);
+extern void sge_game_vm_resume(lua_State *L, int n);
+extern void sge_game_vm_yield(lua_State *L, int n);
 
-#define luai_userstateopen(L) sge_game_open(L)
-#define luai_userstateclose(L) sge_game_close(L)
-#define luai_userstatethread(L, L1) sge_game_thread(L, L1)
-#define luai_userstatefree(L, L1) sge_game_free(L, L1)
-#define luai_userstateresume(L, n) sge_game_resume(L, n)
-#define luai_userstateyield(L, n) sge_game_yield(L, n)
+#define luai_userstateopen(L) sge_game_vm_open(L)
+#define luai_userstateclose(L) sge_game_vm_close(L)
+#define luai_userstatethread(L, L1) sge_game_vm_thread(L, L1)
+#define luai_userstatefree(L, L1) sge_game_vm_free(L, L1)
+#define luai_userstateresume(L, n) sge_game_vm_resume(L, n)
+#define luai_userstateyield(L, n) sge_game_vm_yield(L, n)
 
 #ifdef __cplusplus
 }

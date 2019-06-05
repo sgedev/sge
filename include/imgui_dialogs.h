@@ -4,11 +4,12 @@
 #define IMGUI_DIALOGS_H
 
 #include <string>
+#include <vector>
 
 #include <imgui.h>
 
-#define IMGUI_DIALOGS_BEGIN namespace ImGui { namespace Dialogs {
-#define IMGUI_DIALOGS_END } }
+#define IMGUI_DIALOGS_BEGIN namespace ImDialogs {
+#define IMGUI_DIALOGS_END }
 
 IMGUI_DIALOGS_BEGIN
 
@@ -23,12 +24,16 @@ enum Result {
 	Result_ok,
 	Result_yes,
 	Result_no,
-	Result_cancel
+	Result_cancel,
+	Result_error
 };
 
-IMGUI_API Result OpenFile(const char *str_id, std::string &path);
-//IMGUI_API Result SaveFile(const char *str_id, std::string &path);
-IMGUI_API Result SelectFolder(const char *str_id, std::string &path);
+typedef std::vector<std::string> PathSet;
+
+IMGUI_API Result OpenFile(const char *str_id, const char *def_path, std::string &out);
+IMGUI_API Result OpenFiles(const char *str_id, const char *def_path, PathSet &out);
+IMGUI_API Result SaveFile(const char *str_id, const char *def_path, std::string &out);
+IMGUI_API Result PickFolder(const char *str_id, const char *def_path, std::string &out);
 IMGUI_API Result MessageBox(const char *str_id, MessageBoxType type, const char *fmt, ...);
 
 IMGUI_DIALOGS_END

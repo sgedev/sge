@@ -18,8 +18,15 @@
 #include <sge/scene.hpp>
 #include <sge/game.hpp>
 #include <sge/console.hpp>
+#include <sge/editor.hpp>
 
 SGE_BEGIN
+
+enum mode {
+	MODE_GAME = 0,
+	MODE_CONSOLE,
+	MODE_EDITOR
+};
 
 static uv_loop_t *s_loop = NULL;
 static uv_timer_t s_frame_timer;
@@ -27,7 +34,9 @@ static uv_timer_t s_state_timer;
 static unsigned int s_fps = 0;
 static unsigned int s_fps_count;
 static uint64_t s_last_time;
-static bool s_console_enabled;
+static filesystem::path s_game_path;
+static bool s_editor_enabled;
+static mode s_mode;
 
 static inline bool handle_key_event(const SDL_Event &event)
 {
@@ -36,15 +45,29 @@ static inline bool handle_key_event(const SDL_Event &event)
 
 	switch (event.key.keysym.sym) {
 	case SDLK_ESCAPE:
-		if (!s_console_enabled) {
-			s_console_enabled = true;
+		switch (s_mode) {
+		case MODE_GAME:
+			s_mode = MODE_CONSOLE;
 			SDL_SetRelativeMouseMode(SDL_FALSE);
+			return true;
+		case MODE_CONSOLE:
+			s_mode = MODE_GAME;
+			SDL_SetRelativeMouseMode(SDL_TRUE);
+			return true;
+		}
+		break;
+	case SDLK_F2:
+		if (s_mode != MODE_EDITOR && s_editor_enabled) {
+			s_mode = MODE_EDITOR;
+			SDL_SetRelativeMouseMode(SDL_FALSE);
+			return true;
 		}
 		break;
 	case SDLK_F5:
-		if (s_console_enabled) {
-			s_console_enabled = false;
+		if (s_mode == MODE_EDITOR) {
+			s_mode = MODE_GAME;
 			SDL_SetRelativeMouseMode(SDL_TRUE);
+			return true;
 		}
 		break;
 	}
@@ -62,19 +85,33 @@ static inline void poll_events(void)
 		if (renderer::handle_event(event))
 			continue;
 
-		if (s_console_enabled)
-			console::handle_event(event);
-		else
+		switch (s_mode) {
+		case MODE_GAME:
 			game::handle_event(event);
+			break;
+		case MODE_CONSOLE:
+			console::handle_event(event);
+			break;
+		case MODE_EDITOR:
+			editor::handle_event(event);
+			break;
+		}
 	}
 }
 
 static inline void draw(void)
 {
-	if (s_console_enabled)
+	switch (s_mode) {
+	case MODE_GAME:
+		game::draw();
+		break;
+	case MODE_CONSOLE:
 		console::draw();
-
-	game::draw();
+		break;
+	case MODE_EDITOR:
+		editor::draw();
+		break;
+	}
 
 	ImGui::ShowDemoWindow(NULL);
 
@@ -94,26 +131,6 @@ static inline void draw(void)
 
 	ImGui::TextColored(fps_color, "fps %d", s_fps);
 	ImGui::End();
-
-	static bool v = true;
-	if (v) {
-		ImGui::Dialogs::Result res = ImGui::Dialogs::MessageBox("test", ImGui::Dialogs::MessageBoxType_ok, "test %d", s_fps);
-		switch (res) {
-		case ImGui::Dialogs::Result_ok:
-			v = false;
-			break;
-		}
-	} else {
-		static bool v = true;
-		if (v) {
-			std::string path;
-			ImGui::Dialogs::Result res = ImGui::Dialogs::SelectFolder("New", path);
-			if (res == ImGui::Dialogs::Result_ok) {
-				SGE_LOGD("path '%s'\n", path.c_str());
-				v = false;
-			}
-		}
-	}
 }
 
 static void frame(uv_timer_t *timer)
@@ -128,10 +145,17 @@ static void frame(uv_timer_t *timer)
 
 	poll_events();
 
-	if (s_console_enabled)
-		console::update(elapsed);
-	else
+	switch (s_mode) {
+	case MODE_GAME:
 		game::update(elapsed);
+		break;
+	case MODE_CONSOLE:
+		console::update(elapsed);
+		break;
+	case MODE_EDITOR:
+		editor::update(elapsed);
+		break;
+	}
 
 	if (renderer::begin()) {
 		draw();
@@ -149,20 +173,29 @@ static void state(uv_timer_t *timer)
 	s_fps_count = 0;
 }
 
-static bool init(uv_loop_t *loop)
+static bool init(void)
 {
 	SGE_ASSERT(s_loop == NULL);
-	SGE_ASSERT(loop != NULL);
+	s_loop = uv_default_loop();
 
-	s_loop = loop;
+	if (!PHYSFS_mount(s_game_path.str().c_str(), "/", 0)) {
+		SGE_LOGE("failed to mount root (%d).\n", PHYSFS_getLastErrorCode());
+		return false;
+	}
 
 	renderer::init();
 	scene::init();
 	console::init();
 	game::init();
 
-	uv_timer_init(loop, &s_frame_timer);
-	uv_timer_init(loop, &s_state_timer);
+	if (s_editor_enabled) {
+		editor::init();
+		s_mode = MODE_EDITOR;
+	} else
+		s_mode = MODE_CONSOLE;
+
+	uv_timer_init(s_loop, &s_frame_timer);
+	uv_timer_init(s_loop, &s_state_timer);
 
 	uv_timer_start(&s_frame_timer, frame, 0, 16);
 	uv_timer_start(&s_state_timer, state, 1000, 1000);
@@ -170,9 +203,8 @@ static bool init(uv_loop_t *loop)
 	s_fps = 0;
 	s_fps_count = 0;
 	s_last_time = uv_now(s_loop);
-	s_console_enabled = true;
 
-	SDL_SetRelativeMouseMode(SDL_FALSE);
+	// SDL_SetRelativeMouseMode(SDL_FALSE);
 
 	return true;
 }
@@ -183,6 +215,9 @@ static void shutdown(void)
 
 	uv_timer_stop(&s_frame_timer);
 	uv_timer_stop(&s_state_timer);
+
+	if (s_editor_enabled)
+		editor::shutdown();
 
 	game::shutdown();
 	console::shutdown();
@@ -214,12 +249,8 @@ static void show_help(void)
 {
 }
 
-static bool parse_cmdline(argh::parser &cmdline)
+static bool parse_cmdline(const argh::parser &cmdline)
 {
-	std::string game;
-	filesystem::path path;
-	filesystem::resolver resolver;
-
 	if (cmdline[{ "-v", "--version" }]) {
 		show_version();
 		return false;
@@ -231,24 +262,31 @@ static bool parse_cmdline(argh::parser &cmdline)
 	}
 
 	if (cmdline.size() != 2) {
-		SGE_LOGE("Invalid game package or directory.\n");
+		SGE_LOGE("No game path.\n");
 		return false;
 	}
 
+	std::string game;
 	cmdline(1) >> game;
-	path = game;
-	path = resolver.resolve(path);	
+
+	filesystem::path path = game;
+	path = path.make_absolute();
+	if (!path.exists()) {
+		SGE_LOGD("Invalid game path.\n");
+		return false;
+	}
+
 	SGE_LOGI("Game path: '%s'\n", path.str().c_str());
 
-	if (cmdline[{ "-e", "--edit" }] && !path.is_directory()) {
-		SGE_LOGE("editor should works with directory.\n");
-		return false;
+	if (cmdline[{ "-e", "--edit" }]) {
+		if (!path.is_directory()) {
+			SGE_LOGE("Editor should not works with archive.\n");
+			return false;
+		}
+		sge::s_editor_enabled = true;
 	}
 
-	if (!PHYSFS_mount(path.str().c_str(), "/", 0)) {
-		SGE_LOGE("failed to mount root (%d).\n", PHYSFS_getLastErrorCode());
-		return false;
-	}
+	sge::s_game_path = path;
 
 	return true;
 }
@@ -273,7 +311,7 @@ int main(int argc, char *argv[])
 	if (!parse_cmdline(cmdline))
 		goto end2;
 
-	if (!sge::init(uv_default_loop()))
+	if (!sge::init())
 		goto end2;
 
 	SGE_LOGI("Running...\n");

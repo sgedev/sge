@@ -41,6 +41,7 @@ extern "C" {
 
 typedef struct {
 	xlist_node_t node;
+	xlist_t wait_list;
 	uv_timer_t sleep_timer;
 	void *data;
 } sge_game_vm_task_t;

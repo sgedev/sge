@@ -18,7 +18,7 @@ sge_sources(
 	lua.hpp
 	luaconf.h
 	lualib.h
-	pfs.h
+	nfd.h
 	physfs.h
 	xlist.h
 	)

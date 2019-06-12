@@ -1,6 +1,7 @@
 //
 //
 #include <QStringList>
+#include <QScopedPointer>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QApplication>
@@ -12,7 +13,7 @@ int main(int argc, char *argv[])
 {
 	QApplication app(argc, argv);
 
-	QApplication::setApplicationName("SGE");
+	QApplication::setOrganizationName("SGE");
     QApplication::setApplicationVersion("0.1");
 
 	QCommandLineParser parser;
@@ -29,6 +30,18 @@ int main(int argc, char *argv[])
     parser.addOption(opt_edit);
 
 	parser.process(app);
+
+	QScopedPointer<SGE::Editor::MainWindow> editor;
+
+	if (parser.isSet(opt_edit)) {
+		QApplication::setApplicationName("Editor");
+		editor.reset(new SGE::Editor::MainWindow);
+		if (!editor || !editor->init())
+			return EXIT_FAILURE;
+		editor->show();
+	} else {
+		QApplication::setApplicationName("Games");
+	}
 
 	return app.exec();
 }

@@ -32,6 +32,16 @@ link_libraries(
 	Qt5::Widgets
 	)
 
+# PhysFS
+
+include(FindPhysFS)
+if(PHYSFS_FOUND)
+	include_directories(${PHYSFS_INCLUDE_DIR})
+	link_libraries(${PHYSFS_LIBRARY})
+else()
+	message(FATAL_ERROR "PhysFS not found.")
+endif()
+
 # sge macros
 
 macro(sge_subdirectories)

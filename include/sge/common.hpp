@@ -49,7 +49,7 @@
 	(((unsigned char *)(p)) + (offset))
 
 #define SGE_OFFSETOF(struct_type, member_name) \
-	((long)(&(((struct_type *)0)->member_name)))
+	((intptr_t)(&(((struct_type *)0)->member_name)))
 
 #define SGE_MEMBEROF(p, struct_type, member_name) \
 	((struct_type *)SGE_PMOVB(p, -SGE_OFFSETOF(struct_type, member_name)))

@@ -9,6 +9,7 @@
 SGE_GUI_BEGIN
 
 static SDL_Window *s_window;
+static window *s_test_window;
 
 static inline void show_fps(void)
 {
@@ -20,8 +21,6 @@ static inline void show_fps(void)
 		i = 0;
 	}
 		
-	ImGui::ShowDemoWindow(NULL);
-
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::Begin("fps", NULL, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration |
 		ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_AlwaysAutoResize);
@@ -41,10 +40,10 @@ static inline void show_fps(void)
 
 bool init(void)
 {
-	SDL_Window *window = SDL_GL_GetCurrentWindow();
+	SDL_Window *gl_window = SDL_GL_GetCurrentWindow();
 	SDL_GLContext gl_context = SDL_GL_GetCurrentContext();
 
-	if (window == NULL || gl_context == NULL)
+	if (gl_window == NULL || gl_context == NULL)
 		return false;
 
 	IMGUI_CHECKVERSION();
@@ -66,16 +65,20 @@ bool init(void)
 	style.PopupRounding = 0.0f;
 	style.PopupBorderSize = 0.0f;
 
-    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+    ImGui_ImplSDL2_InitForOpenGL(gl_window, gl_context);
     ImGui_ImplOpenGL3_Init("#version 130");
 
-	s_window = window;
+	s_window = gl_window;
+
+	s_test_window = new window;
 
 	return true;
 }
 
 void shutdown(void)
 {
+	delete s_test_window;
+
 	SGE_ASSERT(s_window != NULL);
 
 	ImGui_ImplOpenGL3_Shutdown();
@@ -97,11 +100,10 @@ void update(float elapsed)
 	ImGui_ImplSDL2_NewFrame(s_window);
 	ImGui::NewFrame();
 
-	// TODO
-
-	show_fps();
+	widget::update_all(elapsed);
 
 	ImGui::ShowDemoWindow(NULL);
+	show_fps();
 
 	ImGui::Render();
 }

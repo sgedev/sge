@@ -4,6 +4,8 @@
 #define SGE_GUI_HPP
 
 #include <sge/gui/common.hpp>
+#include <sge/gui/widget.hpp>
+#include <sge/gui/window.hpp>
 
 SGE_GUI_BEGIN
 

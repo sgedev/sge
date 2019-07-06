@@ -117,8 +117,8 @@ static inline void poll_events(void)
 	SDL_Event event;
 
 	while (SDL_PollEvent(&event)) {
-		game::handle_event(event);
 		handle_window_event(event);
+		game::handle_event(event);
 	}
 }
 

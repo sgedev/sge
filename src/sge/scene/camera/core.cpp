@@ -189,7 +189,7 @@ bool init(void)
 	s_uniform_mat4[UNIFORM_VIEW_MATRIX] = glm::mat4(1.0f);
 	s_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = glm::frustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.5f, 999.0f);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	init_test();
 

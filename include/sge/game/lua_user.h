@@ -7,6 +7,10 @@
 #include <uv.h>
 #include <xlist.h>
 
+#ifdef LoadString
+#undef LoadString
+#endif
+
 #ifdef LUA_EXTRASPACE
 #undef LUA_EXTRASPACE
 #endif

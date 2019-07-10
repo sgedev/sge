@@ -1,7 +1,6 @@
 
 sge_subdirectories(
 	game
-	gui
 	scene
 	sound
 	)
@@ -10,9 +9,9 @@ sge_sources(
 	common.hpp
 	config.hpp.in
 	game.hpp
-	gui.hpp
 	noncopyable.hpp
 	scene.hpp
+	server.hpp
 	signal.hpp
 	sound.hpp
 	)

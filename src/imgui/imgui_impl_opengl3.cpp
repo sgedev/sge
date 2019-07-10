@@ -118,6 +118,9 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
     strcpy(g_GlslVersionString, glsl_version);
     strcat(g_GlslVersionString, "\n");
 
+    if (!g_FontTexture)
+        ImGui_ImplOpenGL3_CreateDeviceObjects();
+
     return true;
 }
 
@@ -128,8 +131,6 @@ void    ImGui_ImplOpenGL3_Shutdown()
 
 void    ImGui_ImplOpenGL3_NewFrame()
 {
-    if (!g_FontTexture)
-        ImGui_ImplOpenGL3_CreateDeviceObjects();
 }
 
 // OpenGL3 Render function.

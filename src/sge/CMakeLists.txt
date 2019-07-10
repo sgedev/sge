@@ -17,8 +17,8 @@ endif()
 
 sge_subdirectories(
 	game
-	gui
 	scene
+	server
 	sound
 	)
 

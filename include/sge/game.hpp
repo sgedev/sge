@@ -7,11 +7,7 @@
 
 SGE_GAME_BEGIN
 
-bool init(void);
-void shutdown(void);
-bool handle_event(const SDL_Event &event);
-void frame(float elapsed);
-bool is_running(void);
+int main(void);
 
 SGE_GAME_END
 

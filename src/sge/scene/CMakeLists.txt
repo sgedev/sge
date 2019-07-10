@@ -8,12 +8,12 @@ else()
 endif()
 
 sge_subdirectories(
-	camera
 	io
 	player
 	)
 
 sge_sources(
+	camera.cpp
 	core.cpp
 	node.cpp
 	)

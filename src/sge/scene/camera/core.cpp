@@ -1,7 +1,6 @@
 //
 //
-#include <GL/gl.hpp>
-
+#include <sge/gl.hpp>
 #include <sge/scene/camera.hpp>
 
 SGE_SCENE_CAMERA_BEGIN
@@ -19,7 +18,7 @@ enum uniform_mat4 {
 	UNIFORM_MAT4_MAX
 };
 
-static GL::Program s_program;
+static gl::program s_program;
 
 // float uniforms
 static int s_uniform_float_loc[UNIFORM_FLOAT_MAX];
@@ -47,9 +46,9 @@ const char *s_fragment_shader_source =
 	"}\n"
 	;
 
-static GL::Buffer s_test_vertex(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-static GL::Buffer s_test_index(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
-static GL::VertexArray s_test_vertex_array;
+static gl::buffer s_test_vertex(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+static gl::buffer s_test_index(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
+static gl::vertex_array s_test_vertex_array;
 
 static void init_test(void)
 {
@@ -79,13 +78,13 @@ static void init_test(void)
 		1, 4, 5
 	};
 
-	s_test_vertex.Create(test_vertex, sizeof(test_vertex));
-	s_test_index.Create(test_index, sizeof(test_index));
-	s_test_vertex_array.Create();
+	s_test_vertex.create(test_vertex, sizeof(test_vertex));
+	s_test_index.create(test_index, sizeof(test_index));
+	s_test_vertex_array.create();
 
-	s_test_vertex_array.Bind();
-	s_test_vertex.Bind();
-	s_test_index.Bind();
+	s_test_vertex_array.bind();
+	s_test_vertex.bind();
+	s_test_index.bind();
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *)0);
 	glEnableVertexAttribArray(0);
@@ -94,9 +93,9 @@ static void init_test(void)
 
 static void shutdown_test(void)
 {
-	s_test_vertex_array.Destroy();
-	s_test_index.Destroy();
-	s_test_vertex.Destroy();
+	s_test_vertex_array.destroy();
+	s_test_index.destroy();
+	s_test_vertex.destroy();
 }
 
 static void draw_test(void)
@@ -106,13 +105,13 @@ static void draw_test(void)
 	float step = 4.0f;
 	glm::mat4 m;
 
-	glBindVertexArray(s_test_vertex_array.Id());
+	glBindVertexArray(s_test_vertex_array.id());
 
 	for (x = 0.0f; x < size; x += step) {
 		for (y = 0.0f; y < size; y += step) {
 			for (z = 0.0f; z < size; z += step) {
 				m = glm::translate(glm::vec3(x, y, z));
-				s_program.Uniform(s_uniform_mat4_loc[UNIFORM_MODEL_MATRIX], 1, false, &m);
+				s_program.uniform(s_uniform_mat4_loc[UNIFORM_MODEL_MATRIX], 1, false, &m);
 				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 			}
 		}
@@ -123,27 +122,27 @@ static void draw_test(void)
 
 static bool init_program(void)
 {
-	if (!s_program.Create())
+	if (!s_program.create())
 		return false;
 
 	SGE_LOGD("Building vertex shader...\n");
-	if (!s_program.AddShader(GL_VERTEX_SHADER, s_vertex_shader_source)) {
-		SGE_LOGE("Failed to build vertex shader: %s\n", s_program.InfoLog());
-		s_program.Destroy();
+	if (!s_program.add_shader(GL_VERTEX_SHADER, s_vertex_shader_source)) {
+		SGE_LOGE("Failed to build vertex shader: %s\n", s_program.info_log());
+		s_program.destroy();
 		return false;
 	}
 
 	SGE_LOGD("Building fragment shader...\n");
-	if (!s_program.AddShader(GL_FRAGMENT_SHADER, s_fragment_shader_source)) {
-		SGE_LOGE("Failed to build fragment shader: %s\n", s_program.InfoLog());
-		s_program.Destroy();
+	if (!s_program.add_shader(GL_FRAGMENT_SHADER, s_fragment_shader_source)) {
+		SGE_LOGE("Failed to build fragment shader: %s\n", s_program.info_log());
+		s_program.destroy();
 		return false;
 	}
 
 	SGE_LOGD("Linking program...\n");
-	if (!s_program.Link()) {
-		SGE_LOGE("Failed to link program: %s\n", s_program.InfoLog());
-		s_program.Destroy();
+	if (!s_program.link()) {
+		SGE_LOGE("Failed to link program: %s\n", s_program.info_log());
+		s_program.destroy();
 		return false;
 	}
 
@@ -156,9 +155,9 @@ static bool init_program(void)
 		s_uniform_mat4_loc[i] = -1;
 
 	// getting uniform locations...
-	s_uniform_mat4_loc[UNIFORM_MODEL_MATRIX] = s_program.UniformLocation("sge_model_matrix");
-	s_uniform_mat4_loc[UNIFORM_VIEW_MATRIX] = s_program.UniformLocation("sge_view_matrix");
-	s_uniform_mat4_loc[UNIFORM_PROJECTION_MATRIX] = s_program.UniformLocation("sge_projection_matrix");
+	s_uniform_mat4_loc[UNIFORM_MODEL_MATRIX] = s_program.uniform_location("sge_model_matrix");
+	s_uniform_mat4_loc[UNIFORM_VIEW_MATRIX] = s_program.uniform_location("sge_view_matrix");
+	s_uniform_mat4_loc[UNIFORM_PROJECTION_MATRIX] = s_program.uniform_location("sge_projection_matrix");
 
 	return true;
 }
@@ -168,13 +167,13 @@ static void commit_uniforms(void)
 	// float
 	for (int i = 0; i < UNIFORM_FLOAT_MAX; ++i) {
 		if (s_uniform_float_loc[i] >= 0)
-			s_program.Uniform(s_uniform_float_loc[i], s_uniform_float[i]);
+			s_program.uniform(s_uniform_float_loc[i], s_uniform_float[i]);
 	}
 
 	// mat4
 	for (int i = 0; i < UNIFORM_MAT4_MAX; ++i) {
 		if (s_uniform_mat4_loc[i] >= 0)
-			s_program.Uniform(s_uniform_mat4_loc[i], 1, false, &s_uniform_mat4[i]);
+			s_program.uniform(s_uniform_mat4_loc[i], 1, false, &s_uniform_mat4[i]);
 	}
 }
 
@@ -200,7 +199,7 @@ void shutdown(void)
 {
 	shutdown_test();
 
-	s_program.Destroy();
+	s_program.destroy();
 }
 
 void update(void)

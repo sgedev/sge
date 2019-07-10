@@ -9,10 +9,6 @@ else()
 endif()
 
 sge_sources(
-	buffer.cpp
 	glew.c
-	program.cpp
-	shader.cpp
-	vertexarray.cpp
 	)
 

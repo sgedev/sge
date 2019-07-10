@@ -11,10 +11,15 @@ SGE_SCENE_BEGIN
 
 class node {
 public:
-	node(void);
+	node(node *parent = NULL);
 	virtual ~node(void);
 
 public:
+	node *parent(void);
+	node *prev_sibling(void);
+	node *next_sibling(void);
+	node *first_child(void);
+	void set_parent(node *parent);
 	void move(float x, float y, float z);
 	void move(const glm::vec3 &v);
 	void move_to(float x, float y, float z);
@@ -30,6 +35,13 @@ public:
 	const glm::mat4 &get_transform(void);
 
 private:
+	void unlink(void);
+
+private:
+	node *m_parent;
+	node *m_prev_sibling;
+	node *m_next_sibling;
+	node *m_first_child;
 	std::string m_name;
 	glm::vec3 m_position;
 	glm::vec3 m_scale;
@@ -37,6 +49,26 @@ private:
 	glm::mat4 m_transform;
 	bool m_dirty;
 };
+
+inline node *node::parent(void)
+{
+	return m_parent;
+}
+
+inline node *node::prev_sibling(void)
+{
+	return m_prev_sibling;
+}
+
+inline node *node::next_sibling(void)
+{
+	return m_next_sibling;
+}
+
+inline node *node::first_child(void)
+{
+	return m_first_child;
+}
 
 inline void node::move(float x, float y, float z)
 {

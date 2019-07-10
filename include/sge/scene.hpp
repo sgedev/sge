@@ -8,7 +8,7 @@
 
 SGE_SCENE_BEGIN
 
-namespace loading {
+namespace loader {
 	bool start(void);
 	bool is_started(void);
 	void stop(void);
@@ -18,7 +18,7 @@ namespace loading {
 bool init(void);
 void shutdown(void);
 void update(float elapsed);
-void draw(void);
+void render(void);
 void reset(void);
 
 SGE_SCENE_END

@@ -17,6 +17,7 @@ endif()
 
 sge_subdirectories(
 	game
+	gl
 	scene
 	server
 	sound

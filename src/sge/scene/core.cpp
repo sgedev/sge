@@ -32,7 +32,7 @@ static void update_physics(float elapsed)
 	}
 }
 
-namespace loading {
+namespace loader {
 	static uv_work_t s_work;
 	static uv_async_t s_progress;
 	static int s_percentage;
@@ -126,8 +126,7 @@ bool init(void)
 	s_bt_sics = new btSequentialImpulseConstraintSolver();
 	s_bt_world = new btDiscreteDynamicsWorld(s_bt_cd, s_bt_bi, s_bt_sics, s_bt_cc);
 
-	camera::init();
-	loading::init();
+	loader::init();
 
 	s_physics_enabled = false;
 	s_state = STATE_IDLE;
@@ -137,8 +136,6 @@ bool init(void)
 
 void shutdown(void)
 {
-	camera::shutdown();
-
 	delete s_bt_world;
 	delete s_bt_sics;
 	delete s_bt_bi;
@@ -152,14 +149,13 @@ void update(float elapsed)
 
 	//if (s_state != STATE_READY)
 	//	return;
+
 }
 
-void draw(void)
+void draw(camera &cam)
 {
 	//if (s_state != STATE_READY)
 	//	return;
-
-	camera::update();
 }
 
 void reset(void)

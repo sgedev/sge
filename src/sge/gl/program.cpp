@@ -1,22 +1,22 @@
 //
 //
-#include <GL/program.hpp>
+#include <sge/gl/program.hpp>
 
-GL_BEGIN
+SGE_GL_BEGIN
 
-Program::Program(void)
+program::program(void)
 	: m_id(0)
 {
 }
 
-Program::~Program(void)
+program::~program(void)
 {
-	Destroy();
+	destroy();
 }
 
-bool Program::Create(void)
+bool program::create(void)
 {
-	GL_ASSERT(m_id == 0);
+	SGE_ASSERT(m_id == 0);
 
 	m_id = glCreateProgram();
 	if (m_id == 0)
@@ -25,7 +25,7 @@ bool Program::Create(void)
 	return true;
 }
 
-void Program::Destroy(void)
+void program::destroy(void)
 {
 	if (m_id != 0) {
 		glDeleteProgram(m_id);
@@ -33,10 +33,10 @@ void Program::Destroy(void)
 	}
 }
 
-bool Program::AddShader(GLenum type, const char *src)
+bool program::add_shader(GLenum type, const char *src)
 {
-	GL_ASSERT(m_id > 0);
-	GL_ASSERT(src != NULL);
+	SGE_ASSERT(m_id > 0);
+	SGE_ASSERT(src != NULL);
 
 	GLuint shader = glCreateShader(type);
 	if (shader == 0)
@@ -44,7 +44,7 @@ bool Program::AddShader(GLenum type, const char *src)
 
 	int len[1];
 	len[0] = (int)strlen(src);
-	GL_ASSERT(len[0] > 0);
+	SGE_ASSERT(len[0] > 0);
 
 	glShaderSource(shader, 1, &src, len);
 
@@ -65,9 +65,9 @@ bool Program::AddShader(GLenum type, const char *src)
 	return false;
 }
 
-bool Program::Link(void)
+bool program::link(void)
 {
-	GL_ASSERT(m_id > 0);
+	SGE_ASSERT(m_id > 0);
 
 	glLinkProgram(m_id);
 
@@ -84,5 +84,5 @@ bool Program::Link(void)
 	return false;
 }
 
-GL_END
+SGE_GL_END
 

@@ -2,6 +2,8 @@
 #
 #
 
+# Common settings
+
 cmake_minimum_required(VERSION 3.13.2)
 
 project(sge VERSION 0.1.0)
@@ -9,13 +11,35 @@ project(sge VERSION 0.1.0)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 
-set(CMAKE_CXX_STANDARD 11)
-
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 if(MSVC)
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
+endif()
+
+# Qt5
+
+set(CMAKE_AUTOMOC ON)
+
+find_package(Qt5Core)
+find_package(Qt5Gui)
+find_package(Qt5Widgets)
+
+link_libraries(
+	Qt5::Core
+	Qt5::Gui
+	Qt5::Widgets
+	)
+
+# PhysFS
+
+include(FindPhysFS)
+if(PHYSFS_FOUND)
+	include_directories(${PHYSFS_INCLUDE_DIR})
+	link_libraries(${PHYSFS_LIBRARY})
+else()
+	message(FATAL_ERROR "PhysFS not found.")
 endif()
 
 # sge macros

@@ -7,6 +7,11 @@ sge_subdirectories(
 	)
 
 sge_sources(
-	Main.cpp
+	Common.h
+	Config.h.in
+	Editor.h
+	Game.h
+	Renderer.h
+	Scene.h
 	)
 

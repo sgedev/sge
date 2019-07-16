@@ -1,0 +1,20 @@
+
+sge_sources(nfd_common.c)
+
+if(APPLE)
+	sge_sources(nfd_cocoa.m)
+elseif(UNIX)
+	include(FindGTK2)
+	if(NOT GTK2_FOUND)
+		message(FATAL_ERROR "GTK2 not found.")
+	endif()
+	sge_include_directories(${GTK2_INCLUDE_DIRS})
+	sge_compile_definitions(${GTK2_DEFINITIONS})
+	sge_link_libraries(${GTK2_LIBRARIES})
+    sge_sources(nfd_gtk.c)
+elseif(WIN32)
+    sge_sources(nfd_win.cpp)
+else()
+	message(FATAL_ERROR "unknown platform.")
+endif()
+

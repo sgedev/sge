@@ -1,12 +1,10 @@
 
 sge_subdirectories(
-	Editor
-	Game
-	Renderer
-	Scene
-	)
-
-sge_sources(
-	Main.cpp
+	glew
+	imgui
+	lua
+	nativefiledialog
+	physfs
+	sge
 	)
 

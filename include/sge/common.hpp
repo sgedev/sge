@@ -5,12 +5,10 @@
 
 #include <cstdint>
 
-#include <uv.h>
-
-#include <glm.hpp>
-
-#define SDL_MAIN_HANDLED
 #include <SDL.h>
+
+#include <uv.h>
+#include <glm.hpp>
 
 #include <sge/config.hpp>
 

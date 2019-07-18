@@ -20,7 +20,7 @@ public:
 	bool started(void) const;
 
 protected:
-	virtual bool init(void) { }
+	virtual bool init(void) { return true; }
 	virtual void shutdown(void) { }
 	virtual void handle_event(const SDL_Event &event) { }
 

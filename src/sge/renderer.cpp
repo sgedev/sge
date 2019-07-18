@@ -4,16 +4,6 @@
 
 SGE_BEGIN
 
-renderer::renderer(void)
-	: m_test_vertex(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
-	, m_test_index(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW)
-{
-}
-
-renderer::~renderer(void)
-{
-}
-
 const char *vertex_shader_source =
 	"#version 330\n"
 	"uniform mat4 sge_model_matrix;\n"
@@ -31,6 +21,16 @@ const char *fragment_shader_source =
 	"	gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
 	"}\n"
 	;
+
+renderer::renderer(void)
+	: m_test_vertex(GL_ARRAY_BUFFER, GL_STATIC_DRAW)
+	, m_test_index(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW)
+{
+}
+
+renderer::~renderer(void)
+{
+}
 
 bool renderer::init(window *pw)
 {

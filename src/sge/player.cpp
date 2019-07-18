@@ -30,36 +30,18 @@ bool player::init(void)
 	if (!m_window.init())
 		return false;
 
-	IMGUI_CHECKVERSION();
-
-    m_imgui = ImGui::CreateContext();
-	if (m_imgui == NULL) {
-		SGE_LOGE("failed to create imgui context.\n");
+	if (!m_renderer.init(&m_window)) {
 		m_window.shutdown();
 		return false;
 	}
 
-	ImGui::SetCurrentContext(m_imgui);
+	if (!init_imgui()) {
+		m_renderer.shutdown();
+		m_window.shutdown();
+		return false;
+	}
 
-	SGE_LOGI("dear imgui: %s\n", ImGui::GetVersion());
-
-    ImGuiIO &io = ImGui::GetIO();
-	io.IniFilename = NULL;
-
-    ImGui::StyleColorsDark();
-
-	ImGuiStyle &style = ImGui::GetStyle();
-	style.WindowRounding = 0.0f;
-	style.WindowBorderSize = 1.0f;
-	style.ChildRounding = 0.0f;
-	style.ChildBorderSize = 0.0f;
-	style.PopupRounding = 0.0f;
-	style.PopupBorderSize = 0.0f;
-
-    ImGui_ImplSDL2_InitForOpenGL(m_window.to_sdl_window(), m_window.sdl_gl_context());
-    ImGui_ImplOpenGL3_Init("#version 130");
-
-	if (!m_game.init(&m_window)) {
+	if (!m_game.init()) {
 		SGE_LOGE("failed to initialize game.\n");
 		ImGui::DestroyContext(m_imgui);
 		m_imgui = NULL;
@@ -85,14 +67,7 @@ void player::shutdown(void)
 
 	m_game.shutdown();
 
-	SGE_ASSERT(m_imgui != NULL);
-
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplSDL2_Shutdown();
-
-	ImGui::SetCurrentContext(NULL);
-	ImGui::DestroyContext(m_imgui);
-	m_imgui = NULL;
+	shutdown_imgui();
 
 	m_window.shutdown();
 }
@@ -116,6 +91,51 @@ void player::draw(void)
 {
 }
 
+bool player::init_imgui(void)
+{
+	IMGUI_CHECKVERSION();
+
+	m_imgui = ImGui::CreateContext();
+	if (m_imgui == NULL) {
+		SGE_LOGE("failed to create imgui context.\n");
+		return false;
+	}
+
+	ImGui::SetCurrentContext(m_imgui);
+
+	SGE_LOGI("dear imgui: %s\n", ImGui::GetVersion());
+
+	ImGuiIO &io = ImGui::GetIO();
+	io.IniFilename = NULL;
+
+	ImGui::StyleColorsDark();
+
+	ImGuiStyle &style = ImGui::GetStyle();
+	style.WindowRounding = 0.0f;
+	style.WindowBorderSize = 1.0f;
+	style.ChildRounding = 0.0f;
+	style.ChildBorderSize = 0.0f;
+	style.PopupRounding = 0.0f;
+	style.PopupBorderSize = 0.0f;
+
+	ImGui_ImplSDL2_InitForOpenGL(m_window.to_sdl_window(), m_window.sdl_gl_context());
+	ImGui_ImplOpenGL3_Init("#version 130");
+
+	return true;
+}
+
+void player::shutdown_imgui(void)
+{
+	SGE_ASSERT(m_imgui != NULL);
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+
+	ImGui::SetCurrentContext(NULL);
+	ImGui::DestroyContext(m_imgui);
+	m_imgui = NULL;
+}
+
 void player::frame(void)
 {
 	SGE_ASSERT(m_imgui != NULL);
@@ -136,7 +156,7 @@ void player::frame(void)
 	ImGui::Render();
 
 	if (m_window.draw_begin()) {
-		m_game.draw();
+		m_renderer.draw(m_game.get_camera());
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		draw();
 		m_window.draw_end();

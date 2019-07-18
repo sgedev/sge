@@ -8,7 +8,6 @@ SGE_BEGIN
 
 game::game(uv_loop_t *loop)
 	: m_loop(loop)
-	, m_window(NULL)
 {
 	SGE_ASSERT(m_loop != NULL);
 }
@@ -17,18 +16,19 @@ game::~game(void)
 {
 }
 
-bool game::init(window *pw)
+bool game::init(void)
 {
 	SGE_ASSERT(m_loop != NULL);
-	SGE_ASSERT(pw != NULL);
-
-	if (!m_renderer.init(pw))
-		return false;
 
 	m_input.init();
 	m_scene.init();
 
 	m_camera.perspective(90, 4.0f/3.0f, 0.01f, 100.0f);
+
+	m_input.bind(SDLK_a, std::bind(&camera::move_left, m_camera));
+	m_input.bind(SDLK_s, std::bind(&camera::move_backward, m_camera));
+	m_input.bind(SDLK_d, std::bind(&camera::move_right, m_camera));
+	m_input.bind(SDLK_w, std::bind(&camera::move_forward, m_camera));
 
 	return true;
 }
@@ -50,17 +50,9 @@ void game::update(float elapsed)
 {
 	m_input.update(elapsed);
 	m_scene.update(elapsed);
-}
 
-void game::draw(void)
-{
 	m_camera.clear();
-
-	m_scene.draw(m_camera);
-
-	m_camera.render();
-
-	m_renderer.draw(m_camera);
+	m_scene.shot(m_camera);
 }
 
 void game::reset(void)

@@ -25,7 +25,7 @@ void scene::update(float elapsed)
 {
 }
 
-void scene::draw(camera &cam)
+void scene::shot(camera &cam)
 {
 	// add scene to camera.
 }

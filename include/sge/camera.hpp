@@ -17,17 +17,29 @@ public:
 
 public:
 	void clear(void);
-	void render(void);
 	void look_at(glm::vec3 const &eye, glm::vec3 const &center, glm::vec3 const &up);
 	const glm::mat4 &projection(void) const;
 	void set_projection(const glm::mat4 &v);
 	void ortho(float left, float right, float bottom, float top, float znear, float zfar);
 	void frustum(float left, float right, float bottom, float top, float znear, float zfar);
 	void perspective(float fovy, float aspect, float znear, float zfar);
-	void set_fov(float fov);
+
+public:
+	void move_forward(void);
+	void move_backward(void);
+	void move_left(void);
+	void move_right(void);
+	void mouse_view(int dx, int dy);
 
 private:
 	glm::mat4 m_projection;
+	glm::vec3 m_eye;
+	glm::vec3 m_center;
+	glm::vec3 m_up;
+	float m_move_speed;
+	float m_mouse_last_x;
+	float m_mouse_last_y;
+	float m_mouse_sensitivity;
 };
 
 inline void camera::look_at(glm::vec3 const &eye, glm::vec3 const &center, glm::vec3 const &up)

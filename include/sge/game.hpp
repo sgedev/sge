@@ -8,7 +8,6 @@
 #include <sge/input.hpp>
 #include <sge/scene.hpp>
 #include <sge/camera.hpp>
-#include <sge/renderer.hpp>
 
 SGE_BEGIN
 
@@ -18,23 +17,33 @@ public:
 	virtual ~game(void);
 
 public:
-	bool init(window *pw);
+	bool init(void);
 	void shutdown(void);
 	void handle_event(const SDL_Event &event);
 	void update(float elapsed);
-	void draw(void);
+	camera &get_camera(void);
 	void reset(void);
 	void clear(void);
 	bool load(const char *path);
 
 private:
+	void move_forward(void);
+	void move_backward(void);
+	void move_left(void);
+	void move_right(void);
+	void mouse_view(int dx, int dy);
+
+private:
 	uv_loop_t *m_loop;
-	window *m_window;
 	input m_input;
 	scene m_scene;
-	renderer m_renderer;
 	camera m_camera;
 };
+
+inline camera &game::get_camera(void)
+{
+	return m_camera;
+}
 
 SGE_END
 

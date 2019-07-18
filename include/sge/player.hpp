@@ -11,6 +11,7 @@
 #include <sge/subsystem.hpp>
 #include <sge/window.hpp>
 #include <sge/game.hpp>
+#include <sge/renderer.hpp>
 
 SGE_BEGIN
 
@@ -31,6 +32,8 @@ protected:
 	virtual void draw(void);
 
 private:
+	bool init_imgui(void);
+	void shutdown_imgui(void);
 	void frame(void);
 	static void frame_cb(uv_timer_t *timer);
 	void state(void);
@@ -53,6 +56,7 @@ private:
 	unsigned int m_fps;
 	unsigned int m_fps_count;
 	game m_game;
+	renderer m_renderer;
 	bool m_show_fps;
 };
 

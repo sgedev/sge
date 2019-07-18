@@ -17,7 +17,7 @@ public:
 	bool init(void);
 	void shutdown(void);
 	void update(float elapsed);
-	void draw(camera &cam);
+	void shot(camera &cam);
 };
 
 SGE_END

@@ -1,5 +1,8 @@
 //
 //
+#define WIN32_LEAN_AND_MEAN
+#define SDL_MAIN_HANDLED
+
 #include <memory>
 #include <string>
 #include <iostream>
@@ -9,7 +12,6 @@
 #include <filesystem/path.h>
 #include <filesystem/resolver.h>
 
-#define SDL_MAIN_HANDLED
 #include <SDL.h>
 
 #include <sge/common.hpp>
@@ -69,14 +71,14 @@ static void poll_event_cb(uv_prepare_t *p)
 
 static void show_version(void)
 {
-	SGE_LOGI("simple game engine v%d.%d.%d ["
 #ifdef SGE_DEBUG
-		"debug version"
+	const char *release = "debug version";
 #else
-		"release version"
+	const char *release = "release version"
 #endif
-		"]\n",
-		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH);
+
+	SGE_LOGI("simple game engine v%d.%d.%d [%s]\n",
+		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH, release);
 
 	SGE_LOGD("platform: %s, cpu %d, memory %dMB\n",
 		SDL_GetPlatform(), SDL_GetCPUCount(), SDL_GetSystemRAM());

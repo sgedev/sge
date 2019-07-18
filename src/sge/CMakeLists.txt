@@ -15,15 +15,18 @@ else()
 	message(FATAL_ERROR "SDL2 not found.")
 endif()
 
-sge_subdirectories(
-	game
-	gl
-	scene
-	server
-	sound
-	)
-
 sge_sources(
+	camera.cpp
+	editor.cpp
+	entity.cpp
+	game.cpp
+	input.cpp
 	main.cpp
+	player.cpp
+	renderer.cpp
+	scene.cpp
+	server.cpp
+	subsystem.cpp
+	window.cpp
 	)
 

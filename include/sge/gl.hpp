@@ -8,18 +8,7 @@
 #include <sge/gl/program.hpp>
 #include <sge/gl/shader.hpp>
 #include <sge/gl/vertex_array.hpp>
-
-SGE_GL_BEGIN
-
-bool init(void);
-void shutdown(void);
-bool handle_event(const SDL_Event &event);
-bool make_current(void);
-void swap_buffers(void);
-SDL_Window *window(void);
-SDL_GLContext context(void);
-
-SGE_GL_END
+#include <sge/gl/window.hpp>
 
 #endif // SGE_GL_HPP
 

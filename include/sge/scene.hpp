@@ -3,25 +3,24 @@
 #ifndef SGE_SCENE_HPP
 #define SGE_SCENE_HPP
 
-#include <sge/scene/common.hpp>
-#include <sge/scene/camera.hpp>
+#include <sge/common.hpp>
+#include <sge/camera.hpp>
 
-SGE_SCENE_BEGIN
+SGE_BEGIN
 
-namespace loader {
-	bool start(void);
-	bool is_started(void);
-	void stop(void);
-	int percentage(void);
-}
+class scene {
+public:
+	scene(void);
+	virtual ~scene(void);
 
-bool init(void);
-void shutdown(void);
-void update(float elapsed);
-void render(void);
-void reset(void);
+public:
+	bool init(void);
+	void shutdown(void);
+	void update(float elapsed);
+	void draw(camera &cam);
+};
 
-SGE_SCENE_END
+SGE_END
 
 #endif // SGE_SCENE_HPP
 

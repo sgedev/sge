@@ -1,21 +1,21 @@
 
-sge_subdirectories(
-	game
-	gl
-	scene
-	sound
-	)
-
 sge_sources(
+	camera.hpp
 	common.hpp
 	config.hpp.in
+	editor.hpp
+	entity.hpp
 	game.hpp
 	gl.hpp
+	input.hpp
 	noncopyable.hpp
+	player.hpp
+	renderer.hpp
 	scene.hpp
 	server.hpp
 	signal.hpp
-	sound.hpp
+	subsystem.hpp
+	window.hpp
 	)
 
 configure_file(

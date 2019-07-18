@@ -1,8 +1,7 @@
 
 sge_subdirectories(
-	glew
+	GL
 	imgui
-	lua
 	nativefiledialog
 	physfs
 	sge

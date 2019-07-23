@@ -16,15 +16,19 @@ subsystem::~subsystem(void)
 		stop();
 }
 
-bool subsystem::start(void)
+bool subsystem::start(const filesystem::path &p)
 {
 	SGE_ASSERT(m_loop != NULL);
 	SGE_ASSERT(!m_started);
+
+	m_path = p.make_absolute();
+	SGE_ASSERT(m_path.exists());
 
 	if (!init())
 		return false;
 
 	m_started = true;
+
 	return true;
 }
 

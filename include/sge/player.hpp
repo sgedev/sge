@@ -10,8 +10,10 @@
 #include <sge/common.hpp>
 #include <sge/subsystem.hpp>
 #include <sge/window.hpp>
-#include <sge/game.hpp>
+#include <sge/scene.hpp>
+#include <sge/camera.hpp>
 #include <sge/renderer.hpp>
+#include <sge/runtime.hpp>
 
 SGE_BEGIN
 
@@ -29,16 +31,18 @@ protected:
 	void shutdown(void) override;
 	void handle_event(const SDL_Event &event) override;
 	virtual void update(float elapsed);
-	virtual void draw(void);
 
 private:
 	bool init_imgui(void);
 	void shutdown_imgui(void);
+	void show_loading(void);
+	void show_ready(void);
+	void show_fps(void);
+	void show_hud(void);
 	void frame(void);
 	static void frame_cb(uv_timer_t *timer);
 	void state(void);
 	static void state_cb(uv_timer_t *timer);
-	void show_fps(void);
 
 private:
 	enum {
@@ -46,18 +50,29 @@ private:
 		FLAG_WINDOW_FULLSCREEN = 0x2,
 	};
 
+	enum {
+		STATE_IDLE = 0,
+		STATE_LOADING,
+		STATE_READY,
+		STATE_PLAYING,
+	};
+
 private:
 	uv_timer_t m_frame_timer;
 	uv_timer_t m_state_timer;
-	window m_window;
-	ImGuiContext *m_imgui;
 	int m_flags;
+	int m_state;
 	uint64_t m_last;
 	unsigned int m_fps;
 	unsigned int m_fps_count;
-	game m_game;
+	window m_window;
 	renderer m_renderer;
+	camera m_camera;
+	scene m_scene;
+	ImGuiContext *m_imgui;
+	runtime m_runtime;
 	bool m_show_fps;
+	bool m_show_hud;
 };
 
 inline window &player::get_window(void)

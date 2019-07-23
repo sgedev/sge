@@ -19,11 +19,12 @@ sge_sources(
 	camera.cpp
 	editor.cpp
 	entity.cpp
-	game.cpp
+	hud.cpp
 	input.cpp
 	main.cpp
 	player.cpp
 	renderer.cpp
+	runtime.cpp
 	scene.cpp
 	server.cpp
 	subsystem.cpp

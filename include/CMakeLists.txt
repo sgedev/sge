@@ -1,5 +1,6 @@
 
 sge_subdirectories(
+	filesystem
 	GL
 	glm
 	sge
@@ -19,7 +20,5 @@ sge_sources(
 	luaconf.h
 	lualib.h
 	nfd.h
-	physfs.h
-	xlist.h
 	)
 

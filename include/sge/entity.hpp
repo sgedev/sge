@@ -23,7 +23,7 @@ public:
 	const char *name(void) const;
 	void rename(const char *name);
 	const glm::vec3 &scale(void) const;
-	void set_scale(const glm::vec3 &xyz);
+	void scaling(const glm::vec3 &xyz);
 	const glm::vec3 &position(void) const;
 	void move(const glm::vec3 &xyz);
 	void move_to(const glm::vec3 &xyz);
@@ -56,7 +56,7 @@ inline const glm::vec3 &entity::scale(void) const
 	return m_scale;
 }
 
-inline void entity::set_scale(const glm::vec3 &xyz)
+inline void entity::scaling(const glm::vec3 &xyz)
 {
 	m_scale = xyz;
 	m_dirty = true;

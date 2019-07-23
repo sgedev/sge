@@ -35,6 +35,18 @@
 #	define SGE_LOGD(fmt, ...) SDL_LogDebug(SGE_LOG_CATEGORY, fmt, __VA_ARGS__)
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+#	define SGE_LIKELY(x)			__builtin_expect(!!(x), 1)
+#	define SGE_UNLIKELY(x)			__builtin_expect(!!(x), 0)
+#	define SGE_FORCE_INLINE			inline __attribute__((always_inline))
+#	define SGE_PRINTF_LIKE(f, a)	__attribute__((format(printf, f, a)))
+#else
+#	define SGE_LIKELY(x)			(x)
+#	define SGE_UNLIKELY(x)			(x)
+#	define SGE_FORCE_INLINE			inline
+#	define SGE_PRINTF_LIKE(a, b)
+#endif
+
 #define SGE_CONCAT(a, b) SGE_CONCAT_IMPL(a, b)
 #define SGE_CONCAT_IMPL(a, b) a##b
 
@@ -63,6 +75,16 @@ typedef std::int32_t int32_t;
 typedef std::uint32_t uint32_t;
 typedef std::int64_t int64_t;
 typedef std::uint64_t uint64_t;
+
+class noncopyable {
+public:
+	noncopyable(void) { }
+	~noncopyable(void) { }
+
+private:
+	noncopyable(const noncopyable &);
+	noncopyable &operator=(const noncopyable &);
+};
 
 SGE_END
 

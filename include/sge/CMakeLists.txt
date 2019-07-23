@@ -5,12 +5,11 @@ sge_sources(
 	config.hpp.in
 	editor.hpp
 	entity.hpp
-	game.hpp
-	gl.hpp
+	hud.hpp
 	input.hpp
-	noncopyable.hpp
 	player.hpp
 	renderer.hpp
+	runtime.hpp
 	scene.hpp
 	server.hpp
 	signal.hpp

@@ -8,8 +8,8 @@ player::player(uv_loop_t *lp)
 	: subsystem(lp)
 	, m_imgui(NULL)
 	, m_flags(0)
-	, m_game(lp)
 	, m_show_fps(true)
+	, m_show_hud(true)
 {
 	uv_timer_init(loop(), &m_frame_timer);
 	uv_timer_init(loop(), &m_state_timer);
@@ -41,21 +41,22 @@ bool player::init(void)
 		return false;
 	}
 
-	if (!m_game.init()) {
-		SGE_LOGE("failed to initialize game.\n");
-		ImGui::DestroyContext(m_imgui);
-		m_imgui = NULL;
-		m_window.shutdown();
-		return false;
-	}
+	m_scene.init();
+
+	m_camera.perspective(90, 4.0f/3.0f, 0.01f, 100.0f);
+
+	m_runtime.init();
 
 	uv_timer_start(&m_frame_timer, &player::frame_cb, 10, 10);
 	uv_timer_start(&m_state_timer, &player::state_cb, 0, 1000);
 
 	m_fps = 0;
 	m_fps_count = 0;
-
 	m_last = uv_now(loop());
+	m_flags = 0;
+	m_show_fps = true;
+	m_show_hud = true;
+	m_state = STATE_LOADING;
 
 	return true;
 }
@@ -65,7 +66,8 @@ void player::shutdown(void)
 	uv_timer_stop(&m_frame_timer);
 	uv_timer_stop(&m_state_timer);
 
-	m_game.shutdown();
+	m_runtime.shutdown();
+	m_scene.shutdown();
 
 	shutdown_imgui();
 
@@ -77,17 +79,14 @@ void player::handle_event(const SDL_Event &event)
 	SGE_ASSERT(started());
 
 	m_window.handle_event(event);
-	m_game.handle_event(event);
 
 	ImGui::SetCurrentContext(m_imgui);
 	ImGui_ImplSDL2_ProcessEvent(&event);
+
+	m_runtime.handle_event(event);
 }
 
 void player::update(float elapsed)
-{
-}
-
-void player::draw(void)
 {
 }
 
@@ -136,29 +135,90 @@ void player::shutdown_imgui(void)
 	m_imgui = NULL;
 }
 
+void player::show_loading(void)
+{
+	if (!ImGui::IsPopupOpen("Loading..."))
+		ImGui::OpenPopup("Loading...");
+
+	if (!ImGui::BeginPopupModal("Loading...", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		return;
+
+	ImGui::Text("Loading...\n");
+
+	ImGui::CloseCurrentPopup();
+	ImGui::EndPopup();
+}
+
+void player::show_ready(void)
+{
+}
+
+void player::show_fps(void)
+{
+	if (!m_show_fps)
+		return;
+
+	ImGui::Begin("fps", &m_show_fps, ImGuiWindowFlags_AlwaysAutoResize);
+
+	ImVec4 fps_color;
+
+	if (m_fps > 59)
+		fps_color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+	else if (m_fps < 30)
+		fps_color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+	else
+		fps_color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
+
+	ImGui::TextColored(fps_color, "%10d", m_fps);
+	ImGui::End();
+}
+
+void player::show_hud(void)
+{
+	if (!m_show_hud)
+		return;
+}
+
 void player::frame(void)
 {
 	SGE_ASSERT(m_imgui != NULL);
-
-	uint64_t pass = uv_now(loop()) - m_last;
-	float elapsed = float(pass) / 1000.0f;
 
 	ImGui::SetCurrentContext(m_imgui);
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(m_window.to_sdl_window());
 	ImGui::NewFrame();
 
-	m_game.update(elapsed);
+	uint64_t pass = uv_now(loop()) - m_last;
+	float elapsed = float(pass) / 1000.0f;
+
+	m_scene.update(elapsed);
+	m_runtime.update(elapsed);
 	update(elapsed);
 
+	m_camera.clear();
+
+	switch (m_state) {
+	case STATE_IDLE:
+		break;
+	case STATE_LOADING:
+		show_loading();
+		break;
+	case STATE_READY:
+		show_ready();
+		break;
+	case STATE_PLAYING:
+		m_scene.shot(m_camera);
+		break;
+	}
+
+	show_hud();
 	show_fps();
 
 	ImGui::Render();
 
 	if (m_window.draw_begin()) {
-		m_renderer.draw(m_game.get_camera());
+		m_renderer.draw(m_camera);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		draw();
 		m_window.draw_end();
 	}
 
@@ -181,26 +241,6 @@ void player::state(void)
 void player::state_cb(uv_timer_t *timer)
 {
 	((player *)(timer->data))->state();
-}
-
-void player::show_fps(void)
-{
-	if (!m_show_fps)
-		return;
-
-	ImGui::Begin("fps", &m_show_fps, ImGuiWindowFlags_AlwaysAutoResize);
-
-	ImVec4 fps_color;
-
-	if (m_fps > 59)
-		fps_color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
-	else if (m_fps < 30)
-		fps_color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-	else
-		fps_color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
-
-	ImGui::TextColored(fps_color, "%10d", m_fps);
-	ImGui::End();
 }
 
 SGE_END

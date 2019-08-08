@@ -1,19 +1,17 @@
 
 sge_sources(
-	camera.hpp
 	common.hpp
 	config.hpp.in
 	editor.hpp
 	entity.hpp
+	game.hpp
 	hud.hpp
 	input.hpp
-	player.hpp
 	renderer.hpp
 	runtime.hpp
 	scene.hpp
-	server.hpp
 	signal.hpp
-	subsystem.hpp
+	view.hpp
 	window.hpp
 	)
 

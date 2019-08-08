@@ -7,7 +7,7 @@
 
 #include <sge/common.hpp>
 #include <sge/window.hpp>
-#include <sge/camera.hpp>
+#include <sge/view.hpp>
 
 SGE_BEGIN
 
@@ -20,7 +20,7 @@ public:
 public:
 	bool init(window *pw);
 	void shutdown(void);
-	void draw(camera &cam);
+	void draw(view &v);
 
 private:
 	bool setup_program(void);

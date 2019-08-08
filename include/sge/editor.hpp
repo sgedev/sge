@@ -4,13 +4,13 @@
 #define SGE_EDITOR_HPP
 
 #include <sge/common.hpp>
-#include <sge/player.hpp>
+#include <sge/game.hpp>
 
 SGE_BEGIN
 
-class editor: public player {
+class editor: public game {
 public:
-	editor(uv_loop_t *loop = NULL);
+	editor(uv_loop_t *loop, const filesystem::path &p);
 	virtual ~editor(void);
 
 protected:

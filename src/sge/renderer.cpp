@@ -57,12 +57,12 @@ void renderer::shutdown(void)
 	m_program.Destroy();
 }
 
-void renderer::draw(camera &cam)
+void renderer::draw(view &v)
 {
 	m_program.Use();
 
-	m_uniform_mat4[UNIFORM_VIEW_MATRIX] = cam.transform();
-	m_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = cam.projection();
+	m_uniform_mat4[UNIFORM_VIEW_MATRIX] = v.transform();
+	m_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = v.projection();
 
 	commit_uniforms();
 

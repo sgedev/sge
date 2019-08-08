@@ -25,9 +25,9 @@ void scene::update(float elapsed)
 {
 }
 
-void scene::shot(camera &cam)
+void scene::shot(view &v)
 {
-	// add scene to camera.
+	// add visibles into v.
 }
 
 SGE_END

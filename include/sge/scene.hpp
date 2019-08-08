@@ -4,7 +4,7 @@
 #define SGE_SCENE_HPP
 
 #include <sge/common.hpp>
-#include <sge/camera.hpp>
+#include <sge/view.hpp>
 
 SGE_BEGIN
 
@@ -17,7 +17,7 @@ public:
 	bool init(void);
 	void shutdown(void);
 	void update(float elapsed);
-	void shot(camera &cam);
+	void shot(view &v);
 };
 
 SGE_END

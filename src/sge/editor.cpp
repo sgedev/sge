@@ -4,8 +4,8 @@
 
 SGE_BEGIN
 
-editor::editor(uv_loop_t *lp)
-	: player(lp)
+editor::editor(uv_loop_t *loop, const filesystem::path &path)
+	: game(loop, path)
 {
 }
 
@@ -15,22 +15,22 @@ editor::~editor(void)
 
 bool editor::init(void)
 {
-	if (!player::init())
+	if (!game::init())
 		return false;
 
-	get_window().set_title("SGE Editor");
+	main_window().set_title("SGE Editor");
 
 	return true;
 }
 
 void editor::shutdown(void)
 {
-	player::shutdown();
+	game::shutdown();
 }
 
 void editor::handle_event(const SDL_Event &event)
 {
-	player::handle_event(event);
+	game::handle_event(event);
 }
 
 void editor::update(float elapsed)

@@ -1,58 +1,94 @@
 //
 //
-#include <sge/player.hpp>
+#include <sge/game.hpp>
 
 SGE_BEGIN
 
-player::player(uv_loop_t *lp)
-	: subsystem(lp)
+game::game(uv_loop_t *loop, const filesystem::path &path)
+	: m_loop(loop ? loop : uv_default_loop())
+	, m_path(path)
 	, m_imgui(NULL)
 	, m_flags(0)
 	, m_show_fps(true)
 	, m_show_hud(true)
 {
-	uv_timer_init(loop(), &m_frame_timer);
-	uv_timer_init(loop(), &m_state_timer);
+	m_path = path.make_absolute();
+	SGE_ASSERT(m_path.exists());
+
+	uv_timer_init(m_loop, &m_frame_timer);
+	uv_timer_init(m_loop, &m_state_timer);
 
 	m_frame_timer.data = this;
 	m_state_timer.data = this;
 }
 
-player::~player(void)
+game::~game(void)
 {
+	if (started())
+		stop();
 }
 
-bool player::init(void)
+bool game::start(void)
 {
+	SGE_ASSERT(m_loop != NULL);
 	SGE_ASSERT(!started());
-	SGE_ASSERT(m_imgui == NULL);
 
-	if (!m_window.init())
+	if (!init())
 		return false;
 
-	if (!m_renderer.init(&m_window)) {
-		m_window.shutdown();
+	m_flags |= FLAG_STARTED;
+
+	return true;
+}
+
+void game::stop(void)
+{
+	SGE_ASSERT(m_loop != NULL);
+	SGE_ASSERT(started());
+
+	shutdown();
+
+	m_flags &= ~FLAG_STARTED;
+}
+
+void game::feed_event(const SDL_Event &event)
+{
+	SGE_ASSERT(started());
+
+	handle_event(event);
+}
+
+bool game::init(void)
+{
+	SGE_ASSERT(m_loop != NULL);
+	SGE_ASSERT(m_imgui == NULL);
+
+	if (!m_main_window.init())
+		return false;
+
+	if (!m_renderer.init(&m_main_window)) {
+		m_main_window.shutdown();
 		return false;
 	}
 
 	if (!init_imgui()) {
 		m_renderer.shutdown();
-		m_window.shutdown();
+		m_main_window.shutdown();
 		return false;
 	}
 
 	m_scene.init();
 
-	m_camera.perspective(90, 4.0f/3.0f, 0.01f, 100.0f);
+	m_view.perspective(90, 4.0f/3.0f, 0.01f, 100.0f);
 
 	m_runtime.init();
 
-	uv_timer_start(&m_frame_timer, &player::frame_cb, 10, 10);
-	uv_timer_start(&m_state_timer, &player::state_cb, 0, 1000);
+	uv_timer_start(&m_frame_timer, &game::frame_cb, 10, 10);
+	uv_timer_start(&m_state_timer, &game::state_cb, 0, 1000);
 
 	m_fps = 0;
 	m_fps_count = 0;
-	m_last = uv_now(loop());
+	m_last = uv_now(m_loop);
 	m_flags = 0;
 	m_show_fps = true;
 	m_show_hud = true;
@@ -61,7 +97,7 @@ bool player::init(void)
 	return true;
 }
 
-void player::shutdown(void)
+void game::shutdown(void)
 {
 	uv_timer_stop(&m_frame_timer);
 	uv_timer_stop(&m_state_timer);
@@ -71,14 +107,16 @@ void player::shutdown(void)
 
 	shutdown_imgui();
 
-	m_window.shutdown();
+	m_renderer.shutdown();
+	m_main_window.shutdown();
 }
 
-void player::handle_event(const SDL_Event &event)
+void game::handle_event(const SDL_Event &event)
 {
 	SGE_ASSERT(started());
+	SGE_ASSERT(m_imgui != NULL);
 
-	m_window.handle_event(event);
+	m_main_window.handle_event(event);
 
 	ImGui::SetCurrentContext(m_imgui);
 	ImGui_ImplSDL2_ProcessEvent(&event);
@@ -86,11 +124,12 @@ void player::handle_event(const SDL_Event &event)
 	m_runtime.handle_event(event);
 }
 
-void player::update(float elapsed)
+void game::update(float elapsed)
 {
+	SGE_ASSERT(started());
 }
 
-bool player::init_imgui(void)
+bool game::init_imgui(void)
 {
 	IMGUI_CHECKVERSION();
 
@@ -117,13 +156,13 @@ bool player::init_imgui(void)
 	style.PopupRounding = 0.0f;
 	style.PopupBorderSize = 0.0f;
 
-	ImGui_ImplSDL2_InitForOpenGL(m_window.to_sdl_window(), m_window.sdl_gl_context());
+	ImGui_ImplSDL2_InitForOpenGL(m_main_window.to_sdl_window(), m_main_window.sdl_gl_context());
 	ImGui_ImplOpenGL3_Init("#version 130");
 
 	return true;
 }
 
-void player::shutdown_imgui(void)
+void game::shutdown_imgui(void)
 {
 	SGE_ASSERT(m_imgui != NULL);
 
@@ -135,7 +174,7 @@ void player::shutdown_imgui(void)
 	m_imgui = NULL;
 }
 
-void player::show_loading(void)
+void game::show_loading(void)
 {
 	if (!ImGui::IsPopupOpen("Loading..."))
 		ImGui::OpenPopup("Loading...");
@@ -143,17 +182,19 @@ void player::show_loading(void)
 	if (!ImGui::BeginPopupModal("Loading...", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		return;
 
-	ImGui::Text("Loading...\n");
+	ImGui::NewLine();
+	ImGui::ProgressBar(0.3f, ImVec2(400, 20));
+	ImGui::NewLine();
 
-	ImGui::CloseCurrentPopup();
+	//ImGui::CloseCurrentPopup();
 	ImGui::EndPopup();
 }
 
-void player::show_ready(void)
+void game::show_ready(void)
 {
 }
 
-void player::show_fps(void)
+void game::show_fps(void)
 {
 	if (!m_show_fps)
 		return;
@@ -173,29 +214,30 @@ void player::show_fps(void)
 	ImGui::End();
 }
 
-void player::show_hud(void)
+void game::show_hud(void)
 {
 	if (!m_show_hud)
 		return;
 }
 
-void player::frame(void)
+void game::frame(void)
 {
+	SGE_ASSERT(m_loop != NULL);
 	SGE_ASSERT(m_imgui != NULL);
 
 	ImGui::SetCurrentContext(m_imgui);
 	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame(m_window.to_sdl_window());
+	ImGui_ImplSDL2_NewFrame(m_main_window.to_sdl_window());
 	ImGui::NewFrame();
 
-	uint64_t pass = uv_now(loop()) - m_last;
+	uint64_t pass = uv_now(m_loop) - m_last;
 	float elapsed = float(pass) / 1000.0f;
 
 	m_scene.update(elapsed);
 	m_runtime.update(elapsed);
 	update(elapsed);
 
-	m_camera.clear();
+	m_view.clear();
 
 	switch (m_state) {
 	case STATE_IDLE:
@@ -207,7 +249,7 @@ void player::frame(void)
 		show_ready();
 		break;
 	case STATE_PLAYING:
-		m_scene.shot(m_camera);
+		m_scene.shot(m_view);
 		break;
 	}
 
@@ -216,31 +258,31 @@ void player::frame(void)
 
 	ImGui::Render();
 
-	if (m_window.draw_begin()) {
-		m_renderer.draw(m_camera);
+	if (m_main_window.draw_begin()) {
+		m_renderer.draw(m_view);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		m_window.draw_end();
+		m_main_window.draw_end();
 	}
 
 	m_fps_count += 1;
-	uv_update_time(loop());
-	m_last = uv_now(loop());
+	uv_update_time(m_loop);
+	m_last = uv_now(m_loop);
 }
 
-void player::frame_cb(uv_timer_t *timer)
+void game::frame_cb(uv_timer_t *timer)
 {
-	((player *)(timer->data))->frame();
+	((game *)(timer->data))->frame();
 }
 
-void player::state(void)
+void game::state(void)
 {
 	m_fps = m_fps_count;
 	m_fps_count = 0;
 }
 
-void player::state_cb(uv_timer_t *timer)
+void game::state_cb(uv_timer_t *timer)
 {
-	((player *)(timer->data))->state();
+	((game *)(timer->data))->state();
 }
 
 SGE_END

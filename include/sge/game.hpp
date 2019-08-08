@@ -1,35 +1,40 @@
 //
 //
-#ifndef SGE_PLAYER_HPP
-#define SGE_PLAYER_HPP
+#ifndef SGE_GAME_HPP
+#define SGE_GAME_HPP
+
+#include <filesystem/path.h>
 
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl.h>
 
 #include <sge/common.hpp>
-#include <sge/subsystem.hpp>
 #include <sge/window.hpp>
 #include <sge/scene.hpp>
-#include <sge/camera.hpp>
+#include <sge/view.hpp>
 #include <sge/renderer.hpp>
 #include <sge/runtime.hpp>
 
 SGE_BEGIN
 
-class player: public subsystem {
+class game {
 public:
-	player(uv_loop_t *loop = NULL);
-	virtual ~player(void);
+	game(uv_loop_t *loop, const filesystem::path &path);
+	virtual ~game(void);
 
 public:
-	window &get_window(void);
+	bool start(void);
+	void stop(void);
+	void feed_event(const SDL_Event &event);
+	bool started(void) const;
+	window &main_window(void);
 	unsigned int fps(void) const;
 
 protected:
-	bool init(void) override;
-	void shutdown(void) override;
-	void handle_event(const SDL_Event &event) override;
+	virtual bool init(void);
+	virtual void shutdown(void);
+	virtual void handle_event(const SDL_Event &event);
 	virtual void update(float elapsed);
 
 private:
@@ -46,8 +51,9 @@ private:
 
 private:
 	enum {
-		FLAG_WINDOW_VISIBLED = 0x1,
-		FLAG_WINDOW_FULLSCREEN = 0x2,
+		FLAG_STARTED = 0x1,
+		FLAG_WINDOW_VISIBLED = 0x2,
+		FLAG_WINDOW_FULLSCREEN = 0x4,
 	};
 
 	enum {
@@ -58,6 +64,8 @@ private:
 	};
 
 private:
+	uv_loop_t *m_loop;
+	filesystem::path m_path;
 	uv_timer_t m_frame_timer;
 	uv_timer_t m_state_timer;
 	int m_flags;
@@ -65,9 +73,9 @@ private:
 	uint64_t m_last;
 	unsigned int m_fps;
 	unsigned int m_fps_count;
-	window m_window;
+	window m_main_window;
 	renderer m_renderer;
-	camera m_camera;
+	view m_view;
 	scene m_scene;
 	ImGuiContext *m_imgui;
 	runtime m_runtime;
@@ -75,17 +83,22 @@ private:
 	bool m_show_hud;
 };
 
-inline window &player::get_window(void)
+inline bool game::started(void) const
 {
-	return m_window;
+	return m_flags & FLAG_STARTED;
 }
 
-inline unsigned int player::fps(void) const
+inline window &game::main_window(void)
+{
+	return m_main_window;
+}
+
+inline unsigned int game::fps(void) const
 {
 	return m_fps;
 }
 
 SGE_END
 
-#endif // SGE_PLAYER_HPP
+#endif // SGE_GAME_HPP
 

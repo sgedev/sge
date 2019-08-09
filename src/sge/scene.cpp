@@ -25,7 +25,7 @@ void scene::update(float elapsed)
 {
 }
 
-void scene::shot(view &v)
+void scene::draw(view &v)
 {
 	// add visibles into v.
 }

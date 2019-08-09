@@ -8,6 +8,7 @@ sge_subdirectories(
 
 sge_sources(
 	argh.h
+	glm.hpp
 	imconfig.h
 	imgui.h
 	imgui_dialogs.h
@@ -20,5 +21,6 @@ sge_sources(
 	luaconf.h
 	lualib.h
 	nfd.h
+	physfs.h
 	)
 

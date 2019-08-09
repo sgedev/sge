@@ -57,7 +57,7 @@ void renderer::shutdown(void)
 	m_program.Destroy();
 }
 
-void renderer::draw(view &v)
+void renderer::render(view &v)
 {
 	m_program.Use();
 
@@ -74,23 +74,23 @@ bool renderer::setup_program(void)
 	if (!m_program.Create())
 		return false;
 
-	SGE_LOGD("Building vertex shader...\n");
+	SGE_LOGD("building vertex shader...\n");
 	if (!m_program.AddShader(GL_VERTEX_SHADER, vertex_shader_source)) {
-		SGE_LOGE("Failed to build vertex shader: %s\n", m_program.InfoLog());
+		SGE_LOGE("failed to build vertex shader: %s\n", m_program.InfoLog());
 		m_program.Destroy();
 		return false;
 	}
 
-	SGE_LOGD("Building fragment shader...\n");
+	SGE_LOGD("building fragment shader...\n");
 	if (!m_program.AddShader(GL_FRAGMENT_SHADER, fragment_shader_source)) {
-		SGE_LOGE("Failed to build fragment shader: %s\n", m_program.InfoLog());
+		SGE_LOGE("failed to build fragment shader: %s\n", m_program.InfoLog());
 		m_program.Destroy();
 		return false;
 	}
 
-	SGE_LOGD("Linking program...\n");
+	SGE_LOGD("linking program...\n");
 	if (!m_program.Link()) {
-		SGE_LOGE("Failed to link program: %s\n", m_program.InfoLog());
+		SGE_LOGE("failed to link program: %s\n", m_program.InfoLog());
 		m_program.Destroy();
 		return false;
 	}

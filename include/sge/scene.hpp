@@ -3,6 +3,8 @@
 #ifndef SGE_SCENE_HPP
 #define SGE_SCENE_HPP
 
+#include <filesystem/path.h>
+
 #include <sge/common.hpp>
 #include <sge/view.hpp>
 
@@ -17,7 +19,7 @@ public:
 	bool init(void);
 	void shutdown(void);
 	void update(float elapsed);
-	void shot(view &v);
+	void draw(view &v);
 };
 
 SGE_END

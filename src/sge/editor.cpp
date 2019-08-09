@@ -4,8 +4,8 @@
 
 SGE_BEGIN
 
-editor::editor(uv_loop_t *loop, const filesystem::path &path)
-	: game(loop, path)
+editor::editor(uv_loop_t *loop)
+	: player(loop)
 {
 }
 
@@ -15,7 +15,7 @@ editor::~editor(void)
 
 bool editor::init(void)
 {
-	if (!game::init())
+	if (!player::init())
 		return false;
 
 	main_window().set_title("SGE Editor");
@@ -25,16 +25,18 @@ bool editor::init(void)
 
 void editor::shutdown(void)
 {
-	game::shutdown();
+	player::shutdown();
 }
 
 void editor::handle_event(const SDL_Event &event)
 {
-	game::handle_event(event);
+	player::handle_event(event);
 }
 
 void editor::update(float elapsed)
 {
+	player::update(elapsed);
+
 	if (ImGui::BeginMainMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
 			ImGui::MenuItem("New...");

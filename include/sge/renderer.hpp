@@ -20,7 +20,7 @@ public:
 public:
 	bool init(window *pw);
 	void shutdown(void);
-	void draw(view &v);
+	void render(view &v);
 
 private:
 	bool setup_program(void);

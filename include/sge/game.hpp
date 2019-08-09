@@ -3,99 +3,74 @@
 #ifndef SGE_GAME_HPP
 #define SGE_GAME_HPP
 
-#include <filesystem/path.h>
+#include <future>
+#include <thread>
+#include <functional>
 
-#include <imgui.h>
-#include <imgui_impl_opengl3.h>
-#include <imgui_impl_sdl.h>
+#include <lua.hpp>
 
 #include <sge/common.hpp>
-#include <sge/window.hpp>
+#include <sge/input.hpp>
 #include <sge/scene.hpp>
-#include <sge/view.hpp>
-#include <sge/renderer.hpp>
-#include <sge/runtime.hpp>
 
 SGE_BEGIN
 
 class game {
 public:
-	game(uv_loop_t *loop, const filesystem::path &path);
-	virtual ~game(void);
-
-public:
-	bool start(void);
-	void stop(void);
-	void feed_event(const SDL_Event &event);
-	bool started(void) const;
-	window &main_window(void);
-	unsigned int fps(void) const;
-
-protected:
-	virtual bool init(void);
-	virtual void shutdown(void);
-	virtual void handle_event(const SDL_Event &event);
-	virtual void update(float elapsed);
-
-private:
-	bool init_imgui(void);
-	void shutdown_imgui(void);
-	void show_loading(void);
-	void show_ready(void);
-	void show_fps(void);
-	void show_hud(void);
-	void frame(void);
-	static void frame_cb(uv_timer_t *timer);
-	void state(void);
-	static void state_cb(uv_timer_t *timer);
-
-private:
-	enum {
-		FLAG_STARTED = 0x1,
-		FLAG_WINDOW_VISIBLED = 0x2,
-		FLAG_WINDOW_FULLSCREEN = 0x4,
-	};
-
-	enum {
+	enum state {
 		STATE_IDLE = 0,
 		STATE_LOADING,
 		STATE_READY,
 		STATE_PLAYING,
 	};
 
+public:
+	class traps {
+	protected:
+		virtual unsigned int trap_fps(void) = 0;
+	};
+
+public:
+	game(void);
+	virtual ~game(void);
+
+public:
+	bool init(traps *p);
+	void shutdown(void);
+	void handle_event(const SDL_Event &event);
+	void update(float elapsed);
+	void draw(view &v);
+	state current_state(void) const;
+	scene &current_scene(void);
+
 private:
-	uv_loop_t *m_loop;
-	filesystem::path m_path;
-	uv_timer_t m_frame_timer;
-	uv_timer_t m_state_timer;
-	int m_flags;
-	int m_state;
-	uint64_t m_last;
-	unsigned int m_fps;
-	unsigned int m_fps_count;
-	window m_main_window;
-	renderer m_renderer;
-	view m_view;
+	void gmain(std::promise<bool> *init_result);
+	static int pmain(lua_State *L);
+	void tmain(std::promise<bool> *init_result);
+	static void quit_async(uv_async_t *p);
+	void init_traps(void);
+	void schedule(void);
+
+private:
+	lua_State *m_L;
+	traps *m_traps;
+	std::thread m_thread;
+	uv_loop_t m_loop;
+	uv_async_t m_quit_async;
+	bool m_running;
+	input m_input;
+	state m_state;
 	scene m_scene;
-	ImGuiContext *m_imgui;
-	runtime m_runtime;
-	bool m_show_fps;
-	bool m_show_hud;
 };
 
-inline bool game::started(void) const
+inline game::state game::current_state(void) const
 {
-	return m_flags & FLAG_STARTED;
+	return m_state;
 }
 
-inline window &game::main_window(void)
+inline scene &game::current_scene(void)
 {
-	return m_main_window;
-}
-
-inline unsigned int game::fps(void) const
-{
-	return m_fps;
+	return m_scene;
 }
 
 SGE_END

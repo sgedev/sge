@@ -16,7 +16,7 @@ public:
 	virtual ~view(void);
 
 public:
-	void clear(void);
+	void reset(void);
 	void look_at(glm::vec3 const &eye, glm::vec3 const &center, glm::vec3 const &up);
 	const glm::mat4 &projection(void) const;
 	void set_projection(const glm::mat4 &v);

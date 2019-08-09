@@ -40,7 +40,7 @@ bool window::init(void)
 #endif
 
 	m_flags = 0;
-	m_title = "SGE";
+	m_title = "sge";
 
 	m_window = SDL_CreateWindow(m_title.c_str(),
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
@@ -57,7 +57,7 @@ bool window::init(void)
 
 	m_gl_context = SDL_GL_CreateContext(m_window);
 	if (m_gl_context == NULL) {
-		SGE_LOGE("failed to create OpenGL context.\n");
+		SGE_LOGE("failed to create opengl context.\n");
 		SDL_DestroyWindow(m_window);
 		m_window = NULL;
 		return false;
@@ -80,8 +80,6 @@ bool window::init(void)
 	SGE_LOGI("glew: %s\n", glewGetString(GLEW_VERSION));
 
 	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-
-	SGE_LOGD("m_window %p\n", m_window);
 
 	return true;
 }

@@ -12,7 +12,7 @@ view::~view(void)
 {
 }
 
-void view::clear(void)
+void view::reset(void)
 {
 	
 }

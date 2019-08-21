@@ -21,7 +21,7 @@ sge_sources(
 	game.cpp
 	hud.cpp
 	input.cpp
-	main.cpp
+	list.c
 	player.cpp
 	renderer.cpp
 	scene.cpp

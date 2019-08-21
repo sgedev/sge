@@ -44,7 +44,7 @@ bool window::init(void)
 
 	m_window = SDL_CreateWindow(m_title.c_str(),
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
-		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 
 	if (m_window == NULL)
 		return false;
@@ -144,7 +144,7 @@ bool window::draw_begin(void)
 	SGE_ASSERT(m_window != NULL);
 	SGE_ASSERT(m_gl_context != NULL);
 
-	if (!is_visibled())
+	if (!visibled())
 		return false;
 
 	if (m_rect[2] < 1 || m_rect[3] < 1)

@@ -1,13 +1,15 @@
 
 sge_sources(
+	common.h
 	common.hpp
-	config.hpp.in
+	config.h.in
 	editor.hpp
 	entity.hpp
 	game.h
 	game.hpp
 	hud.hpp
 	input.hpp
+	list.h
 	player.hpp
 	renderer.hpp
 	scene.hpp
@@ -21,7 +23,7 @@ sge_compile_definitions(
 	)
 
 configure_file(
-	config.hpp.in
-	config.hpp
+	config.h.in
+	config.h
 	)
 

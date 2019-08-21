@@ -16,6 +16,8 @@ player::player(uv_loop_t *loop)
 
 	m_frame_timer.data = this;
 	m_state_timer.data = this;
+
+	m_view.perspective(90, 4.0f / 3.0f, 0.01f, 100.0f);
 }
 
 player::~player(void)
@@ -59,28 +61,53 @@ bool player::init(void)
 	SGE_ASSERT(m_loop != NULL);
 	SGE_ASSERT(m_imgui == NULL);
 
-	if (!m_game.init(this))
+	if (!m_main_window.init())
 		return false;
-
-	if (!m_main_window.init()) {
-		m_game.shutdown();
-		return false;
-	}
 
 	if (!m_renderer.init(&m_main_window)) {
 		m_main_window.shutdown();
-		m_game.shutdown();
 		return false;
 	}
 
 	if (!init_imgui()) {
 		m_renderer.shutdown();
 		m_main_window.shutdown();
-		m_game.shutdown();
 		return false;
 	}
 
-	m_view.perspective(90, 4.0f/3.0f, 0.01f, 100.0f);
+	m_game.trap_fps = std::bind(&player::fps, this);
+	m_game.trap_window_visibled = std::bind(&window::visibled, &m_main_window);
+	m_game.trap_window_show = std::bind(&window::show, &m_main_window);
+	m_game.trap_window_hide = std::bind(&window::hide, &m_main_window);
+	m_game.trap_window_title = std::bind(&window::title, &m_main_window);
+	m_game.trap_window_set_title = std::bind(&window::set_title, &m_main_window, std::placeholders::_1);
+
+	m_game.trap_window_position = [this](int &x, int &y) {
+		const glm::ivec4 &rect = this->m_main_window.rect();
+		x = rect[0];
+		y = rect[1];
+	};
+
+	m_game.trap_window_move = std::bind(&window::move, &m_main_window, std::placeholders::_1, std::placeholders::_2);
+
+	m_game.trap_window_size = [this](int &width, int &height) {
+		const glm::ivec4 &rect = this->m_main_window.rect();
+		width = rect[2];
+		height = rect[3];
+	};
+
+	m_game.trap_window_resize = std::bind(&window::resize, &m_main_window, std::placeholders::_1, std::placeholders::_2);
+
+	m_game.trap_editor_enabled = []() { return false; };
+
+	SGE_LOGD("%s(%d)\n", __func__, __LINE__);
+
+	if (!m_game.init()) {
+		shutdown_imgui();
+		m_renderer.shutdown();
+		m_main_window.shutdown();
+		return false;
+	}
 
 	uv_timer_start(&m_frame_timer, &player::frame_cb, 10, 10);
 	uv_timer_start(&m_state_timer, &player::state_cb, 0, 1000);
@@ -124,11 +151,6 @@ void player::handle_event(const SDL_Event &event)
 void player::update(float elapsed)
 {
 	m_game.update(elapsed);
-}
-
-unsigned int player::trap_fps(void)
-{
-	return fps();
 }
 
 bool player::init_imgui(void)

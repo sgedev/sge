@@ -16,7 +16,7 @@
 
 SGE_BEGIN
 
-class player: public game::traps {
+class player {
 public:
 	player(uv_loop_t *loop);
 	virtual ~player(void);
@@ -26,7 +26,7 @@ public:
 	void stop(void);
 	void feed_event(const SDL_Event &event);
 	bool started(void) const;
-	unsigned int fps(void) const;
+	int fps(void) const;
 	window &main_window(void);
 	game &current_game(void);
 
@@ -35,9 +35,6 @@ protected:
 	virtual void shutdown(void);
 	virtual void handle_event(const SDL_Event &event);
 	virtual void update(float elapsed);
-
-protected: // game traps
-	unsigned int trap_fps(void) override;
 
 private:
 	bool init_imgui(void);
@@ -65,8 +62,8 @@ private:
 	uv_timer_t m_state_timer;
 	int m_flags;
 	uint64_t m_last;
-	unsigned int m_fps;
-	unsigned int m_fps_count;
+	int m_fps;
+	int m_fps_count;
 	window m_main_window;
 	renderer m_renderer;
 	view m_view;
@@ -80,7 +77,7 @@ inline bool player::started(void) const
 	return m_flags & FLAG_STARTED;
 }
 
-inline unsigned int player::fps(void) const
+inline int player::fps(void) const
 {
 	return m_fps;
 }

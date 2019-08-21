@@ -24,8 +24,12 @@ public:
 	SDL_GLContext sdl_gl_context(void);
 	Uint32 sdl_id(void) const;
 	const glm::ivec4 &rect(void) const;
-	bool is_visibled(void) const;
-	bool is_fullscreen(void) const;
+	void move(int x, int y);
+	void resize(int width, int height);
+	bool visibled(void) const;
+	void show(void);
+	void hide(void);
+	bool fullscreen(void) const;
 	const char *title(void) const;
 	void set_title(const char *title);
 
@@ -73,13 +77,37 @@ inline const glm::ivec4 &window::rect(void) const
 	return m_rect;
 }
 
-inline bool window::is_visibled(void) const
+inline void window::move(int x, int y)
+{
+	SGE_ASSERT(m_window != NULL);
+	SDL_SetWindowPosition(m_window, x, y);
+}
+
+inline void window::resize(int width, int height)
+{
+	SGE_ASSERT(m_window != NULL);
+	SDL_SetWindowSize(m_window, width, height);
+}
+
+inline bool window::visibled(void) const
 {
 	SGE_ASSERT(m_window != NULL);
 	return (m_flags & FLAG_VISIBLED);
 }
 
-inline bool window::is_fullscreen(void) const
+inline void window::show(void)
+{
+	SGE_ASSERT(m_window != NULL);
+	SDL_ShowWindow(m_window);
+}
+
+inline void window::hide(void)
+{
+	SGE_ASSERT(m_window != NULL);
+	SDL_HideWindow(m_window);
+}
+
+inline bool window::fullscreen(void) const
 {
 	SGE_ASSERT(m_window != NULL);
 	return (m_flags & FLAG_FULLSCREEN);

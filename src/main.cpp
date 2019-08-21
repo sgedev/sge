@@ -14,14 +14,13 @@
 
 #include <SDL.h>
 #include <physfs.h>
-
-#include <sge/common.hpp>
-#include <sge/player.hpp>
-#include <sge/editor.hpp>
+#include <sge.hpp>
 
 static void poll_event_cb(uv_prepare_t *p)
 {
 	SDL_Event event;
+	sge::player *player = (sge::player *)p->data;
+	SGE_ASSERT(player != NULL);
 
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_QUIT) {
@@ -29,8 +28,6 @@ static void poll_event_cb(uv_prepare_t *p)
 			uv_stop(uv_default_loop());
 			continue;
 		}
-		sge::player *player = (sge::player *)p->data;
-		SGE_ASSERT(player != NULL);
 		player->feed_event(event);
 	}
 }
@@ -135,7 +132,20 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	PHYSFS_init(NULL);
+	ret = PHYSFS_init(NULL);
+	if (!ret) {
+		SGE_LOGE("Failed to initialize PhysFS.\n");
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+
+	ret = PHYSFS_mount(game_path.str().c_str(), NULL, 0);
+	if (!ret) {
+		SGE_LOGE("Failed to mount game path.\n");
+		PHYSFS_deinit();
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
 
 	std::unique_ptr<sge::player> p;
 
@@ -146,6 +156,7 @@ int main(int argc, char *argv[])
 
 	if (!p || !p->start()) {
 		SGE_LOGE("initialize failed.\n");
+		PHYSFS_deinit();
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
@@ -160,6 +171,7 @@ int main(int argc, char *argv[])
 	uv_prepare_stop(&poll_event_prepare);
 	p->stop();
 
+	PHYSFS_deinit();
 	SDL_Quit();
 
 	return EXIT_SUCCESS;

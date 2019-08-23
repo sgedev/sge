@@ -18,7 +18,7 @@ public:
 	virtual ~renderer(void);
 
 public:
-	bool init(window *pw);
+	bool init(void);
 	void shutdown(void);
 	void render(view &v);
 

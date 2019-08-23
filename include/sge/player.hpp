@@ -37,6 +37,7 @@ protected:
 	virtual void update(float elapsed);
 
 private:
+	void init_traps(void);
 	bool init_imgui(void);
 	void shutdown_imgui(void);
 	void draw_loading(void);

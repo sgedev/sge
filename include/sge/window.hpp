@@ -18,8 +18,8 @@ public:
 	bool init(void);
 	void shutdown(void);
 	void handle_event(const SDL_Event &event);
-	bool draw_begin(void);
-	void draw_end(void);
+	bool gl_draw_begin(void);
+	void gl_draw_end(void);
 	SDL_Window *to_sdl_window(void);
 	SDL_GLContext sdl_gl_context(void);
 	Uint32 sdl_id(void) const;
@@ -29,7 +29,7 @@ public:
 	bool visibled(void) const;
 	void show(void);
 	void hide(void);
-	bool fullscreen(void) const;
+	bool is_fullscreen(void) const;
 	const char *title(void) const;
 	void set_title(const char *title);
 
@@ -47,7 +47,7 @@ private:
 	std::string m_title;
 };
 
-inline void window::draw_end(void)
+inline void window::gl_draw_end(void)
 {
 	SGE_ASSERT(m_window != NULL);
 	SDL_GL_SwapWindow(m_window);
@@ -107,7 +107,7 @@ inline void window::hide(void)
 	SDL_HideWindow(m_window);
 }
 
-inline bool window::fullscreen(void) const
+inline bool window::is_fullscreen(void) const
 {
 	SGE_ASSERT(m_window != NULL);
 	return (m_flags & FLAG_FULLSCREEN);

@@ -19,6 +19,7 @@ sge_sources(
 	editor.cpp
 	entity.cpp
 	game.cpp
+	game_traps.cpp
 	hud.cpp
 	input.cpp
 	list.c

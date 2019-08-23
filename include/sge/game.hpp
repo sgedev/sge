@@ -19,9 +19,6 @@
 SGE_BEGIN
 
 class game {
-	friend void sge_game_lua_open(lua_State *);
-	friend void sge_game_lua_thread(lua_State *, lua_State *);
-
 public:
 	typedef sge_game_task task_t;
 
@@ -61,13 +58,18 @@ public:
 	const char *name(void) const;
 	state current_state(void) const;
 	scene &current_scene(void);
+	static task_t *task_from_lua(lua_State *L);
+	static lua_State *task_to_lua(task_t *T);
+	void attach_to_lua(lua_State *L);
+	static game *from_task(task_t *T);
+	static game *from_lua(lua_State *L);
 
 public: // call by lua
-	void on_luaclose(lua_State *L);
-	void on_luathread(lua_State *L, lua_State *L1);
-	void on_luafree(lua_State *L, lua_State *L1);
-	void on_luaresume(lua_State *L, int n);
-	void on_luayield(lua_State *L, int n);
+	void luaclose(lua_State *L);
+	void luathread(lua_State *L, lua_State *L1);
+	void luafree(lua_State *L, lua_State *L1);
+	void luaresume(lua_State *L, int n);
+	void luayield(lua_State *L, int n);
 
 private:
 	void gmain(void);
@@ -78,65 +80,68 @@ private:
 	bool init_main_task(void);
 	void init_traps(void);
 
-private:
+protected:
 	enum trap_type {
-		TRAP_INVALID = 0,
-		TRAP_FPS,
-		TRAP_WINDOW_VISIBLED,
-		TRAP_WINDOW_SHOW,
-		TRAP_WINDOW_HIDE,
-		TRAP_WINDOW_TITLE,
-		TRAP_WINDOW_SET_TITLE,
-		TRAP_WINDOW_POSITION,
-		TRAP_WINDOW_MOVE,
-		TRAP_WINDOW_RESIZE,
-		TRAP_WINDOW_SIZE,
-		TRAP_EDITOR_ENABLED,
-		TRAP_MAX
+		TRAP_TYPE_INVALID = 0,
+		TRAP_TYPE_FPS,
+		TRAP_TYPE_WINDOW_VISIBLED,
+		TRAP_TYPE_WINDOW_SHOW,
+		TRAP_TYPE_WINDOW_HIDE,
+		TRAP_TYPE_WINDOW_TITLE,
+		TRAP_TYPE_WINDOW_SET_TITLE,
+		TRAP_TYPE_WINDOW_POSITION,
+		TRAP_TYPE_WINDOW_MOVE,
+		TRAP_TYPE_WINDOW_RESIZE,
+		TRAP_TYPE_WINDOW_SIZE,
+		TRAP_TYPE_EDITOR_ENABLED,
+		TRAP_TYPE_MAX
 	};
 
-	int on_trap(lua_State *L, trap_type tt);
-	int do_trap(lua_State *L, trap_type tt);
+	static const int TRAP_RESULT_NOT_SET = -1;
+	static const int TRAP_RESULT_NOT_IMPL	= -2;
 
-	static int on_trap_version(lua_State *L);
-	static int on_trap_task(lua_State *L);
-	static int on_trap_current(lua_State *L);
+	int trap_fe(lua_State *L, trap_type tt);
+	int trap_be(lua_State *L, trap_type tt);
 
-	static void on_trap_sleep_done(uv_timer_t *timer);
-	static int on_trap_sleep(lua_State *L);
+	static int trap_version_fe(lua_State *L);
+	static int trap_task_fe(lua_State *L);
+	static int trap_current_fe(lua_State *L);
 
-	static int on_trap_fps(lua_State *L);
-	int do_trap_fps(lua_State *L);
+	static void trap_sleep_done(uv_timer_t *timer);
+	static int trap_sleep_fe(lua_State *L);
 
-	static int on_trap_window_visibled(lua_State *L);
-	int do_trap_window_visibled(lua_State *L);
+	static int trap_fps_fe(lua_State *L);
+	int trap_fps_be(lua_State *L);
 
-	static int on_trap_window_show(lua_State *L);
-	int do_trap_window_show(lua_State *L);
+	static int trap_window_visibled_fe(lua_State *L);
+	int trap_window_visibled_be(lua_State *L);
 
-	static int on_trap_window_hide(lua_State *L);
-	int do_trap_window_hide(lua_State *L);
+	static int trap_window_show_fe(lua_State *L);
+	int trap_window_show_be(lua_State *L);
 
-	static int on_trap_window_title(lua_State *L);
-	int do_trap_window_title(lua_State *L);
+	static int trap_window_hide_fe(lua_State *L);
+	int trap_window_hide_be(lua_State *L);
 
-	static int on_trap_window_set_title(lua_State *L);
-	int do_trap_window_set_title(lua_State *L);
+	static int trap_window_title_fe(lua_State *L);
+	int trap_window_title_be(lua_State *L);
 
-	static int on_trap_window_position(lua_State *L);
-	int do_trap_window_position(lua_State *L);
+	static int trap_window_set_title_fe(lua_State *L);
+	int trap_window_set_title_be(lua_State *L);
 
-	static int on_trap_window_move(lua_State *L);
-	int do_trap_window_move(lua_State *L);
+	static int trap_window_position_fe(lua_State *L);
+	int trap_window_position_be(lua_State *L);
 
-	static int on_trap_window_size(lua_State *L);
-	int do_trap_window_size(lua_State *L);
+	static int trap_window_move_fe(lua_State *L);
+	int trap_window_move_be(lua_State *L);
 
-	static int on_trap_window_resize(lua_State *L);
-	int do_trap_window_resize(lua_State *L);
+	static int trap_window_size_fe(lua_State *L);
+	int trap_window_size_be(lua_State *L);
 
-	static int on_trap_editor_enabled(lua_State *L);
-	int do_trap_editor_enabled(lua_State *L);
+	static int trap_window_resize_fe(lua_State *L);
+	int trap_window_resize_be(lua_State *L);
+
+	static int trap_editor_enabled_fe(lua_State *L);
+	int trap_editor_enabled_be(lua_State *L);
 
 private:
 	std::thread m_thread;
@@ -171,6 +176,35 @@ inline game::state game::current_state(void) const
 inline scene &game::current_scene(void)
 {
 	return m_scene;
+}
+
+inline game::task_t *game::task_from_lua(lua_State *L)
+{
+	SGE_ASSERT(L != NULL);
+
+	return (game::task_t *)lua_getextraspace(L);
+}
+
+inline lua_State *game::task_to_lua(game::task_t *T)
+{
+	SGE_ASSERT(T != NULL);
+
+	return (lua_State *)SGE_PMOVB(T, sizeof(game::task_t));
+}
+
+inline void game::attach_to_lua(lua_State *L)
+{
+	task_from_lua(L)->data = this;
+}
+
+inline game *game::from_task(game::task_t *T)
+{
+	return (game *)(T->data);
+}
+
+inline game *game::from_lua(lua_State *L)
+{
+	return (game *)(task_from_lua(L)->data);
 }
 
 SGE_END

@@ -32,7 +32,7 @@ renderer::~renderer(void)
 {
 }
 
-bool renderer::init(window *pw)
+bool renderer::init(void)
 {
 	if (!setup_program()) {
 		SGE_LOGE("failed to initialize glsl.\n");

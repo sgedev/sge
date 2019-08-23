@@ -64,7 +64,9 @@ bool player::init(void)
 	if (!m_main_window.init())
 		return false;
 
-	if (!m_renderer.init(&m_main_window)) {
+	m_main_window.set_title("SGE Player");
+
+	if (!m_renderer.init()) {
 		m_main_window.shutdown();
 		return false;
 	}
@@ -75,32 +77,7 @@ bool player::init(void)
 		return false;
 	}
 
-	m_game.trap_fps = std::bind(&player::fps, this);
-	m_game.trap_window_visibled = std::bind(&window::visibled, &m_main_window);
-	m_game.trap_window_show = std::bind(&window::show, &m_main_window);
-	m_game.trap_window_hide = std::bind(&window::hide, &m_main_window);
-	m_game.trap_window_title = std::bind(&window::title, &m_main_window);
-	m_game.trap_window_set_title = std::bind(&window::set_title, &m_main_window, std::placeholders::_1);
-
-	m_game.trap_window_position = [this](int &x, int &y) {
-		const glm::ivec4 &rect = this->m_main_window.rect();
-		x = rect[0];
-		y = rect[1];
-	};
-
-	m_game.trap_window_move = std::bind(&window::move, &m_main_window, std::placeholders::_1, std::placeholders::_2);
-
-	m_game.trap_window_size = [this](int &width, int &height) {
-		const glm::ivec4 &rect = this->m_main_window.rect();
-		width = rect[2];
-		height = rect[3];
-	};
-
-	m_game.trap_window_resize = std::bind(&window::resize, &m_main_window, std::placeholders::_1, std::placeholders::_2);
-
-	m_game.trap_editor_enabled = []() { return false; };
-
-	SGE_LOGD("%s(%d)\n", __func__, __LINE__);
+	init_traps();
 
 	if (!m_game.init()) {
 		shutdown_imgui();
@@ -109,15 +86,19 @@ bool player::init(void)
 		return false;
 	}
 
+	m_main_window.show();
+
 	uv_timer_start(&m_frame_timer, &player::frame_cb, 10, 10);
 	uv_timer_start(&m_state_timer, &player::state_cb, 0, 1000);
 
 	m_fps = 0;
 	m_fps_count = 0;
-	m_last = uv_now(m_loop);
 	m_flags = 0;
 	m_draw_fps = true;
 	m_draw_hud = true;
+
+	uv_update_time(m_loop);
+	m_last = uv_now(m_loop);
 
 	return true;
 }
@@ -151,6 +132,36 @@ void player::handle_event(const SDL_Event &event)
 void player::update(float elapsed)
 {
 	m_game.update(elapsed);
+}
+
+void player::init_traps(void)
+{
+	m_game.trap_fps = std::bind(&player::fps, this);
+	m_game.trap_window_visibled = std::bind(&window::visibled, &m_main_window);
+	m_game.trap_window_show = std::bind(&window::show, &m_main_window);
+	m_game.trap_window_hide = std::bind(&window::hide, &m_main_window);
+	m_game.trap_window_title = std::bind(&window::title, &m_main_window);
+	m_game.trap_window_set_title = std::bind(&window::set_title, &m_main_window, std::placeholders::_1);
+
+	m_game.trap_window_position = [this](int &x, int &y) {
+		const glm::ivec4 &rect = this->m_main_window.rect();
+		x = rect[0];
+		y = rect[1];
+	};
+
+	m_game.trap_window_move = std::bind(&window::move, &m_main_window, std::placeholders::_1, std::placeholders::_2);
+
+	m_game.trap_window_size = [this](int &width, int &height) {
+		const glm::ivec4 &rect = this->m_main_window.rect();
+		width = rect[2];
+		height = rect[3];
+	};
+
+	m_game.trap_window_resize = std::bind(&window::resize, &m_main_window, std::placeholders::_1, std::placeholders::_2);
+
+	m_game.trap_editor_enabled = []() {
+		return false;
+	};
 }
 
 bool player::init_imgui(void)
@@ -262,6 +273,9 @@ void player::frame(void)
 	m_view.reset();
 
 	switch (m_game.current_state()) {
+	case game::STATE_PLAYING:
+		m_game.draw(m_view);
+		break;
 	case game::STATE_IDLE:
 		break;
 	case game::STATE_LOADING:
@@ -270,9 +284,6 @@ void player::frame(void)
 	case game::STATE_READY:
 		draw_ready();
 		break;
-	case game::STATE_PLAYING:
-		m_game.draw(m_view);
-		break;
 	}
 
 	draw_hud();
@@ -280,10 +291,10 @@ void player::frame(void)
 
 	ImGui::Render();
 
-	if (m_main_window.draw_begin()) {
+	if (SGE_LIKELY(m_main_window.gl_draw_begin())) {
 		m_renderer.render(m_view);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		m_main_window.draw_end();
+		m_main_window.gl_draw_end();
 	}
 
 	m_fps_count += 1;

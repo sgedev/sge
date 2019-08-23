@@ -139,7 +139,7 @@ void window::handle_event(const SDL_Event &event)
 	}
 }
 
-bool window::draw_begin(void)
+bool window::gl_draw_begin(void)
 {
 	SGE_ASSERT(m_window != NULL);
 	SGE_ASSERT(m_gl_context != NULL);

@@ -11,10 +11,6 @@ bool init(void)
 {
 	window::set_title("SGE Editor");
 
-	current_game().trap_editor_enabled = []() {
-		return true;
-	};
-
 	return true;
 }
 

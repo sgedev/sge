@@ -16,10 +16,30 @@
 #include <physfs.h>
 
 #include <sge/common.hpp>
-#include <sge/player.hpp>
+#include <sge/window.hpp>
+#include <sge/game.hpp>
 #include <sge/editor.hpp>
 
-static void poll_event_cb(uv_prepare_t *p)
+SGE_BEGIN
+
+typedef void (*handle_event_func)(const SDL_Event *event);
+typedef void (*update_func)(float elapsed);
+typedef void (*draw_func)(void);
+typedef void (*shutdown_func)(void);
+
+static uv_timer_t frame_timer;
+static uv_timer_t state_timer;
+static bool editor_enabled;
+static uint64_t last;
+static int fps;
+static int fps_count;
+
+static handle_event_func handle_event;
+static update_func update;
+static draw_func draw;
+static shutdown_func shutdown;
+
+static void poll_events(void)
 {
 	SDL_Event event;
 
@@ -29,11 +49,78 @@ static void poll_event_cb(uv_prepare_t *p)
 			uv_stop(uv_default_loop());
 			continue;
 		}
-		sge::player *player = (sge::player *)p->data;
-		SGE_ASSERT(player != NULL);
-		player->feed_event(event);
+
+		window::handle_event(&event);
+		handle_event(&event);
 	}
 }
+
+static void frame(uv_timer_t *p)
+{
+	poll_events();
+
+	uint64_t elapsed = uv_now(uv_default_loop()) - last;
+
+	update(float(elapsed) / 1000.0f);
+
+	if (window::draw_begin()) {
+		draw();
+		window::draw_end();
+	}
+
+	fps_count += 1;
+	uv_update_time(uv_default_loop());
+	last = uv_now(uv_default_loop());
+}
+
+static void state(uv_timer_t* p)
+{
+	fps = fps_count;
+	fps_count = 0;
+}
+
+static bool start(void)
+{
+	if (!window::init())
+		return false;
+
+	if (editor_enabled) {
+		editor::init();
+		handle_event = editor::handle_event;
+		update = editor::update;
+		draw = editor::draw;
+		shutdown = editor::shutdown;
+	} else {
+		game::init();
+		handle_event = game::handle_event;
+		update = game::update;
+		draw = game::draw;
+		shutdown = game::shutdown;
+	}
+
+	uv_timer_init(uv_default_loop(), &frame_timer);
+	uv_timer_init(uv_default_loop(), &state_timer);
+
+	uv_timer_start(&frame_timer, frame, 0, 10);
+	uv_timer_start(&state_timer, state, 1000, 1000);
+
+	uv_update_time(uv_default_loop());
+	last = uv_now(uv_default_loop());
+
+	return true;
+}
+
+static void stop(void)
+{
+	uv_timer_stop(&state_timer);
+	uv_timer_stop(&frame_timer);
+
+	shutdown();
+
+	window::shutdown();
+}
+
+SGE_END
 
 static void show_version(void)
 {
@@ -137,31 +224,20 @@ int main(int argc, char *argv[])
 
 	PHYSFS_init(NULL);
 
-	std::unique_ptr<sge::player> p;
-
 	if (cmdline[{ "-e", "--edit" }])
-		p = std::make_unique<sge::editor>(uv_default_loop());
-	else
-		p = std::make_unique<sge::player>(uv_default_loop());
+		sge::editor_enabled = true;
 
-	if (!p || !p->start()) {
+	if (!sge::start()) {
 		SGE_LOGE("initialize failed.\n");
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
 
-	uv_prepare_t poll_event_prepare;
-	uv_prepare_init(uv_default_loop(), &poll_event_prepare);
-	uv_prepare_start(&poll_event_prepare, poll_event_cb);
-	poll_event_prepare.data = p.get();
-
 	uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 
-	uv_prepare_stop(&poll_event_prepare);
-	p->stop();
+	sge::stop();
 
 	SDL_Quit();
 
 	return EXIT_SUCCESS;
 }
-

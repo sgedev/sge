@@ -1,5 +1,6 @@
 
 sge_subdirectories(
+	cx
 	filesystem
 	GL
 	glm
@@ -9,6 +10,7 @@ sge_subdirectories(
 sge_sources(
 	argh.h
 	glm.hpp
+	HandmadeMath.h
 	imconfig.h
 	imgui.h
 	imgui_dialogs.h

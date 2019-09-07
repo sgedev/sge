@@ -6,13 +6,8 @@ sge_sources(
 	entity.hpp
 	game.h
 	game.hpp
-	hud.hpp
-	input.hpp
-	player.hpp
-	renderer.hpp
 	scene.hpp
 	signal.hpp
-	view.hpp
 	window.hpp
 	)
 

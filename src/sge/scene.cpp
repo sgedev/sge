@@ -2,33 +2,23 @@
 //
 #include <sge/scene.hpp>
 
-SGE_BEGIN
+SGE_SCENE_BEGIN
 
-scene::scene(void)
-{
-}
-
-scene::~scene(void)
-{
-}
-
-bool scene::init(void)
+bool init(void)
 {
 	return true;
 }
 
-void scene::shutdown(void)
+void shutdown(void)
 {
 }
 
-void scene::update(float elapsed)
+void update(float elapsed)
 {
 }
 
-void scene::draw(view &v)
+void draw(void)
 {
-	// add visibles into v.
 }
 
-SGE_END
-
+SGE_SCENE_END

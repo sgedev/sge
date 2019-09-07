@@ -1,26 +1,27 @@
 //
 //
-#include <GL/gl.hpp>
+#include <GL/glew.h>
 
 #include <sge/window.hpp>
 
-SGE_BEGIN
+SGE_WINDOW_BEGIN
 
-window::window(void)
-	: m_window(NULL)
-	, m_gl_context(NULL)
-	, m_flags(0)
-{
-}
+enum {
+	FLAG_VISIBLED = 0x1,
+	FLAG_FULLSCREEN = 0x2,
+};
 
-window::~window(void)
-{
-}
+static SDL_Window* s_window;
+static glm::ivec4 s_rect;
+static Uint32 s_id;
+static SDL_GLContext s_gl_context;
+static int s_flags;
+static std::string s_title;
 
-bool window::init(void)
+bool init(void)
 {
-	SGE_ASSERT(m_window == NULL);
-	SGE_ASSERT(m_gl_context == NULL);
+	SGE_ASSERT(s_window == NULL);
+	SGE_ASSERT(s_gl_context == NULL);
 
 	SGE_LOGD("creating opengl window...\n");
 
@@ -39,40 +40,40 @@ bool window::init(void)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
-	m_flags = 0;
-	m_title = "sge";
+	s_flags = 0;
+	s_title = "SGE";
 
-	m_window = SDL_CreateWindow(m_title.c_str(),
+	s_window = SDL_CreateWindow(s_title.c_str(),
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
 
-	if (m_window == NULL)
+	if (s_window == NULL)
 		return false;
 
-	m_id = SDL_GetWindowID(m_window);
-	SDL_GetWindowPosition(m_window, &m_rect[0], &m_rect[1]);
-	SDL_GetWindowSize(m_window, &m_rect[2], &m_rect[3]);
+	s_id = SDL_GetWindowID(s_window);
+	SDL_GetWindowPosition(s_window, &s_rect[0], &s_rect[1]);
+	SDL_GetWindowSize(s_window, &s_rect[2], &s_rect[3]);
 
 	SGE_LOGD("initializing opengl...\n");
 
-	m_gl_context = SDL_GL_CreateContext(m_window);
-	if (m_gl_context == NULL) {
+	s_gl_context = SDL_GL_CreateContext(s_window);
+	if (s_gl_context == NULL) {
 		SGE_LOGE("failed to create opengl context.\n");
-		SDL_DestroyWindow(m_window);
-		m_window = NULL;
+		SDL_DestroyWindow(s_window);
+		s_window = NULL;
 		return false;
 	}
 
-	SDL_GL_MakeCurrent(m_window, m_gl_context);
+	SDL_GL_MakeCurrent(s_window, s_gl_context);
 
 	glewExperimental = GL_TRUE;
 
 	if (glewInit() != GLEW_OK) {
 		SGE_LOGE("failed to initialize glew.\n");
-		SDL_GL_DeleteContext(m_gl_context);
-		m_gl_context = NULL;
-		SDL_DestroyWindow(m_window);
-		m_window = NULL;
+		SDL_GL_DeleteContext(s_gl_context);
+		s_gl_context = NULL;
+		SDL_DestroyWindow(s_window);
+		s_window = NULL;
 		return false;
 	}
 
@@ -84,80 +85,136 @@ bool window::init(void)
 	return true;
 }
 
-void window::shutdown(void)
+void shutdown(void)
 {
-	SGE_ASSERT(m_window != NULL);
-	SGE_ASSERT(m_gl_context != NULL);
+	SGE_ASSERT(s_window != NULL);
+	SGE_ASSERT(s_gl_context != NULL);
 
-	if (m_gl_context == SDL_GL_GetCurrentContext())
-		SDL_GL_MakeCurrent(m_window, NULL);
+	if (s_gl_context == SDL_GL_GetCurrentContext())
+		SDL_GL_MakeCurrent(s_window, NULL);
 
-	SDL_GL_DeleteContext(m_gl_context);
-	m_gl_context = NULL;
+	SDL_GL_DeleteContext(s_gl_context);
+	s_gl_context = NULL;
 
-	SDL_DestroyWindow(m_window);
-	m_window = NULL;
+	SDL_DestroyWindow(s_window);
+	s_window = NULL;
 }
 
-void window::handle_event(const SDL_Event &event)
+void handle_event(const SDL_Event *event)
 {
-	if (event.window.windowID != m_id)
+	SGE_ASSERT(event != NULL);
+
+	if (event->window.windowID != s_id)
 		return;
 
-	switch (event.type) {
+	switch (event->type) {
 	case SDL_WINDOWEVENT:
-		switch (event.window.event) {
+		switch (event->window.event) {
 		case SDL_WINDOWEVENT_MOVED:
-			m_rect.x = event.window.data1;
-			m_rect.y = event.window.data2;
+			s_rect.x = event->window.data1;
+			s_rect.y = event->window.data2;
 			break;
 		case SDL_WINDOWEVENT_RESIZED:
-			m_rect.z = event.window.data1;
-			m_rect.w = event.window.data2;
+			s_rect.z = event->window.data1;
+			s_rect.w = event->window.data2;
 			break;
 		case SDL_WINDOWEVENT_EXPOSED:
 		case SDL_WINDOWEVENT_SHOWN:
-			m_flags |= FLAG_VISIBLED;
+			s_flags |= FLAG_VISIBLED;
 			break;
 		case SDL_WINDOWEVENT_HIDDEN:
 		case SDL_WINDOWEVENT_MINIMIZED:
-			m_flags &= ~FLAG_VISIBLED;
+			s_flags &= ~FLAG_VISIBLED;
 			break;
 		}
 		break;
 	case SDL_KEYDOWN:
-		if (event.key.keysym.sym == SDLK_RETURN && event.key.keysym.mod & KMOD_ALT) {
-			if (m_flags & FLAG_FULLSCREEN) {
-				m_flags &= ~FLAG_FULLSCREEN;
-				SDL_SetWindowFullscreen(m_window, 0);
+		if (event->key.keysym.sym == SDLK_RETURN && event->key.keysym.mod & KMOD_ALT) {
+			if (s_flags & FLAG_FULLSCREEN) {
+				s_flags &= ~FLAG_FULLSCREEN;
+				SDL_SetWindowFullscreen(s_window, 0);
 			} else {
-				m_flags |= FLAG_FULLSCREEN;
-				SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+				s_flags |= FLAG_FULLSCREEN;
+				SDL_SetWindowFullscreen(s_window, SDL_WINDOW_FULLSCREEN);
 			}
 		}
 		break;
 	}
 }
 
-bool window::draw_begin(void)
+bool draw_begin(void)
 {
-	SGE_ASSERT(m_window != NULL);
-	SGE_ASSERT(m_gl_context != NULL);
+	SGE_ASSERT(s_window != NULL);
+	SGE_ASSERT(s_gl_context != NULL);
 
 	if (!is_visibled())
 		return false;
 
-	if (m_rect[2] < 1 || m_rect[3] < 1)
+	if (s_rect[2] < 1 || s_rect[3] < 1)
 		return false;
 
-	if (SDL_GL_MakeCurrent(m_window, m_gl_context))
+	if (SDL_GL_MakeCurrent(s_window, s_gl_context))
 		return false;
 
-	glViewport(0, 0, m_rect[2], m_rect[3]);
+	glViewport(0, 0, s_rect[2], s_rect[3]);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	return true;
 }
 
-SGE_END
+void draw_end(void)
+{
+	SGE_ASSERT(s_window != NULL);
+	SDL_GL_SwapWindow(s_window);
+}
 
+SDL_Window* to_sdl_window(void)
+{
+	SGE_ASSERT(s_window != NULL);
+	return s_window;
+}
+
+SDL_GLContext sdl_gl_context(void)
+{
+	SGE_ASSERT(s_window != NULL);
+	return s_gl_context;
+}
+
+Uint32 sdl_id(void)
+{
+	SGE_ASSERT(s_window != NULL);
+	return s_id;
+}
+
+const glm::ivec4 &rect(void)
+{
+	SGE_ASSERT(s_window != NULL);
+	return s_rect;
+}
+
+bool is_visibled(void)
+{
+	SGE_ASSERT(s_window != NULL);
+	return (s_flags & FLAG_VISIBLED);
+}
+
+bool is_fullscreen(void)
+{
+	SGE_ASSERT(s_window != NULL);
+	return (s_flags & FLAG_FULLSCREEN);
+}
+
+const char* title(void)
+{
+	SGE_ASSERT(s_window != NULL);
+	return s_title.c_str();
+}
+
+void set_title(const char* title)
+{
+	SGE_ASSERT(s_window != NULL);
+	s_title = title;
+	SDL_SetWindowTitle(s_window, title);
+}
+
+SGE_WINDOW_END

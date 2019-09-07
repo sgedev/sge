@@ -4,6 +4,12 @@
 #ifndef SGE_GAME_H
 #define SGE_GAME_H
 
+#include <uv.h>
+
+#ifdef LoadString
+#undef LoadString
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

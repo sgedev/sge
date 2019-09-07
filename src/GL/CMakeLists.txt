@@ -9,10 +9,17 @@ else()
 endif()
 
 sge_sources(
-	buffer.cpp
 	glew.c
-	program.cpp
-	shader.cpp
-	vertexarray.cpp
+	glex_common.h
+	glex_core.c
+	glex_light.c
+	glex_light.h
+	glex_material.c
+	glex_material.h
+	glex_mesh.c
+	glex_mesh.h
+	glex_program.c
+	glex_program.h
+	glex_test.c
+	glex_test.h
 	)
-

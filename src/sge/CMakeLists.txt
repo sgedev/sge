@@ -19,13 +19,8 @@ sge_sources(
 	editor.cpp
 	entity.cpp
 	game.cpp
-	hud.cpp
-	input.cpp
 	main.cpp
-	player.cpp
-	renderer.cpp
 	scene.cpp
-	view.cpp
 	window.cpp
 	)
 

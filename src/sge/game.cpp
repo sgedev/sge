@@ -1,173 +1,158 @@
 //
 //
+#include <future>
+#include <thread>
+
+#include <lua.hpp>
+#include <GL/glex.h>
+
+#include <sge/scene.hpp>
 #include <sge/game.hpp>
 
-SGE_BEGIN
+SGE_GAME_BEGIN
 
-static inline void game_attach_lua(game *G, lua_State *L)
+static lua_State *s_L;
+static std::thread s_thread;
+static uv_loop_t s_loop;
+static uv_async_t s_quit_async;
+static bool s_running;
+static state s_state;
+
+trap_fps_func trap_fps;
+
+static void quit_async(uv_async_t* p)
 {
-	*((game **)lua_getextraspace(L)) = G;
+	s_running = false;
+	uv_stop(&s_loop);
 }
 
-static inline game *game_from_lua(lua_State *L)
+static void init_traps(void)
 {
-	return *((game **)lua_getextraspace(L));
+	lua_newtable(s_L);
+
+	lua_setglobal(s_L, "sge");
 }
 
-game::game(void)
-	: m_L(NULL)
-	, m_state(STATE_IDLE)
+static void schedule(void)
 {
 }
 
-game::~game(void)
-{
-	if (m_L != NULL)
-		shutdown();
-}
-
-bool game::init(traps *p)
-{
-	SGE_ASSERT(m_L == NULL);
-	SGE_ASSERT(p != NULL);
-
-	if (!m_scene.init())
-		return false;
-
-	m_traps = p;
-
-	std::promise<bool> init_result;
-	m_thread = std::thread(&game::tmain, this, &init_result);
-	if (!m_thread.joinable()) {
-		m_scene.shutdown();
-		return false;
-	}
-
-	auto init_done = init_result.get_future();
-	init_done.wait();
-
-	if (!init_done.get()) {
-		m_scene.shutdown();
-		return false;
-	}
-
-	m_state = STATE_LOADING;
-
-	return true;
-}
-
-void game::shutdown(void)
-{
-	SGE_ASSERT(m_L != NULL);
-
-	uv_async_send(&m_quit_async);
-
-	if (m_thread.joinable()) {
-		SGE_LOGD("waiting for game thread exited...\n");
-		m_thread.join();
-	}
-
-	m_scene.shutdown();
-}
-
-void game::handle_event(const SDL_Event &event)
-{
-	m_input.handle_event(event);
-}
-
-void game::update(float elapsed)
-{
-	m_scene.update(elapsed);
-}
-
-void game::draw(view &v)
-{
-	m_scene.draw(v);
-}
-
-void game::quit_async(uv_async_t *p)
-{
-	game *_this = (game *)(p->data);
-	_this->m_running = false;
-	uv_stop(p->loop);
-}
-
-void game::gmain(std::promise<bool> *init_result)
+static void gmain(std::promise<bool>* init_result)
 {
 	SGE_ASSERT(init_result != NULL);
 
-	uv_loop_init(&m_loop);
-	uv_async_init(&m_loop, &m_quit_async, &game::quit_async);
-	m_quit_async.data = this;
-	m_running = true;
+	uv_loop_init(&s_loop);
+	uv_async_init(&s_loop, &s_quit_async, &quit_async);
+	s_running = true;
 
 	init_traps();
 
-	m_input.init();
-
 	init_result->set_value(true);
 
-	while (m_running) {
-		uv_run(&m_loop, UV_RUN_DEFAULT);
+	while (s_running) {
+		uv_run(&s_loop, UV_RUN_DEFAULT);
 		schedule();
 	}
 
-	m_input.shutdown();
-
-	uv_loop_close(&m_loop);
+	uv_loop_close(&s_loop);
 }
 
-int game::pmain(lua_State *L)
+static int pmain(lua_State* L)
 {
-	auto _this = (game *)lua_touserdata(L, 1);
-	auto init_result = (std::promise<bool> *)lua_touserdata(L, 2);
+	auto init_result = (std::promise<bool>*)lua_touserdata(L, 1);
 
-	SGE_ASSERT(_this != NULL);
 	SGE_ASSERT(init_result != NULL);
 
-	_this->gmain(init_result);
+	gmain(init_result);
+
+	return 0;
 }
 
-void game::tmain(std::promise<bool> *init_result)
+static void tmain(std::promise<bool>* init_result)
 {
 	int ret;
 
-	SGE_ASSERT(m_L == NULL);
+	SGE_ASSERT(s_L == NULL);
 
-	m_L = luaL_newstate();
-	if (m_L == NULL) {
+	s_L = luaL_newstate();
+	if (s_L == NULL) {
 		init_result->set_value(false);
 		return;
 	}
 
-	game_attach_lua(this, m_L);
+	lua_pushcfunction(s_L, &pmain);
+	lua_pushlightuserdata(s_L, init_result);
 
-	lua_pushcfunction(m_L, &game::pmain);
-	lua_pushlightuserdata(m_L, this);
-	lua_pushlightuserdata(m_L, init_result);
-
-	ret = lua_pcall(m_L, 2, 1, 0);
+	ret = lua_pcall(s_L, 2, 1, 0);
 	// TODO
 
-	ret = lua_toboolean(m_L, -1);
+	ret = lua_toboolean(s_L, -1);
 	// TODO
 
-	lua_close(m_L);
-	m_L = NULL;
+	lua_close(s_L);
+	s_L = NULL;
 }
 
-void game::init_traps(void)
+bool init(void)
 {
-	lua_newtable(m_L);
+	SGE_ASSERT(s_L == NULL);
 
-	lua_setglobal(m_L, "sge");
+	if (glexInit(NULL) < 0)
+		return false;
+
+	return true;
+
+	std::promise<bool> init_result;
+	s_thread = std::thread(&tmain, &init_result);
+	if (!s_thread.joinable())
+		return false;
+
+	auto init_done = init_result.get_future();
+	init_done.wait();
+
+	if (!init_done.get())
+		return false;
+
+	s_state = STATE_LOADING;
+
+	return true;
 }
 
-void game::schedule(void)
+void shutdown(void)
+{
+	return;
+
+	SGE_ASSERT(s_L != NULL);
+
+
+	uv_async_send(&s_quit_async);
+
+	if (s_thread.joinable()) {
+		SGE_LOGD("waiting for game thread exited...\n");
+		s_thread.join();
+	}
+}
+
+void handle_event(const SDL_Event *event)
 {
 }
 
-SGE_END
+void update(float elapsed)
+{
+	scene::update(elapsed);
+}
+
+void draw(void)
+{
+	scene::draw();
+}
+
+state current_state(void)
+{
+	return s_state;
+}
+
+SGE_GAME_END
 
 extern "C" void sge_game_lua_open(lua_State *L)
 {
@@ -193,4 +178,3 @@ extern "C" void sge_game_lua_resume(lua_State *L, int n)
 extern "C" void sge_game_lua_yield(lua_State *L, int n)
 {
 }
-

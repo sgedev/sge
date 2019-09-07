@@ -3,26 +3,19 @@
 #ifndef SGE_SCENE_HPP
 #define SGE_SCENE_HPP
 
-#include <filesystem/path.h>
-
 #include <sge/common.hpp>
-#include <sge/view.hpp>
 
-SGE_BEGIN
+#define SGE_SCENE_BEGIN SGE_BEGIN namespace scene {
+#define SGE_SCENE_END } SGE_END
 
-class scene {
-public:
-	scene(void);
-	virtual ~scene(void);
+SGE_SCENE_BEGIN
 
-public:
-	bool init(void);
-	void shutdown(void);
-	void update(float elapsed);
-	void draw(view &v);
-};
+bool init(void);
+void shutdown(void);
+void update(float elapsed);
+void draw(void);
 
-SGE_END
+SGE_SCENE_END
 
 #endif // SGE_SCENE_HPP
 

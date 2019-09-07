@@ -45,7 +45,7 @@ bool init(void)
 
 	s_window = SDL_CreateWindow(s_title.c_str(),
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
-		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
+		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
 
 	if (s_window == NULL)
 		return false;
@@ -147,7 +147,7 @@ bool draw_begin(void)
 	SGE_ASSERT(s_window != NULL);
 	SGE_ASSERT(s_gl_context != NULL);
 
-	if (!is_visibled())
+	if (!visibled())
 		return false;
 
 	if (s_rect[2] < 1 || s_rect[3] < 1)
@@ -192,19 +192,19 @@ const glm::ivec4 &rect(void)
 	return s_rect;
 }
 
-bool is_visibled(void)
+bool visibled(void)
 {
 	SGE_ASSERT(s_window != NULL);
 	return (s_flags & FLAG_VISIBLED);
 }
 
-bool is_fullscreen(void)
+bool fullscreen(void)
 {
 	SGE_ASSERT(s_window != NULL);
 	return (s_flags & FLAG_FULLSCREEN);
 }
 
-const char* title(void)
+const char *title(void)
 {
 	SGE_ASSERT(s_window != NULL);
 	return s_title.c_str();

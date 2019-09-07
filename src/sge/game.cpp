@@ -154,27 +154,26 @@ state current_state(void)
 
 SGE_GAME_END
 
-extern "C" void sge_game_lua_open(lua_State *L)
+extern "C" void sge_game_luaopen(lua_State *L)
 {
 }
 
-extern "C" void sge_game_lua_close(lua_State *L)
+extern "C" void sge_game_luaclose(lua_State *L)
 {
 }
 
-extern "C" void sge_game_lua_thread(lua_State *L, lua_State *L1)
-{
-	
-}
-
-extern "C" void sge_game_lua_free(lua_State *L, lua_State *L1)
+extern "C" void sge_game_luathread(lua_State *L, lua_State *L1)
 {
 }
 
-extern "C" void sge_game_lua_resume(lua_State *L, int n)
+extern "C" void sge_game_luafree(lua_State *L, lua_State *L1)
 {
 }
 
-extern "C" void sge_game_lua_yield(lua_State *L, int n)
+extern "C" void sge_game_luaresume(lua_State *L, int n)
+{
+}
+
+extern "C" void sge_game_luayield(lua_State *L, int n)
 {
 }

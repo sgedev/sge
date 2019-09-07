@@ -10,3 +10,7 @@ sge_subdirectories(
 	sge
 	)
 
+sge_sources(
+	main.cpp
+	)
+

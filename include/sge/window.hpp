@@ -21,8 +21,8 @@ SDL_Window *to_sdl_window(void);
 SDL_GLContext sdl_gl_context(void);
 Uint32 sdl_id(void);
 const glm::ivec4 &rect(void);
-bool is_visibled(void);
-bool is_fullscreen(void);
+bool visibled(void);
+bool fullscreen(void);
 const char *title(void);
 void set_title(const char *title);
 

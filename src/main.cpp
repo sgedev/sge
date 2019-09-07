@@ -222,13 +222,27 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	PHYSFS_init(NULL);
+	ret = PHYSFS_init(NULL);
+	if (!ret) {
+		SGE_LOGE("Failed to initialize PhysFS.\n");
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+
+	ret = PHYSFS_mount(game_path.str().c_str(), NULL, 0);
+	if (!ret) {
+		SGE_LOGE("Failed to mount game path.\n");
+		PHYSFS_deinit();
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
 
 	if (cmdline[{ "-e", "--edit" }])
 		sge::editor_enabled = true;
 
 	if (!sge::start()) {
 		SGE_LOGE("initialize failed.\n");
+		PHYSFS_deinit();
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
@@ -237,6 +251,7 @@ int main(int argc, char *argv[])
 
 	sge::stop();
 
+	PHYSFS_deinit();
 	SDL_Quit();
 
 	return EXIT_SUCCESS;

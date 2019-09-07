@@ -32,5 +32,5 @@ state current_state(void);
 
 SGE_GAME_END
 
-#endif // SGE_GAME_HPP
+#endif // SGE_VM_HPP
 

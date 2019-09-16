@@ -77,9 +77,5 @@ void editor::update(float elapsed)
 	}
 }
 
-void editor::draw(void)
-{
-}
-
 SGE_END
 

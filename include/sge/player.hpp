@@ -3,9 +3,11 @@
 #ifndef SGE_PLAYER_HPP
 #define SGE_PLAYER_HPP
 
+#include <GLEX/glex.h>
+#include <imgui.h>
+
 #include <sge/common.hpp>
 #include <sge/subsystem.hpp>
-#include <sge/renderer.hpp>
 #include <sge/game.hpp>
 
 SGE_BEGIN
@@ -22,9 +24,9 @@ protected:
 
 protected:
 	virtual void update(float elapsed);
-	virtual void draw(void);
 
 private:
+	void render(void);
 	static void frame_cb(uv_timer_t *p);
 	void frame(void);
 	static void state_cb(uv_timer_t* p);
@@ -34,12 +36,25 @@ protected:
 	game m_game;
 
 private:
+	enum {
+		FLAG_VISIBLED = 0x1,
+		FLAG_FULLSCREEN = 0x2,
+	};
+
+private:
+	SDL_Window *m_window;
+	glm::ivec4 m_rect;
+	Uint32 m_id;
+	SDL_GLContext m_gl;
+	ImGuiContext *m_imgui;
+	GLEXContext *m_glex;
+	int m_flags;
+	std::string m_title;
 	uv_timer_t m_frame_timer;
 	uv_timer_t m_state_timer;
 	uint64_t m_last;
 	int m_fps;
 	int m_fps_count;
-	renderer m_renderer;
 };
 
 SGE_END

@@ -18,7 +18,6 @@ protected:
 	void shutdown(void) override;
 	bool handle_event(const SDL_Event *event) override;
 	void update(float elapsed) override;
-	void draw(void) override;
 
 private:
 };

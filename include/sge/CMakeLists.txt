@@ -7,7 +7,6 @@ sge_sources(
 	game.h
 	game.hpp
 	player.hpp
-	renderer.hpp
 	scene.hpp
 	server.hpp
 	subsystem.hpp

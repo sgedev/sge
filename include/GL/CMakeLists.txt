@@ -1,7 +1,16 @@
 
 sge_sources(
+	gl3w.h
 	glcorearb.h
-	glxext.h
-	wglext.h
+	glex.h
+	glexconfig.h.in
 	)
 
+if(SGE_DEBUG)
+	set(GLEX_DEBUG ON)
+endif()
+
+configure_file(
+	glexconfig.h.in
+	glexconfig.h
+)

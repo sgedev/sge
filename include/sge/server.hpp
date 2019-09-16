@@ -4,6 +4,7 @@
 #define SGE_SERVER_HPP
 
 #include <sge/subsystem.hpp>
+#include <sge/game.hpp>
 
 SGE_BEGIN
 
@@ -16,6 +17,9 @@ protected:
 	bool init(void) override;
 	void shutdown(void) override;
 	bool handle_event(const SDL_Event *event) override;
+
+private:
+	game m_game;
 };
 
 SGE_END

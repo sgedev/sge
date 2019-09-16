@@ -1,5 +1,6 @@
 
 sge_sources(
+	gl3w.c
 	glex_common.h
 	glex_core.c
 	glex_draw.c

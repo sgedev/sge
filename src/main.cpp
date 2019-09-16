@@ -11,6 +11,7 @@
 #include <argh.h>
 #include <filesystem/path.h>
 #include <filesystem/resolver.h>
+#include <GL/glex.h>
 
 #include <SDL.h>
 #include <physfs.h>
@@ -147,9 +148,17 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
+	ret = glexInit(NULL);
+	if (ret < 0) {
+		SGE_LOGE("Failed to initialize GLEX.\n");
+		PHYSFS_deinit();
+		SDL_Quit();
+		return EXIT_FAILURE;
+	}
+
 	sge::subsystem *subsys;
 
-	if (cmdline[{ "-e", "--edit" }])
+	if (cmdline[{ "--edit" }])
 		subsys = new sge::editor(uv_default_loop());
 	else if (cmdline[{ "--server" }])
 		subsys = new sge::server(uv_default_loop());
@@ -159,6 +168,7 @@ int main(int argc, char *argv[])
 	if (!subsys || !subsys->start()) {
 		SGE_LOGE("initialize failed.\n");
 		delete subsys;
+		glexShutdown();
 		PHYSFS_deinit();
 		SDL_Quit();
 		return EXIT_FAILURE;
@@ -175,6 +185,7 @@ int main(int argc, char *argv[])
 	subsys->stop();
 	delete subsys;
 
+	glexShutdown();
 	PHYSFS_deinit();
 	SDL_Quit();
 

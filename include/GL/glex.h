@@ -7,6 +7,7 @@
 #include <stdarg.h>
 
 #include <GL/glcorearb.h>
+#include <GL/glexconfig.h>
 
 #ifdef __cplusplus
 #	define GLEX_EXTEN_C extern "C"
@@ -100,7 +101,8 @@ GLEX_API GLEXContext *glexGetCurrentContext(void);
 GLEX_API void glexMakeCurrent(GLEXContext *context);
 
 GLEX_API void glexViewport(int x, int y, int width, int height);
-GLEX_API void glexClear(void);
+GLEX_API void glexBeginFrame(void);
+GLEX_API void glexEndFrame(void);
 GLEX_API void glexRender(void);
 GLEX_API void glexModelMatrix(float *m);
 GLEX_API void glexViewMatrix(float *m);

@@ -6,8 +6,8 @@
 
 SGE_BEGIN
 
-editor::editor(uv_loop_t *loop)
-	: player(loop)
+editor::editor(uv_loop_t *lp)
+	: player(lp)
 {
 }
 
@@ -27,15 +27,25 @@ bool editor::init(void)
 
 void editor::shutdown(void)
 {
+	player::shutdown();
 }
 
 bool editor::handle_event(const SDL_Event *event)
 {
+	player::handle_event(event);
+
 	return true;
 }
 
 void editor::update(float elapsed)
 {
+	player::update(elapsed);
+
+	if (ImGui::Begin("FPS")) {
+		ImGui::Text("%d", fps());
+		ImGui::End();
+	}
+
 	if (ImGui::BeginMainMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
 			ImGui::MenuItem("New...");
@@ -78,4 +88,3 @@ void editor::update(float elapsed)
 }
 
 SGE_END
-

@@ -6,8 +6,8 @@
 
 #include <cx/list.h>
 
-#include <GLXW/glxw.h>
-#include <GLEX/glex.h>
+#include <GL/gl3w.h>
+#include <GL/glex.h>
 
 #include <HandmadeMath.h>
 
@@ -45,7 +45,7 @@ typedef enum {
 } GELXUniformMat4;
 
 struct GLEXContext_ {
-	struct glxw glxw_ctx;
+	int viewport[4];
 
 	GLuint vertex_shader;
 	GLuint fragment_shader;

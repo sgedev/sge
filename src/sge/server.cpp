@@ -15,7 +15,10 @@ server::~server(void)
 
 bool server::init(void)
 {
-	return false;
+	if (!m_game.init())
+		return false;
+
+	return true;
 }
 
 void server::shutdown(void)

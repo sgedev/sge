@@ -10,6 +10,7 @@ sge_sources(
 	scene.hpp
 	server.hpp
 	subsystem.hpp
+	window.hpp
 	)
 
 sge_compile_definitions(

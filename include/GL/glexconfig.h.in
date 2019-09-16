@@ -1,0 +1,11 @@
+/*
+ *
+ */
+#ifndef GLEXCONFIG_H
+#define GLEXCONFIG_H
+
+#cmakedefine GLEX_DEBUG
+
+#cmakedefine GLEX_SHARED
+
+#endif /* GLEXCONFIG_H */

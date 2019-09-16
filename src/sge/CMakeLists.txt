@@ -7,5 +7,6 @@ sge_sources(
 	scene.cpp
 	server.cpp
 	subsystem.cpp
+	window.cpp
 	)
 

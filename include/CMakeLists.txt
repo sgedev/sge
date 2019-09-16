@@ -1,20 +1,16 @@
 
 sge_subdirectories(
 	cx
-	EGL
 	filesystem
 	GL
-	GLES2
-	GLES3
-	GLEX
 	glm
-	GLXW
 	KHR
 	sge
 	)
 
 sge_sources(
 	argh.h
+	debug_draw.hpp
 	glm.hpp
 	HandmadeMath.h
 	imconfig.h

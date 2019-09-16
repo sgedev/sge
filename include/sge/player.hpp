@@ -3,11 +3,13 @@
 #ifndef SGE_PLAYER_HPP
 #define SGE_PLAYER_HPP
 
-#include <GLEX/glex.h>
+#include <GL/glex.h>
+
 #include <imgui.h>
 
 #include <sge/common.hpp>
 #include <sge/subsystem.hpp>
+#include <sge/window.hpp>
 #include <sge/game.hpp>
 
 SGE_BEGIN
@@ -16,6 +18,9 @@ class player: public subsystem {
 public:
 	player(uv_loop_t *loop);
 	virtual ~player(void);
+
+public:
+	unsigned int fps(void) const;
 
 protected:
 	bool init(void) override;
@@ -33,6 +38,7 @@ private:
 	void state(void);
 
 protected:
+	window m_window;
 	game m_game;
 
 private:
@@ -42,20 +48,19 @@ private:
 	};
 
 private:
-	SDL_Window *m_window;
-	glm::ivec4 m_rect;
-	Uint32 m_id;
-	SDL_GLContext m_gl;
 	ImGuiContext *m_imgui;
 	GLEXContext *m_glex;
-	int m_flags;
-	std::string m_title;
 	uv_timer_t m_frame_timer;
 	uv_timer_t m_state_timer;
 	uint64_t m_last;
 	int m_fps;
 	int m_fps_count;
 };
+
+inline unsigned int player::fps(void) const
+{
+	return m_fps;
+}
 
 SGE_END
 

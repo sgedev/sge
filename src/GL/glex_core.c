@@ -10,6 +10,8 @@ GLEXContext *glex;
 
 static GLEXSystem glexSys;
 
+#ifdef GLEX_DEBUG
+
 static inline const char *glexDebugSource(GLenum source)
 {
 	switch (source) {
@@ -58,6 +60,8 @@ static void glexDebugOutput(GLenum source, GLenum type, GLuint id,
 	else
 		glexLogDebug("GL-%04d|%s|%s|%s] %s\n", id, glexDebugSource(source), glexDebugType(type), glexDebugSeverity(severity), message);
 }
+
+#endif // GLEX_DEBUG
 
 static void glexSysFatalErrorDefault(const char *fmt, va_list args)
 {
@@ -158,15 +162,16 @@ GLEX_API GLEXContext *glexCreateContext(const GLEXConfig *config)
 	if (context == NULL)
 		goto bad0;
 
-	if (glxwInitCtx(&context->glxw_ctx) < 0)
-		goto bad1;
+	memset(context, 0, sizeof(GLEXContext));
 
-	if (GL_KHR_debug)
+#ifdef GLEX_DEBUG
+	if (glDebugMessageCallback != NULL)
 		glDebugMessageCallback(glexDebugOutput, NULL);
+#endif
 
 	if (!glexInitProgram(context)) {
 		glexLogError("Failed to initialize program.\n");
-		goto bad2;
+		goto bad1;
 	}
 
 	if (!glexInitMaterial(context)) {
@@ -191,7 +196,7 @@ GLEX_API GLEXContext *glexCreateContext(const GLEXConfig *config)
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	return 0;
+	return context;
 
 bad5:
 	glexShutdownMesh(context);
@@ -209,22 +214,30 @@ bad1:
 	glexFreeMemory(context);
 
 bad0:
-	return -1;
+	return NULL;
 }
 
 GLEX_API void glexDeleteContext(GLEXContext *context)
 {
+	GLEXContext *old;
+
 	if (context == NULL)
 		return;
 
-	if (context == glex)
-		glexMakeCurrent(NULL);
+	old = glex;
+
+	glexMakeCurrent(context);
 
 	glexShutdownTest(context);
 	glexShutdownMesh(context);
 	glexShutdownLight(context);
 	glexShutdownMaterial(context);
 	glexShutdownProgram(context);
+
+	if (context != old)
+		glexMakeCurrent(old);
+	else
+		glexMakeCurrent(NULL);
 }
 
 GLEX_API GLEXContext *glexGetCurrentContext(void)
@@ -235,10 +248,4 @@ GLEX_API GLEXContext *glexGetCurrentContext(void)
 GLEX_API void glexMakeCurrent(GLEXContext *context)
 {
 	glex = context;
-
-	if (glex != NULL)
-		glxw = &glex->glxw_ctx;
-	else
-		glxw = NULL;
 }
-

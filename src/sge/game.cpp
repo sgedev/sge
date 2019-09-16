@@ -30,6 +30,7 @@ static inline game *game_from_lua(lua_State *L)
 }
 
 game::game(void)
+	: m_L(NULL)
 {
 }
 

@@ -89,4 +89,3 @@ void glexDrawTest(void)
 
 	glBindVertexArray(0);
 }
-

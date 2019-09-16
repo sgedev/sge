@@ -93,13 +93,16 @@ GLboolean glexInitProgram(GLEXContext *context)
 		goto bad2;
 
 	context->uniform_float_loc[GLEX_UNIFORM_ELAPSED] = glGetUniformLocation(context->program, "glex_Elapsed");
-	context->uniform_mat4_loc[GLEX_UNIFORM_MODEL_MATRIX] = glGetUniformLocation(context->program, "glex_ModelMatrix");
-	context->uniform_mat4_loc[GLEX_UNIFORM_VIEW_MATRIX] = glGetUniformLocation(context->program, "glex_ViewMatrix");
-	context->uniform_mat4_loc[GLEX_UNIFORM_PROJECTION_MATRIX] = glGetUniformLocation(context->program, "glex_ProjectionMatrix");
+	context->uniform_float[GLEX_UNIFORM_ELAPSED] = 1.0f;
 
+	context->uniform_mat4_loc[GLEX_UNIFORM_MODEL_MATRIX] = glGetUniformLocation(context->program, "glex_ModelMatrix");
 	context->uniform_mat4[GLEX_UNIFORM_MODEL_MATRIX] = HMM_Mat4d(1.0f);
+
+	context->uniform_mat4_loc[GLEX_UNIFORM_VIEW_MATRIX] = glGetUniformLocation(context->program, "glex_ViewMatrix");
 	context->uniform_mat4[GLEX_UNIFORM_VIEW_MATRIX] = HMM_Mat4d(1.0f);
-	context->uniform_mat4[GLEX_UNIFORM_PROJECTION_MATRIX] = HMM_Mat4d(1.0f);
+
+	context->uniform_mat4_loc[GLEX_UNIFORM_PROJECTION_MATRIX] = glGetUniformLocation(context->program, "glex_ProjectionMatrix");
+	context->uniform_mat4[GLEX_UNIFORM_PROJECTION_MATRIX] = HMM_Perspective(90.0f, 4.0f / 3.0f, 0.1f, 80.0f);
 
 	return GL_TRUE;
 
@@ -165,4 +168,3 @@ GLEX_API void glexProjectionMatrix(float *m)
 
 	memcpy(glex->uniform_mat4[GLEX_UNIFORM_PROJECTION_MATRIX].Elements, m, sizeof(float) * 16);
 }
-

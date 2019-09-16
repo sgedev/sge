@@ -6,6 +6,7 @@
 #include <sge/common.hpp>
 #include <sge/player.hpp>
 #include <sge/editor.hpp>
+#include <sge/server.hpp>
 
 #endif // SGE_HPP
 

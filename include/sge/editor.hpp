@@ -4,19 +4,26 @@
 #define SGE_EDITOR_HPP
 
 #include <sge/common.hpp>
+#include <sge/player.hpp>
 
-#define SGE_EDITOR_BEGIN SGE_BEGIN namespace editor {
-#define SGE_EDITOR_END } SGE_END
+SGE_BEGIN
 
-SGE_EDITOR_BEGIN
+class editor: public player {
+public:
+	editor(uv_loop_t *loop);
+	virtual ~editor(void);
 
-bool init(void);
-void shutdown(void);
-void handle_event(const SDL_Event *event);
-void update(float elapsed);
-void draw(void);
+protected:
+	bool init(void) override;
+	void shutdown(void) override;
+	bool handle_event(const SDL_Event *event) override;
+	void update(float elapsed) override;
+	void draw(void) override;
 
-SGE_EDITOR_END
+private:
+};
+
+SGE_END
 
 #endif // SGE_EDITOR_HPP
 

@@ -2,23 +2,32 @@
 //
 #include <sge/scene.hpp>
 
-SGE_SCENE_BEGIN
+SGE_BEGIN
 
-bool init(void)
+scene::scene(void)
+{
+}
+
+scene::~scene(void)
+{
+}
+
+bool scene::init(void)
 {
 	return true;
 }
 
-void shutdown(void)
+void scene::shutdown(void)
 {
 }
 
-void update(float elapsed)
+void scene::update(float elapsed)
 {
 }
 
-void draw(void)
+void scene::draw(void)
 {
 }
 
-SGE_SCENE_END
+SGE_END
+

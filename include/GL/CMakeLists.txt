@@ -1,8 +1,7 @@
 
 sge_sources(
-	eglew.h
-	glew.h
-	glex.h
-	glxew.h
-	wglew.h
+	glcorearb.h
+	glxext.h
+	wglext.h
 	)
+

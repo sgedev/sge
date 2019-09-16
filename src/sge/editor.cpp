@@ -2,27 +2,39 @@
 //
 #include <imgui.h>
 
-#include <sge/window.hpp>
 #include <sge/editor.hpp>
 
-SGE_EDITOR_BEGIN
+SGE_BEGIN
 
-bool init(void)
+editor::editor(uv_loop_t *loop)
+	: player(loop)
 {
-	window::set_title("SGE Editor");
+}
+
+editor::~editor(void)
+{
+}
+
+bool editor::init(void)
+{
+	if (!player::init())
+		return false;
+
+	m_game.trap_editor_enabled = [](void) { return true; };
 
 	return true;
 }
 
-void shutdown(void)
+void editor::shutdown(void)
 {
 }
 
-void handle_event(const SDL_Event *event)
+bool editor::handle_event(const SDL_Event *event)
 {
+	return true;
 }
 
-void update(float elapsed)
+void editor::update(float elapsed)
 {
 	if (ImGui::BeginMainMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
@@ -65,9 +77,9 @@ void update(float elapsed)
 	}
 }
 
-void draw(void)
+void editor::draw(void)
 {
-
 }
 
-SGE_EDITOR_END
+SGE_END
+

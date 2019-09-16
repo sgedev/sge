@@ -74,5 +74,5 @@ namespace ImGui
 }
 */
 
-#define IMGUI_IMPL_OPENGL_LOADER_GLEW
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM <GLXW/glxw.h>
 

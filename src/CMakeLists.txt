@@ -17,7 +17,8 @@ endif()
 
 sge_subdirectories(
 	cx
-	GL
+	glex
+	glxw
 	HandmadeMath
 	imgui
 	lua

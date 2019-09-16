@@ -1,9 +1,15 @@
 
 sge_subdirectories(
 	cx
+	EGL
 	filesystem
 	GL
+	GLES2
+	GLES3
+	GLEX
 	glm
+	GLXW
+	KHR
 	sge
 	)
 

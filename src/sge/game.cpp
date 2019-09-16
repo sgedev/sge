@@ -1,110 +1,51 @@
 //
 //
-#include <future>
-#include <thread>
-
-#include <lua.hpp>
-#include <GL/glex.h>
-
-#include <sge/scene.hpp>
 #include <sge/game.hpp>
 
-SGE_GAME_BEGIN
+SGE_BEGIN
 
-static lua_State *s_L;
-static std::thread s_thread;
-static uv_loop_t s_loop;
-static uv_async_t s_quit_async;
-static bool s_running;
-static state s_state;
-
-trap_fps_func trap_fps;
-
-static void quit_async(uv_async_t* p)
+static inline game::task_t *game_task_from_lua(lua_State *L)
 {
-	s_running = false;
-	uv_stop(&s_loop);
+	return (game::task_t *)lua_getextraspace(L);
 }
 
-static void init_traps(void)
+static inline lua_State *game_task_to_lua(game::task_t *T)
 {
-	lua_newtable(s_L);
-
-	lua_setglobal(s_L, "sge");
+	return (lua_State *)CX_PMOVB(T, LUA_EXTRASPACE);
 }
 
-static void schedule(void)
+static inline void game_attach(game *G, lua_State *L)
+{
+	game_task_from_lua(L)->data = G;
+}
+
+static inline game *game_from_task(game::task_t *T)
+{
+	return (game *)(T->data);
+}
+
+static inline game *game_from_lua(lua_State *L)
+{
+	return game_from_task(game_task_from_lua(L));
+}
+
+game::game(void)
 {
 }
 
-static void gmain(std::promise<bool>* init_result)
+game::~game(void)
 {
-	SGE_ASSERT(init_result != NULL);
-
-	uv_loop_init(&s_loop);
-	uv_async_init(&s_loop, &s_quit_async, &quit_async);
-	s_running = true;
-
-	init_traps();
-
-	init_result->set_value(true);
-
-	while (s_running) {
-		uv_run(&s_loop, UV_RUN_DEFAULT);
-		schedule();
-	}
-
-	uv_loop_close(&s_loop);
 }
 
-static int pmain(lua_State* L)
+bool game::init(void)
 {
-	auto init_result = (std::promise<bool>*)lua_touserdata(L, 1);
-
-	SGE_ASSERT(init_result != NULL);
-
-	gmain(init_result);
-
-	return 0;
-}
-
-static void tmain(std::promise<bool>* init_result)
-{
-	int ret;
-
-	SGE_ASSERT(s_L == NULL);
-
-	s_L = luaL_newstate();
-	if (s_L == NULL) {
-		init_result->set_value(false);
-		return;
-	}
-
-	lua_pushcfunction(s_L, &pmain);
-	lua_pushlightuserdata(s_L, init_result);
-
-	ret = lua_pcall(s_L, 2, 1, 0);
-	// TODO
-
-	ret = lua_toboolean(s_L, -1);
-	// TODO
-
-	lua_close(s_L);
-	s_L = NULL;
-}
-
-bool init(void)
-{
-	SGE_ASSERT(s_L == NULL);
-
-	if (glexInit(NULL) < 0)
-		return false;
+	SGE_ASSERT(m_L == NULL);
 
 	return true;
 
 	std::promise<bool> init_result;
-	s_thread = std::thread(&tmain, &init_result);
-	if (!s_thread.joinable())
+	m_thread = std::thread(&game::tmain, this, &init_result);
+	if (!m_thread.joinable())
 		return false;
 
 	auto init_done = init_result.get_future();
@@ -113,46 +54,293 @@ bool init(void)
 	if (!init_done.get())
 		return false;
 
-	s_state = STATE_LOADING;
+	m_state = STATE_LOADING;
 
 	return true;
 }
 
-void shutdown(void)
+void game::shutdown(void)
 {
 	return;
 
-	SGE_ASSERT(s_L != NULL);
+	SGE_ASSERT(m_L != NULL);
 
+	uv_async_send(&m_quit_async);
 
-	uv_async_send(&s_quit_async);
-
-	if (s_thread.joinable()) {
+	if (m_thread.joinable()) {
 		SGE_LOGD("waiting for game thread exited...\n");
-		s_thread.join();
+		m_thread.join();
 	}
 }
 
-void handle_event(const SDL_Event *event)
+bool game::handle_event(const SDL_Event *event)
+{
+	return false;
+}
+
+void game::update(float elapsed)
+{
+	m_scene.update(elapsed);
+}
+
+void game::draw(void)
+{
+	m_scene.draw();
+}
+
+void game::quit_async_cb(uv_async_t* p)
+{
+	//m_running = false;
+	//uv_stop(&m_loop);
+}
+
+void game::schedule(void)
 {
 }
 
-void update(float elapsed)
+void game::gmain(std::promise<bool> *init_result)
 {
-	scene::update(elapsed);
+	SGE_ASSERT(init_result != NULL);
+
+	uv_loop_init(&m_loop);
+	uv_async_init(&m_loop, &m_quit_async, &game::quit_async_cb);
+	m_running = true;
+
+	init_traps();
+
+	init_result->set_value(true);
+
+	while (m_running) {
+		uv_run(&m_loop, UV_RUN_DEFAULT);
+		schedule();
+	}
+
+	uv_loop_close(&m_loop);
 }
 
-void draw(void)
+int game::pmain(lua_State *L)
 {
-	scene::draw();
+	auto gp = (game *)lua_touserdata(L, 1);
+	auto init_result = (std::promise<bool>*)lua_touserdata(L, 2);
+
+	SGE_ASSERT(init_result != NULL);
+
+	gp->gmain(init_result);
+
+	return 0;
 }
 
-state current_state(void)
+void game::tmain(std::promise<bool> *init_result)
 {
-	return s_state;
+	int ret;
+
+	SGE_ASSERT(m_L == NULL);
+
+	m_L = luaL_newstate();
+	if (m_L == NULL) {
+		init_result->set_value(false);
+		return;
+	}
+
+	game_attach(this, m_L);
+
+	lua_pushcfunction(m_L, &pmain);
+	lua_pushlightuserdata(m_L, this);
+	lua_pushlightuserdata(m_L, init_result);
+
+	ret = lua_pcall(m_L, 2, 1, 0);
+	// TODO
+
+	ret = lua_toboolean(m_L, -1);
+	// TODO
+
+	lua_close(m_L);
+	m_L = NULL;
 }
 
-SGE_GAME_END
+void game::init_traps(void)
+{
+	lua_newtable(m_L);
+
+	lua_pushcfunction(m_L, &game::trap_version_fe);
+	lua_setfield(m_L, -2, "version");
+
+	lua_pushcfunction(m_L, &game::trap_task_fe);
+	lua_setfield(m_L, -2, "task");
+
+	lua_pushcfunction(m_L, &game::trap_current_fe);
+	lua_setfield(m_L, -2, "current");
+
+	lua_pushcfunction(m_L, &game::trap_sleep_fe);
+	lua_setfield(m_L, -2, "sleep");
+
+	lua_pushcfunction(m_L, &game::trap_fps_fe);
+	lua_setfield(m_L, -2, "fps");
+
+	lua_newtable(m_L);
+
+	lua_pushcfunction(m_L, &game::trap_editor_enabled_fe);
+	lua_setfield(m_L, -2, "enabled");
+
+	lua_setfield(m_L, -2, "editor");
+
+	lua_setglobal(m_L, "sge");
+}
+
+int game::trap_fe(lua_State *L, trap_type tt)
+{
+	SGE_ASSERT(m_current_trap == TRAP_TYPE_INVALID);
+	SGE_ASSERT(m_current_trap_L == NULL);
+	SGE_ASSERT(L != NULL);
+	SGE_ASSERT(tt != TRAP_TYPE_INVALID);
+
+	m_current_trap = tt;
+	m_current_trap_L = L;
+	m_current_trap_result = TRAP_RESULT_NOT_SET;
+
+	m_cond.wait(m_mutex);
+
+	SGE_ASSERT(m_current_trap_result != TRAP_RESULT_NOT_SET);
+
+	switch (m_current_trap_result) {
+	case TRAP_RESULT_NOT_IMPL:
+		luaL_error(L, "trap %d not impl.", tt);
+		break;
+	}
+
+	return m_current_trap_result;
+}
+
+int game::trap_be(lua_State *L, trap_type tt)
+{
+	int ret;
+
+	switch (tt) {
+	case TRAP_TYPE_FPS:
+		ret = trap_fps_be(L);
+		break;
+	case TRAP_TYPE_EDITOR_ENABLED:
+		ret = trap_editor_enabled_be(L);
+		break;
+	default:
+		ret = TRAP_RESULT_NOT_IMPL;
+		break;
+	}
+
+	return ret;
+}
+
+int game::trap_version_fe(lua_State *L)
+{
+	lua_newtable(L);
+
+	lua_pushinteger(L, SGE_VERSION_MAJOR);
+	lua_rawseti(L, -2, 0);
+
+	lua_pushinteger(L, SGE_VERSION_MAJOR);
+	lua_rawseti(L, -2, 1);
+
+	lua_pushinteger(L, SGE_VERSION_MAJOR);
+	lua_rawseti(L, -2, 2);
+
+	return 1;
+}
+
+int game::trap_task_fe(lua_State *L)
+{
+	luaL_argcheck(L, lua_isfunction(L, 1), 1, "not a function");
+
+	lua_State *L1 = lua_newthread(L);
+	if (L1 != NULL) {
+		lua_pushvalue(L, 1);
+		lua_xmove(L, L1, 1);
+	} else
+		lua_pushnil(L);
+
+	return 1;
+}
+
+int game::trap_current_fe(lua_State *L)
+{
+	if (L == game_from_lua(L)->m_L)
+		luaL_error(L, "Not in a thread");
+
+	lua_pushthread(L);
+
+	return 1;
+}
+
+void game::trap_sleep_done(uv_timer_t *timer)
+{
+	task_t *T = (task_t *)(timer->data);
+	SGE_ASSERT(T != NULL);
+
+	game *G = game_from_task(T);
+	SGE_ASSERT(G != NULL);
+
+	cx_list_del_node(&G->m_task_list_sleep, &T->node);
+	cx_list_add_tail(&G->m_task_list, &T->node);
+}
+
+int game::trap_sleep_fe(lua_State *L)
+{
+	int ms = luaL_checkinteger(L, 1);
+	if (ms < 0)
+		luaL_error(L, "bad arg");
+
+	if (ms > 0) {
+		task_t *T = game_task_from_lua(L);
+		SGE_ASSERT(T != NULL);
+		game *G = game_from_task(T);
+		SGE_ASSERT(G != NULL);
+		uv_timer_start(&T->sleep_timer, &game::trap_sleep_done, ms, 0);
+		cx_list_add_tail(&G->m_task_list_sleep, &T->node);
+	}
+
+	return lua_yield(L, 0);
+}
+
+int game::trap_fps_fe(lua_State *L)
+{
+	game *G = game_from_lua(L);
+	SGE_ASSERT(G != NULL);
+
+	return G->trap_fe(L, TRAP_TYPE_FPS);
+}
+
+int game::trap_fps_be(lua_State *L)
+{
+	SGE_ASSERT(L != NULL);
+
+	if (!trap_fps)
+		return TRAP_RESULT_NOT_IMPL;
+
+	lua_pushinteger(L, trap_fps());
+
+	return 1;
+}
+
+int game::trap_editor_enabled_fe(lua_State *L)
+{
+	game *G = game_from_lua(L);
+	SGE_ASSERT(G != NULL);
+
+	return G->trap_fe(L, TRAP_TYPE_EDITOR_ENABLED);
+}
+
+int game::trap_editor_enabled_be(lua_State *L)
+{
+	SGE_ASSERT(L != NULL);
+
+	if (!trap_editor_enabled)
+		return TRAP_RESULT_NOT_IMPL;
+
+	lua_pushboolean(L, trap_editor_enabled());
+
+	return 1;
+}
+
+SGE_END
 
 extern "C" void sge_game_luaopen(lua_State *L)
 {

@@ -14,32 +14,9 @@
 
 #include <SDL.h>
 #include <physfs.h>
+#include <sge.hpp>
 
-#include <sge/common.hpp>
-#include <sge/window.hpp>
-#include <sge/game.hpp>
-#include <sge/editor.hpp>
-
-SGE_BEGIN
-
-typedef void (*handle_event_func)(const SDL_Event *event);
-typedef void (*update_func)(float elapsed);
-typedef void (*draw_func)(void);
-typedef void (*shutdown_func)(void);
-
-static uv_timer_t frame_timer;
-static uv_timer_t state_timer;
-static bool editor_enabled;
-static uint64_t last;
-static int fps;
-static int fps_count;
-
-static handle_event_func handle_event;
-static update_func update;
-static draw_func draw;
-static shutdown_func shutdown;
-
-static void poll_events(void)
+static void poll_events_cb(uv_prepare_t *p)
 {
 	SDL_Event event;
 
@@ -50,77 +27,9 @@ static void poll_events(void)
 			continue;
 		}
 
-		window::handle_event(&event);
-		handle_event(&event);
+		((sge::subsystem *)(p->data))->feed_event(&event);
 	}
 }
-
-static void frame(uv_timer_t *p)
-{
-	poll_events();
-
-	uint64_t elapsed = uv_now(uv_default_loop()) - last;
-
-	update(float(elapsed) / 1000.0f);
-
-	if (window::draw_begin()) {
-		draw();
-		window::draw_end();
-	}
-
-	fps_count += 1;
-	uv_update_time(uv_default_loop());
-	last = uv_now(uv_default_loop());
-}
-
-static void state(uv_timer_t* p)
-{
-	fps = fps_count;
-	fps_count = 0;
-}
-
-static bool start(void)
-{
-	if (!window::init())
-		return false;
-
-	if (editor_enabled) {
-		editor::init();
-		handle_event = editor::handle_event;
-		update = editor::update;
-		draw = editor::draw;
-		shutdown = editor::shutdown;
-	} else {
-		game::init();
-		handle_event = game::handle_event;
-		update = game::update;
-		draw = game::draw;
-		shutdown = game::shutdown;
-	}
-
-	uv_timer_init(uv_default_loop(), &frame_timer);
-	uv_timer_init(uv_default_loop(), &state_timer);
-
-	uv_timer_start(&frame_timer, frame, 0, 10);
-	uv_timer_start(&state_timer, state, 1000, 1000);
-
-	uv_update_time(uv_default_loop());
-	last = uv_now(uv_default_loop());
-
-	return true;
-}
-
-static void stop(void)
-{
-	uv_timer_stop(&state_timer);
-	uv_timer_stop(&frame_timer);
-
-	shutdown();
-
-	window::shutdown();
-}
-
-SGE_END
 
 static void show_version(void)
 {
@@ -169,6 +78,7 @@ int main(int argc, char *argv[])
 {
 	int ret;
 	argh::parser cmdline(argv);
+	uv_prepare_t poll_events_prepare;
 
 	SDL_SetMainReady();
 	SDL_LogSetOutputFunction(logger, NULL);
@@ -237,19 +147,33 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (cmdline[{ "-e", "--edit" }])
-		sge::editor_enabled = true;
+	sge::subsystem *subsys;
 
-	if (!sge::start()) {
+	if (cmdline[{ "-e", "--edit" }])
+		subsys = new sge::editor(uv_default_loop());
+	else if (cmdline[{ "--server" }])
+		subsys = new sge::server(uv_default_loop());
+	else
+		subsys = new sge::player(uv_default_loop());
+
+	if (!subsys || !subsys->start()) {
 		SGE_LOGE("initialize failed.\n");
+		delete subsys;
 		PHYSFS_deinit();
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
 
+	uv_prepare_init(uv_default_loop(), &poll_events_prepare);
+	poll_events_prepare.data = subsys;
+	uv_prepare_start(&poll_events_prepare, poll_events_cb);
+
 	uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 
-	sge::stop();
+	uv_prepare_stop(&poll_events_prepare);
+
+	subsys->stop();
+	delete subsys;
 
 	PHYSFS_deinit();
 	SDL_Quit();

@@ -20,7 +20,7 @@ typedef struct {
 	cx_list_node_t node;
 	uv_timer_t sleep_timer;
 	void *data;
-} sge_game_task;
+} sge_game_task_t;
 
 void sge_game_luaopen(lua_State* L);
 void sge_game_luaclose(lua_State* L);
@@ -36,7 +36,7 @@ void sge_game_luayield(lua_State* L, int n);
 #ifdef LUA_EXTRASPACE
 #undef LUA_EXTRASPACE
 #endif
-#define LUA_EXTRASPACE sizeof(sge_game_task)
+#define LUA_EXTRASPACE sizeof(sge_game_task_t)
 
 #if defined(luai_userstateopen)
 #undef luai_userstateopen

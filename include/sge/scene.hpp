@@ -5,17 +5,21 @@
 
 #include <sge/common.hpp>
 
-#define SGE_SCENE_BEGIN SGE_BEGIN namespace scene {
-#define SGE_SCENE_END } SGE_END
+SGE_BEGIN
 
-SGE_SCENE_BEGIN
+class scene {
+public:
+	scene(void);
+	virtual ~scene(void);
 
-bool init(void);
-void shutdown(void);
-void update(float elapsed);
-void draw(void);
+public:
+	bool init(void);
+	void shutdown(void);
+	void update(float elapsed);
+	void draw(void);
+};
 
-SGE_SCENE_END
+SGE_END
 
 #endif // SGE_SCENE_HPP
 

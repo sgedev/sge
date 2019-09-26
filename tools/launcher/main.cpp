@@ -30,11 +30,7 @@ static void PollEvents(void)
 
 int main(int argc, char *argv[])
 {
-	int ret;
-	int exit_code = EXIT_FAILURE;
-
-	ret = SDL_Init(SDL_INIT_EVERYTHING);
-	if (ret < 0)
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 		return EXIT_FAILURE;
 
 	if (!MainGame.Init()) {
@@ -54,4 +50,3 @@ int main(int argc, char *argv[])
 
 	return EXIT_SUCCESS;
 }
-

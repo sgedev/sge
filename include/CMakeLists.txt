@@ -1,30 +1,15 @@
 
-sge_subdirectories(
-	cx
-	filesystem
-	GL
-	glm
-	KHR
-	sge
-	)
+add_subdirectory(cx cx)
+add_subdirectory(GL GL)
+add_subdirectory(GLEX GLEX)
+add_subdirectory(glm glm)
+add_subdirectory(KHR KHR)
+add_subdirectory(sge sge)
 
-sge_sources(
-	argh.h
-	debug_draw.hpp
-	glm.hpp
-	HandmadeMath.h
-	imconfig.h
-	imgui.h
-	imgui_dialogs.h
-	imgui_impl_opengl3.h
-	imgui_impl_sdl.h
-	imgui_stdlib.h
-	lauxlib.h
-	lua.h
-	lua.hpp
-	luaconf.h
-	lualib.h
-	nfd.h
-	physfs.h
+target_sources(sge
+	PUBLIC
+		glex.hpp
+		glm.hpp
+		sge.hpp
 	)
 

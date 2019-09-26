@@ -1,8 +1,12 @@
 
-sge_sources(
-	common.h
-	config.h.in
-	list.h
+target_sources(sge
+	PUBLIC
+		common.h
+		common.hpp
+		config.h.in
+		list.h
+		noncopyable.hpp
+		signal.hpp
 	)
 
 configure_file(

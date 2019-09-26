@@ -1,6 +1,6 @@
 
 target_sources(sge
-	PUBLIC
-		khrplatform.h
+	PRIVATE
+		gl3w.c
 	)
 

@@ -49,10 +49,8 @@ typedef GL3WglProc (*GL3WGetProcAddressProc)(const char *proc);
 union GL3WProcs;
 
 /* gl3w api */
-int gl3wInit(void);
-int gl3wInit2(union GL3WProcs *procs, GL3WGetProcAddressProc proc);
+int gl3wInit(union GL3WProcs *procs, GL3WGetProcAddressProc proc);
 int gl3wIsSupported(int major, int minor);
-GL3WglProc gl3wGetProcAddress(const char *proc);
 
 /* gl3w internal state */
 union GL3WProcs {

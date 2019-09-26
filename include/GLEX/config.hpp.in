@@ -1,0 +1,10 @@
+//
+//
+#ifndef GLEX_CONFIG_HPP
+#define GLEX_CONFIG_HPP
+
+#cmakedefine GLEX_DEBUG
+
+#cmakedefine GLEX_SHARED
+
+#endif // GLEX_CONFIG_HPP

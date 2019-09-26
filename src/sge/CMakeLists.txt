@@ -1,12 +1,7 @@
 
-sge_sources(
-	editor.cpp
-	entity.cpp
-	game.cpp
-	player.cpp
-	scene.cpp
-	server.cpp
-	subsystem.cpp
-	window.cpp
+target_sources(sge
+	PRIVATE
+		entity.cpp
+		scene.cpp
 	)
 

@@ -19,53 +19,20 @@ if(MSVC)
 	add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 endif()
 
-# sge macros
-
-macro(sge_subdirectories)
-	foreach(SUBDIR ${ARGN})
-		add_subdirectory(${SUBDIR} ${SUBDIR})
-	endforeach()
-endmacro()
-
-macro(sge_sources)
-	target_sources(sge PRIVATE ${ARGN})
-endmacro()
-
-macro(sge_include_directories)
-	target_include_directories(sge PRIVATE ${ARGN})
-endmacro()
-
-macro(sge_compile_definitions)
-	target_compile_definitions(sge PRIVATE ${ARGN})
-endmacro()
-
-macro(sge_link_libraries)
-	target_link_libraries(sge ${ARGN})
-endmacro()
-
-macro(sge_properties)
-	set_target_properties(sge PROPERTIES ${ARGN})
-endmacro()
-
-# sge
-
-set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
-
-add_executable(sge)
-
-sge_include_directories(
+include_directories(
 	${CMAKE_SOURCE_DIR}/include
 	${CMAKE_BINARY_DIR}/include
 	)
 
-sge_subdirectories(
-	docs
-	include
-	src
-	test
-	tools
-	)
+set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
 
+add_library(sge STATIC)
+add_subdirectory(include include)
+add_subdirectory(src src)
 get_target_property(SGE_SOURCES sge SOURCES)
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SGE_SOURCES})
+
+add_subdirectory(test test)
+add_subdirectory(tools tools)
+add_subdirectory(docs docs)
 

@@ -1,5 +1,6 @@
 //
 //
+#include <stdio.h>
 #include <GLEX/context.hpp>
 
 GLEX_BEGIN

@@ -25,7 +25,7 @@ void scene::update(float elapsed)
 {
 }
 
-void scene::draw(void)
+void scene::draw(view *v)
 {
 }
 

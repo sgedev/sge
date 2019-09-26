@@ -8,6 +8,8 @@ else()
 endif()
 
 add_executable(sge-launcher
+	game.cpp
+	game.hpp
 	main.cpp
 	)
 

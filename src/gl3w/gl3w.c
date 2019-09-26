@@ -53,11 +53,13 @@ static void load_procs(GL3WGetProcAddressProc proc);
 int gl3wInit(union GL3WProcs *procs, GL3WGetProcAddressProc proc)
 {
 	int ret;
+	union GL3WProcs *curr;
 
+	curr = gl3wProcs;
 	gl3wProcs = procs;
 	load_procs(proc);
 	ret = parse_version();
-	gl3wProcs = NULL;
+	gl3wProcs = curr;
 
 	return ret;
 }

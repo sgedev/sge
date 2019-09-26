@@ -27,6 +27,7 @@ public:
 
 public:
 	bool Init(void);
+	void Shutdown(void);
 	void BeginFrame(void);
 	void EndFrame(void);
 

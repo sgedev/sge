@@ -10,19 +10,15 @@ Context::Context(void)
 
 Context::~Context(void)
 {
-	ShutdownTest();
-	ShutdownProgram();
 }
 
 bool Context::Init(void)
 {
-	if (!InitProgram()) {
+	if (!InitProgram())
 		goto bad0;
-	}
 
-	if (!InitTest()) {
+	if (!InitTest())
 		goto bad1;
-	}
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -33,6 +29,12 @@ bad1:
 
 bad0:
 	return false;
+}
+
+void Context::Shutdown(void)
+{
+	ShutdownTest();
+	ShutdownProgram();
 }
 
 GLEX_END

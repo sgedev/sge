@@ -135,8 +135,7 @@ void Context::CommitUniforms(void)
 
 	for (int i = 0; i < UNIFORM_MAT4_MAX; ++i) {
 		if (m_uniform_mat4_loc[i] >= 0)
-			glUniformMatrix4fv(m_uniform_mat4_loc[i], 1, GL_FALSE,
-				glm::value_ptr(m_uniform_mat4[i]));
+			glUniformMatrix4fv(m_uniform_mat4_loc[i], 1, GL_FALSE, glm::value_ptr(m_uniform_mat4[i]));
 	}
 }
 

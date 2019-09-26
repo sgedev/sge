@@ -11,5 +11,11 @@ target_sources(sge
 		glex.hpp
 		glm.hpp
 		sge.hpp
+	PRIVATE
+		lauxlib.h
+		lua.h
+		lua.hpp
+		luaconf.h
+		lualib.h
 	)
 

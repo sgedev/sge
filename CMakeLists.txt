@@ -19,6 +19,14 @@ if(MSVC)
 	add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 endif()
 
+include(FindUV)
+if(UV_FOUND)
+	include_directories(${UV_INCLUDE_DIRS})
+	link_libraries(${UV_LIBRARIES})
+else()
+	message(FATAL_ERROR "libuv not found.")
+endif()
+
 include_directories(
 	${CMAKE_SOURCE_DIR}/include
 	${CMAKE_BINARY_DIR}/include

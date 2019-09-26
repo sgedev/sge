@@ -6,6 +6,7 @@
 #include <sge/common.hpp>
 #include <sge/entity.hpp>
 #include <sge/scene.hpp>
+#include <sge/view.hpp>
 
 #endif // SGE_HPP
 

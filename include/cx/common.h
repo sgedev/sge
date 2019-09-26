@@ -56,6 +56,9 @@
 #define CX_CONCAT(a, b) CX_CONCAT_IMPL(a, b)
 #define CX_CONCAT_IMPL(a, b) a##b
 
+#define CX_CONCAT3(a, b, c) CX_CONCAT_IMPL(a, b, c)
+#define CX_CONCAT3_IMPL(a, b, c) a##b##c
+
 #define CX_STRIZE(x) CX_STRIZE_IMPL(x)
 #define CX_STRIZE_IMPL(x) #x
 

@@ -4,6 +4,7 @@
 #define SGE_SCENE_HPP
 
 #include <sge/common.hpp>
+#include <sge/view.hpp>
 
 SGE_BEGIN
 
@@ -16,7 +17,7 @@ public:
 	bool init(void);
 	void shutdown(void);
 	void update(float elapsed);
-	void draw(void);
+	void draw(view *v);
 };
 
 SGE_END

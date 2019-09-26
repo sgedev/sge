@@ -7,6 +7,7 @@
 #define GLM_FORCE_INLINE
 //#define GLM_FORCE_NO_CTOR_INIT
 //#define GLM_FORCE_EXPLICIT_CTOR
+
 #include <glm/glm.hpp>
 #include <glm/gtc/bitfield.hpp>
 #include <glm/gtc/color_space.hpp>
@@ -20,7 +21,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-
 
 #endif // GLM_HPP
 

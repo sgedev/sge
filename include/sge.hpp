@@ -5,8 +5,10 @@
 
 #include <sge/common.hpp>
 #include <sge/entity.hpp>
+#include <sge/event.hpp>
 #include <sge/scene.hpp>
 #include <sge/view.hpp>
+#include <sge/vm.hpp>
 
 #endif // SGE_HPP
 

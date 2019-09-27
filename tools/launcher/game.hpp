@@ -5,7 +5,7 @@
 
 #include <SDL.h>
 
-#include <sge/game.hpp>
+#include <sge/vm.hpp>
 
 class Game {
 public:
@@ -15,7 +15,10 @@ public:
 public:
 	bool Init(void);
 	void Shutdown(void);
+	bool HandleEvent(const SDL_Event *event);
 	void Frame(float elapsed);
+
+private:
 
 private:
 	SDL_Window *m_window;
@@ -24,7 +27,7 @@ private:
 	SDL_GLContext m_gl;
 	union GL3WProcs m_gl3w;
 	GLEX::Context m_glex;
-	sge::game m_game;
+	sge::vm m_vm;
 	sge::view m_view;
 };
 

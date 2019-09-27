@@ -2,8 +2,9 @@
 target_sources(sge
 	PRIVATE
 		entity.cpp
-		game.cpp
+		key.cpp
 		scene.cpp
 		view.cpp
+		vm.cpp
 	)
 

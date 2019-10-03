@@ -1,7 +1,7 @@
 //
 //
-#ifndef SGE_VM_HPP
-#define SGE_VM_HPP
+#ifndef SGE_GAME_HPP
+#define SGE_GAME_HPP
 
 #include <future>
 #include <thread>
@@ -13,14 +13,15 @@
 
 #include <sge/common.hpp>
 #include <sge/event.hpp>
+#include <sge/filesystem.hpp>
 #include <sge/scene.hpp>
 #include <sge/view.hpp>
 
 SGE_BEGIN
 
-class vm {
+class game {
 public:
-	typedef sge_vm_task_t task_t;
+	typedef sge_game_task_t task_t;
 
 	enum state {
 		STATE_IDLE = 0,
@@ -30,15 +31,15 @@ public:
 	};
 
 public:
-	vm(void);
-	virtual ~vm(void);
+	game(void);
+	virtual ~game(void);
 
 public:
 	std::function<unsigned int (void)> trap_fps;
 	std::function<bool (void)> trap_editor_enabled;
 
 public:
-	bool init(void);
+	bool init(filesystem *fs);
 	void shutdown(void);
 	bool handle_event(const event *evt);
 	void update(float elapsed);
@@ -89,6 +90,7 @@ private:
 	int trap_editor_enabled_be(lua_State *L);
 
 private:
+	filesystem* m_fs;
 	lua_State *m_L;
 	std::thread m_thread;
 	std::mutex m_mutex;
@@ -107,5 +109,4 @@ private:
 
 SGE_END
 
-#endif // SGE_VM_HPP
-
+#endif // SGE_GAME_HPP

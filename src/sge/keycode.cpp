@@ -2,11 +2,11 @@
 //
 #include <string.h>
 
-#include <sge/key.hpp>
+#include <sge/keycode.hpp>
 
 SGE_BEGIN
 
-static const char *key_name_map[] = {
+static const char *keycode_name_map[] = {
 	"KEY_UNKNOWN",
 	"KEY_RETURN",
 	"KEY_ESCAPE",
@@ -241,34 +241,24 @@ static const char *key_name_map[] = {
 	"KEY_KBDILLUMUP",
 	"KEY_EJECT",
 	"KEY_SLEEP",
-	"KEY_MOUSE1",
-	"KEY_MOUSE2",
-	"KEY_MOUSE3",
-	"KEY_MOUSE4",
-	"KEY_MOUSE5",
-	"KEY_MOUSE6",
-	"KEY_MOUSE7",
-	"KEY_MOUSE8",
-	"KEY_MOUSEX",
-	"KEY_MOUSEY",
 };
 
-key key_from_name(const char *name)
+int keycode_from_name(const char *name)
 {
 	SGE_ASSERT(name != NULL);
 
 	for (int i = 0; i < KEY_MAX; ++i) {
-		if (strcmp(key_name_map[i], name) == 0)
-			return (key)i;
+		if (strcmp(keycode_name_map[i], name) == 0)
+			return i;
 	}
 
 	return KEY_UNKNOWN;
 }
 
-const char *key_to_name(key k)
+const char *keycode_to_name(int key)
 {
-	if (KEY_UNKNOWN < k && k < KEY_MAX)
-		return key_name_map[k];
+	if (KEY_UNKNOWN < key && key < KEY_MAX)
+		return keycode_name_map[key];
 
 	return NULL;
 }

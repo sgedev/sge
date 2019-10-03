@@ -1,13 +1,13 @@
 //
 //
-#ifndef SGE_KEY_HPP
-#define SGE_KEY_HPP
+#ifndef SGE_KEYCODE_HPP
+#define SGE_KEYCODE_HPP
 
 #include <sge/common.hpp>
 
 SGE_BEGIN
 
-enum key {
+enum {
 	KEY_UNKNOWN = 0,
 
 	KEY_RETURN,
@@ -137,7 +137,7 @@ enum key {
 	KEY_F22,
 	KEY_F23,
 	KEY_F24,
-	KEY_EXECUTE,
+	KEY_EXEC,
 	KEY_HELP,
 	KEY_MENU,
 	KEY_SELECT,
@@ -243,24 +243,14 @@ enum key {
 	KEY_KBDILLUMUP,
 	KEY_EJECT,
 	KEY_SLEEP,
-	KEY_MOUSE1,
-	KEY_MOUSE2,
-	KEY_MOUSE3,
-	KEY_MOUSE4,
-	KEY_MOUSE5,
-	KEY_MOUSE6,
-	KEY_MOUSE7,
-	KEY_MOUSE8,
-	KEY_MOUSEX,
-	KEY_MOUSEY,
 
 	KEY_MAX
 };
 
-key key_from_name(const char *name);
-const char *key_to_name(key k);
+int keycode_from_name(const char *name);
+const char *keycode_to_name(int key);
 
 SGE_END
 
-#endif // SGE_KEY_HPP
+#endif // SGE_KEYCODE_HPP
 

@@ -4,73 +4,72 @@
 #define SGE_EVENT_HPP
 
 #include <sge/common.hpp>
-#include <sge/key.hpp>
+#include <sge/keycode.hpp>
 
 SGE_BEGIN
 
-// event
-
-class event {
-public:
+struct event final {
 	enum {
-		EVENT_INVALID = 0,
+		TYPE_INVALID = 0,
 
-		EVENT_KEY,
+		TYPE_KEY_DOWN,
+		TYPE_KEY_UP,
 
-		EVENT_MAX
+		TYPE_MOUSE_BUTTON_DOWN,
+		TYPE_MOUSE_BUTTON_UP,
+		TYPE_MOUSE_MOVE,
+
+		TYPE_MAX
+	};
+	
+	struct key {
+		int keycode;
 	};
 
+	struct mouse_button {
+		enum {
+			BUTTON1,
+			BUTTON2,
+			BUTTON3,
+			BUTTON4,
+			BUTTON5,
+			BUTTON6,
+			BUTTON7,
+			BOTTON8
+		};
 
-public:
-	event(int t = EVENT_INVALID);
+		int button;
+	};
+
+	struct mouse_move {
+		int dx;
+		int dy;
+	};
+
+	int type;
+
+	union {
+		key v_key;
+		mouse_button v_mouse_button;
+		mouse_move v_mouse_move;
+	} value;
+
+	event(int t = TYPE_INVALID);
 	event(const event &that);
-
-public:
-	int type(void) const;
-	void set_type(int t);
 	event &operator=(const event &that);
-
-private:
-	int m_type;
 };
 
 inline event::event(int t)
-	: m_type(t)
+	: type(t)
 {
 }
 
-inline event::event(const event &that)
-	: m_type(that.m_type)
-{
-}
-
-inline int event::type(void) const
-{
-	return m_type;
-}
-
-inline void event::set_type(int t)
-{
-	m_type = t;
-}
-
-// key_event
-
-class key_event: public event {
-public:
-	key_event(void);
-
-private:
-	key m_key;
-	int value;
-};
-
-inline key_event::key_event(void)
-	: event(EVENT_KEY)
+inline event::event(const event& that)
+	: type(that.type)
+	, value(that.value)
 {
 }
 
 SGE_END
 
 #endif // SGE_EVENT_HPP
-

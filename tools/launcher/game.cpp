@@ -1,10 +1,13 @@
 //
 //
+#include <sge/keycode.hpp>
+#include <sge/event.hpp>
+
 #include "game.hpp"
 
-static inline sge::key MapKey(SDL_Keycode k)
+static inline int MapKey(SDL_Keycode k)
 {
-	sge::key ret = sge::KEY_UNKNOWN;
+	int ret = sge::KEY_UNKNOWN;
 
 	switch (k) {
 	case SDLK_RETURN: ret = sge::KEY_RETURN; break;
@@ -134,7 +137,7 @@ static inline sge::key MapKey(SDL_Keycode k)
 	case SDLK_F22: ret = sge::KEY_F22; break;
 	case SDLK_F23: ret = sge::KEY_F23; break;
 	case SDLK_F24: ret = sge::KEY_F24; break;
-	case SDLK_EXECUTE: ret = sge::KEY_EXECUTE; break;
+	case SDLK_EXECUTE: ret = sge::KEY_EXEC; break;
 	case SDLK_HELP: ret = sge::KEY_HELP; break;
 	case SDLK_MENU: ret = sge::KEY_MENU; break;
 	case SDLK_SELECT: ret = sge::KEY_SELECT; break;
@@ -246,18 +249,24 @@ static inline sge::key MapKey(SDL_Keycode k)
 }
 
 Game::Game(void)
+	: m_window(NULL)
+	, m_window_visibled(false)
+	, m_gl(NULL)
+	, m_fs(NULL)
 {
 }
 
 Game::~Game(void)
 {
+	if (m_window != NULL)
+		Shutdown();
 }
 
 bool Game::Init(void)
 {
 	SGE_ASSERT(m_window == NULL);
 
-	if (!m_vm.init())
+	if (!m_game.init(NULL))
 		goto bad0;
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -319,7 +328,7 @@ bad2:
 	m_window = NULL;
 
 bad1:
-	m_vm.shutdown();
+	m_game.shutdown();
 
 bad0:
 	return false;
@@ -337,26 +346,146 @@ void Game::Shutdown(void)
 	SDL_DestroyWindow(m_window);
 	m_window = NULL;
 
-	m_vm.shutdown();
+	m_game.shutdown();
 }
 
 bool Game::HandleEvent(const SDL_Event *event)
 {
-	return false;
+	if (event == NULL)
+		return false;
+
+	bool ret;
+
+	switch (event->type) {
+	case SDL_KEYDOWN:
+	case SDL_KEYUP:
+		ret = HandleKeyEvent(event);
+		break;
+	case SDL_MOUSEBUTTONDOWN:
+	case SDL_MOUSEBUTTONUP:
+		ret = HandleMouseButtonEvent(event);
+		break;
+	case SDL_MOUSEMOTION:
+		ret = HandleMouseMoveEvent(event);
+		break;
+	case SDL_WINDOWEVENT:
+		ret = HandleWindowEvent(event);
+		break;
+	default:
+		ret = false;
+		break;
+	}
+
+	return ret;
 }
 
 void Game::Frame(float elapsed)
 {
-	m_vm.update(elapsed);
+	m_game.update(elapsed);
 
-	m_glex.BeginFrame();
+	if (m_window_visibled) {
+		glViewport(0, 0, m_window_rect[2], m_window_rect[3]);
+		glClear(GL_COLOR_BUFFER_BIT);
 
-	glClear(GL_COLOR_BUFFER_BIT);
+		m_glex.BeginFrame();
 
-	m_vm.draw(&m_view);
+		m_game.draw(&m_view);
+		m_glex.EndFrame();
 
-	m_glex.EndFrame();
-
-	SDL_GL_SwapWindow(m_window);
+		SDL_GL_SwapWindow(m_window);
+	}
 }
 
+bool Game::HandleKeyEvent(const SDL_Event* event)
+{
+	sge::event evt;
+	
+	switch (event->type) {
+	case SDL_KEYDOWN:
+		evt.type = sge::event::TYPE_KEY_DOWN;
+		break;
+	case SDL_KEYUP:
+		evt.type = sge::event::TYPE_KEY_UP;
+		break;
+	default:
+		SGE_ASSERT(false);
+		break;
+	}
+
+	evt.value.v_key.keycode = MapKey(event->key.keysym.sym);
+	if (evt.value.v_key.keycode == sge::KEY_UNKNOWN)
+		return false;
+
+	return m_game.handle_event(&evt);
+}
+
+bool Game::HandleMouseButtonEvent(const SDL_Event* event)
+{
+	sge::event evt;
+	
+	switch (event->type) {
+	case SDL_KEYDOWN:
+		evt.type = sge::event::TYPE_MOUSE_BUTTON_UP;
+		break;
+	case SDL_KEYUP:
+		evt.type = sge::event::TYPE_MOUSE_BUTTON_UP;
+		break;
+	default:
+		SGE_ASSERT(false);
+		break;
+	}
+
+	switch (event->button.button) {
+	case SDL_BUTTON_LEFT:
+		evt.value.v_mouse_button.button = sge::event::mouse_button::BUTTON1;
+		break;
+	case SDL_BUTTON_MIDDLE:
+		evt.value.v_mouse_button.button = sge::event::mouse_button::BUTTON3;
+		break;
+	case SDL_BUTTON_RIGHT:
+		evt.value.v_mouse_button.button = sge::event::mouse_button::BUTTON2;
+		break;
+	default:
+		return false;
+	}
+
+	return m_game.handle_event(&evt);
+}
+
+bool Game::HandleMouseMoveEvent(const SDL_Event* event)
+{
+	SGE_ASSERT(event->type == SDL_MOUSEMOTION);
+
+	sge::event evt(sge::event::TYPE_MOUSE_MOVE);
+
+	evt.value.v_mouse_move.dx = event->motion.xrel;
+	evt.value.v_mouse_move.dy = event->motion.yrel;
+
+	return m_game.handle_event(&evt);
+}
+
+bool Game::HandleWindowEvent(const SDL_Event* event)
+{
+	SGE_ASSERT(event->type == SDL_WINDOWEVENT);
+
+	switch (event->window.event) {
+	case SDL_WINDOWEVENT_MOVED:
+		m_window_rect[0] = event->window.data1;
+		m_window_rect[1] = event->window.data2;
+		break;
+	case SDL_WINDOWEVENT_RESIZED:
+		m_window_rect[2] = event->window.data1;
+		m_window_rect[3] = event->window.data2;
+		break;
+	case SDL_WINDOWEVENT_SHOWN:
+		m_window_visibled = true;
+		break;
+	case SDL_WINDOWEVENT_HIDDEN:
+		m_window_visibled = false;
+		break;
+	default:
+		return false;
+	}
+
+	return true;
+}

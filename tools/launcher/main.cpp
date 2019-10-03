@@ -2,6 +2,8 @@
 //
 #include <cstdio>
 
+#include <physfs.h>
+
 #define WIN32_LEAN_AND_MEAN
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -25,16 +27,24 @@ static void PollEvents(void)
 			Running = false;
 			continue;
 		}
+
+		MainGame.HandleEvent(&event);
 	}
 }
 
 int main(int argc, char *argv[])
 {
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+	if (!PHYSFS_init(NULL))
 		return EXIT_FAILURE;
+
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		PHYSFS_deinit();
+		return EXIT_FAILURE;
+	}
 
 	if (!MainGame.Init()) {
 		SDL_Quit();
+		PHYSFS_deinit();
 		return EXIT_FAILURE;
 	}
 
@@ -47,6 +57,7 @@ int main(int argc, char *argv[])
 
 	MainGame.Shutdown();
 	SDL_Quit();
+	PHYSFS_deinit();
 
 	return EXIT_SUCCESS;
 }

@@ -1,51 +1,57 @@
 //
 //
-#include <sge/vm.hpp>
+#include <sge/game.hpp>
 
 SGE_BEGIN
 
-static inline vm::task_t *vm_task_from_lua(lua_State *L)
+static inline game::task_t * game_task_from_lua(lua_State *L)
 {
-	return (vm::task_t *)lua_getextraspace(L);
+	return (game::task_t *)lua_getextraspace(L);
 }
 
-static inline lua_State *vm_task_to_lua(vm::task_t *T)
+static inline lua_State * game_task_to_lua(game::task_t *T)
 {
 	return (lua_State *)CX_PMOVB(T, LUA_EXTRASPACE);
 }
 
-static inline void vm_attach(vm *V, lua_State *L)
+static inline void game_attach(game *G, lua_State *L)
 {
-	vm_task_from_lua(L)->data = V;
+	game_task_from_lua(L)->data = G;
 }
 
-static inline vm *vm_from_task(vm::task_t *T)
+static inline game* game_from_task(game::task_t *T)
 {
-	return (vm *)(T->data);
+	return (game*)(T->data);
 }
 
-static inline vm *vm_from_lua(lua_State *L)
+static inline game* game_from_lua(lua_State *L)
 {
-	return vm_from_task(vm_task_from_lua(L));
+	return game_from_task(game_task_from_lua(L));
 }
 
-vm::vm(void)
-	: m_L(NULL)
-{
-}
-
-vm::~vm(void)
+game::game(void)
+	: m_fs(NULL)
+	, m_L(NULL)
 {
 }
 
-bool vm::init(void)
+game::~game(void)
 {
+}
+
+bool game::init(filesystem *fs)
+{
+	SGE_ASSERT(fs != NULL);
+
+	SGE_ASSERT(m_fs == NULL);
 	SGE_ASSERT(m_L == NULL);
+
+	m_fs = fs;
 
 	return true;
 
 	std::promise<bool> init_result;
-	m_thread = std::thread(&vm::tmain, this, &init_result);
+	m_thread = std::thread(&game::tmain, this, &init_result);
 	if (!m_thread.joinable())
 		return false;
 
@@ -60,7 +66,7 @@ bool vm::init(void)
 	return true;
 }
 
-void vm::shutdown(void)
+void game::shutdown(void)
 {
 	return;
 
@@ -73,17 +79,17 @@ void vm::shutdown(void)
 	}
 }
 
-bool vm::handle_event(const event *evt)
+bool game::handle_event(const event *evt)
 {
 	return false;
 }
 
-void vm::update(float elapsed)
+void game::update(float elapsed)
 {
 	m_scene.update(elapsed);
 }
 
-void vm::draw(view *v)
+void game::draw(view *v)
 {
 	switch (m_state) {
 	case STATE_IDLE:
@@ -99,22 +105,22 @@ void vm::draw(view *v)
 	m_scene.draw(v);
 }
 
-void vm::quit_async_cb(uv_async_t* p)
+void game::quit_async_cb(uv_async_t* p)
 {
 	//m_running = false;
 	//uv_stop(&m_loop);
 }
 
-void vm::schedule(void)
+void game::schedule(void)
 {
 }
 
-void vm::gmain(std::promise<bool> *init_result)
+void game::gmain(std::promise<bool> *init_result)
 {
 	SGE_ASSERT(init_result != NULL);
 
 	uv_loop_init(&m_loop);
-	uv_async_init(&m_loop, &m_quit_async, &vm::quit_async_cb);
+	uv_async_init(&m_loop, &m_quit_async, &game::quit_async_cb);
 	m_running = true;
 
 	init_traps();
@@ -129,9 +135,9 @@ void vm::gmain(std::promise<bool> *init_result)
 	uv_loop_close(&m_loop);
 }
 
-int vm::pmain(lua_State *L)
+int game::pmain(lua_State *L)
 {
-	auto gp = (vm *)lua_touserdata(L, 1);
+	auto gp = (game*)lua_touserdata(L, 1);
 	auto init_result = (std::promise<bool>*)lua_touserdata(L, 2);
 
 	SGE_ASSERT(init_result != NULL);
@@ -141,7 +147,7 @@ int vm::pmain(lua_State *L)
 	return 0;
 }
 
-void vm::tmain(std::promise<bool> *init_result)
+void game::tmain(std::promise<bool> *init_result)
 {
 	int ret;
 
@@ -153,7 +159,7 @@ void vm::tmain(std::promise<bool> *init_result)
 		return;
 	}
 
-	vm_attach(this, m_L);
+	game_attach(this, m_L);
 
 	lua_pushcfunction(m_L, &pmain);
 	lua_pushlightuserdata(m_L, this);
@@ -169,28 +175,28 @@ void vm::tmain(std::promise<bool> *init_result)
 	m_L = NULL;
 }
 
-void vm::init_traps(void)
+void game::init_traps(void)
 {
 	lua_newtable(m_L);
 
-	lua_pushcfunction(m_L, &vm::trap_version_fe);
+	lua_pushcfunction(m_L, &game::trap_version_fe);
 	lua_setfield(m_L, -2, "version");
 
-	lua_pushcfunction(m_L, &vm::trap_task_fe);
+	lua_pushcfunction(m_L, &game::trap_task_fe);
 	lua_setfield(m_L, -2, "task");
 
-	lua_pushcfunction(m_L, &vm::trap_current_fe);
+	lua_pushcfunction(m_L, &game::trap_current_fe);
 	lua_setfield(m_L, -2, "current");
 
-	lua_pushcfunction(m_L, &vm::trap_sleep_fe);
+	lua_pushcfunction(m_L, &game::trap_sleep_fe);
 	lua_setfield(m_L, -2, "sleep");
 
-	lua_pushcfunction(m_L, &vm::trap_fps_fe);
+	lua_pushcfunction(m_L, &game::trap_fps_fe);
 	lua_setfield(m_L, -2, "fps");
 
 	lua_newtable(m_L);
 
-	lua_pushcfunction(m_L, &vm::trap_editor_enabled_fe);
+	lua_pushcfunction(m_L, &game::trap_editor_enabled_fe);
 	lua_setfield(m_L, -2, "enabled");
 
 	lua_setfield(m_L, -2, "editor");
@@ -198,7 +204,7 @@ void vm::init_traps(void)
 	lua_setglobal(m_L, "sge");
 }
 
-int vm::trap_fe(lua_State *L, trap_type tt)
+int game::trap_fe(lua_State *L, trap_type tt)
 {
 	SGE_ASSERT(m_current_trap == TRAP_TYPE_INVALID);
 	SGE_ASSERT(m_current_trap_L == NULL);
@@ -222,7 +228,7 @@ int vm::trap_fe(lua_State *L, trap_type tt)
 	return m_current_trap_result;
 }
 
-int vm::trap_be(lua_State *L, trap_type tt)
+int game::trap_be(lua_State *L, trap_type tt)
 {
 	int ret;
 
@@ -241,7 +247,7 @@ int vm::trap_be(lua_State *L, trap_type tt)
 	return ret;
 }
 
-int vm::trap_version_fe(lua_State *L)
+int game::trap_version_fe(lua_State *L)
 {
 	lua_newtable(L);
 
@@ -257,7 +263,7 @@ int vm::trap_version_fe(lua_State *L)
 	return 1;
 }
 
-int vm::trap_task_fe(lua_State *L)
+int game::trap_task_fe(lua_State *L)
 {
 	luaL_argcheck(L, lua_isfunction(L, 1), 1, "not a function");
 
@@ -271,9 +277,9 @@ int vm::trap_task_fe(lua_State *L)
 	return 1;
 }
 
-int vm::trap_current_fe(lua_State *L)
+int game::trap_current_fe(lua_State *L)
 {
-	if (L == vm_from_lua(L)->m_L)
+	if (L == game_from_lua(L)->m_L)
 		luaL_error(L, "Not in a thread");
 
 	lua_pushthread(L);
@@ -281,45 +287,45 @@ int vm::trap_current_fe(lua_State *L)
 	return 1;
 }
 
-void vm::trap_sleep_done(uv_timer_t *timer)
+void game::trap_sleep_done(uv_timer_t *timer)
 {
 	task_t *T = (task_t *)(timer->data);
 	SGE_ASSERT(T != NULL);
 
-	vm *V = vm_from_task(T);
+	game *G = game_from_task(T);
 	SGE_ASSERT(V != NULL);
 
-	cx_list_del_node(&V->m_task_list_sleep, &T->node);
-	cx_list_add_tail(&V->m_task_list, &T->node);
+	cx_list_del_node(&G->m_task_list_sleep, &T->node);
+	cx_list_add_tail(&G->m_task_list, &T->node);
 }
 
-int vm::trap_sleep_fe(lua_State *L)
+int game::trap_sleep_fe(lua_State *L)
 {
-	int ms = luaL_checkinteger(L, 1);
+	int ms = (int)luaL_checkinteger(L, 1);
 	if (ms < 0)
 		luaL_error(L, "bad arg");
 
 	if (ms > 0) {
-		task_t *T = vm_task_from_lua(L);
+		task_t *T = game_task_from_lua(L);
 		SGE_ASSERT(T != NULL);
-		vm *V = vm_from_task(T);
+		game *G = game_from_task(T);
 		SGE_ASSERT(V != NULL);
-		uv_timer_start(&T->sleep_timer, &vm::trap_sleep_done, ms, 0);
-		cx_list_add_tail(&V->m_task_list_sleep, &T->node);
+		uv_timer_start(&T->sleep_timer, &game::trap_sleep_done, ms, 0);
+		cx_list_add_tail(&G->m_task_list_sleep, &T->node);
 	}
 
 	return lua_yield(L, 0);
 }
 
-int vm::trap_fps_fe(lua_State *L)
+int game::trap_fps_fe(lua_State *L)
 {
-	vm *V = vm_from_lua(L);
-	SGE_ASSERT(V != NULL);
+	game *G = game_from_lua(L);
+	SGE_ASSERT(G != NULL);
 
-	return V->trap_fe(L, TRAP_TYPE_FPS);
+	return G->trap_fe(L, TRAP_TYPE_FPS);
 }
 
-int vm::trap_fps_be(lua_State *L)
+int game::trap_fps_be(lua_State *L)
 {
 	SGE_ASSERT(L != NULL);
 
@@ -331,15 +337,15 @@ int vm::trap_fps_be(lua_State *L)
 	return 1;
 }
 
-int vm::trap_editor_enabled_fe(lua_State *L)
+int game::trap_editor_enabled_fe(lua_State *L)
 {
-	vm *V = vm_from_lua(L);
-	SGE_ASSERT(V != NULL);
+	game *G = game_from_lua(L);
+	SGE_ASSERT(G != NULL);
 
-	return V->trap_fe(L, TRAP_TYPE_EDITOR_ENABLED);
+	return G->trap_fe(L, TRAP_TYPE_EDITOR_ENABLED);
 }
 
-int vm::trap_editor_enabled_be(lua_State *L)
+int game::trap_editor_enabled_be(lua_State *L)
 {
 	SGE_ASSERT(L != NULL);
 
@@ -353,27 +359,26 @@ int vm::trap_editor_enabled_be(lua_State *L)
 
 SGE_END
 
-extern "C" void sge_vm_init(lua_State *L)
+extern "C" void sge_game_init_lua(lua_State *L)
 {
 }
 
-extern "C" void sge_vm_shutdown(lua_State *L)
+extern "C" void sge_game_shutdown_lua(lua_State *L)
 {
 }
 
-extern "C" void sge_vm_add_task(lua_State *L, lua_State *L1)
+extern "C" void sge_game_add_lua_task(lua_State *L, lua_State *L1)
 {
 }
 
-extern "C" void sge_vm_remove_task(lua_State *L, lua_State *L1)
+extern "C" void sge_game_remove_lua_task(lua_State *L, lua_State *L1)
 {
 }
 
-extern "C" void sge_vm_resume_task(lua_State *L, int n)
+extern "C" void sge_game_resume_lua_task(lua_State *L, int n)
 {
 }
 
-extern "C" void sge_vm_yield_task(lua_State *L, int n)
+extern "C" void sge_game_yield_lua_task(lua_State *L, int n)
 {
 }
-

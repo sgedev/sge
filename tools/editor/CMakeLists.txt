@@ -12,9 +12,17 @@ link_libraries(
 	)
 
 add_executable(sge-editor
+	consoleview.cpp
+	consoleview.hpp
 	main.cpp
 	mainwindow.cpp
 	mainwindow.hpp
+	project.cpp
+	project.hpp
+	projectview.cpp
+	projectview.hpp
+	sceneview.cpp
+	sceneview.hpp
 	)
 
 add_dependencies(sge-editor sge)

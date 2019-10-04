@@ -4,18 +4,18 @@
 
 SGE_BEGIN
 
-view::view(void)
+View::View(void)
 	: m_context(NULL)
 {
 }
 
-view::~view(void)
+View::~View(void)
 {
 	if (m_context != NULL)
 		shutdown();
 }
 
-bool view::init(GLEX::Context *context)
+bool View::init(GLEX::Context *context)
 {
 	SGE_ASSERT(m_context == NULL);
 	SGE_ASSERT(context != NULL);
@@ -25,7 +25,7 @@ bool view::init(GLEX::Context *context)
 	return true;
 }
 
-void view::shutdown(void)
+void View::shutdown(void)
 {
 	SGE_ASSERT(m_context != NULL);
 

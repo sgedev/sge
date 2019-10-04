@@ -8,7 +8,7 @@
 
 SGE_BEGIN
 
-struct event final {
+struct Event final {
 	enum {
 		TYPE_INVALID = 0,
 
@@ -22,11 +22,11 @@ struct event final {
 		TYPE_MAX
 	};
 	
-	struct key {
+	struct Key {
 		int keycode;
 	};
 
-	struct mouse_button {
+	struct MouseButton {
 		enum {
 			BUTTON1,
 			BUTTON2,
@@ -41,7 +41,7 @@ struct event final {
 		int button;
 	};
 
-	struct mouse_move {
+	struct MouseMove {
 		int dx;
 		int dy;
 	};
@@ -49,22 +49,22 @@ struct event final {
 	int type;
 
 	union {
-		key v_key;
-		mouse_button v_mouse_button;
-		mouse_move v_mouse_move;
+		Key v_key;
+		MouseButton v_mouse_button;
+		MouseMove v_mouse_move;
 	} value;
 
-	event(int t = TYPE_INVALID);
-	event(const event &that);
-	event &operator=(const event &that);
+	Event(int t = TYPE_INVALID);
+	Event(const Event &that);
+	Event &operator=(const Event &that);
 };
 
-inline event::event(int t)
+inline Event::Event(int t)
 	: type(t)
 {
 }
 
-inline event::event(const event& that)
+inline Event::Event(const Event& that)
 	: type(that.type)
 	, value(that.value)
 {

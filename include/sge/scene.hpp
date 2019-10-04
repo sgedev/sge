@@ -8,16 +8,16 @@
 
 SGE_BEGIN
 
-class scene {
+class Scene {
 public:
-	scene(void);
-	virtual ~scene(void);
+	Scene(void);
+	virtual ~Scene(void);
 
 public:
 	bool init(void);
 	void shutdown(void);
 	void update(float elapsed);
-	void draw(view *v);
+	void draw(View *v);
 };
 
 SGE_END

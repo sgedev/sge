@@ -24,7 +24,7 @@ static const char *FragmentShaderSource =
 	"}\n"
 	;
 
-static GLuint CreateShader(GLenum type, const char *src)
+static GLuint createShader(GLenum type, const char *src)
 {
 	GLuint shader;
 	int len[1];
@@ -51,7 +51,7 @@ static GLuint CreateShader(GLenum type, const char *src)
 	return shader;
 }
 
-static GLuint CreateProgram(GLuint vshader, GLuint fshader)
+static GLuint createProgram(GLuint vshader, GLuint fshader)
 {
 	GLuint program;
 	GLint status;
@@ -77,65 +77,65 @@ static GLuint CreateProgram(GLuint vshader, GLuint fshader)
 	return program;
 }
 
-bool Context::InitProgram(void)
+bool Context::initProgram(void)
 {
-	m_vertex_shader = CreateShader(GL_VERTEX_SHADER, VertexShaderSource);
-	if (m_vertex_shader == 0)
+	m_vertexShader = createShader(GL_VERTEX_SHADER, VertexShaderSource);
+	if (m_vertexShader == 0)
 		goto bad0;
 
-	m_fragment_shader = CreateShader(GL_FRAGMENT_SHADER, FragmentShaderSource);
-	if (m_fragment_shader == 0)
+	m_fragmentShader = createShader(GL_FRAGMENT_SHADER, FragmentShaderSource);
+	if (m_fragmentShader == 0)
 		goto bad1;
 
-	m_program = CreateProgram(m_vertex_shader, m_fragment_shader);
+	m_program = createProgram(m_vertexShader, m_fragmentShader);
 	if (m_program == 0)
 		goto bad2;
 
-	m_uniform_float_loc[UNIFORM_ELAPSED] = glGetUniformLocation(m_program, "glex_Elapsed");
-	m_uniform_float[UNIFORM_ELAPSED] = 1.0f;
+	m_uniformFloatLoc[UNIFORM_ELAPSED] = glGetUniformLocation(m_program, "glex_Elapsed");
+	m_uniformFloat[UNIFORM_ELAPSED] = 1.0f;
 
-	m_uniform_mat4_loc[UNIFORM_MODEL_MATRIX] = glGetUniformLocation(m_program, "glex_ModelMatrix");
-	m_uniform_mat4[UNIFORM_MODEL_MATRIX] = glm::mat4(1.0f);
+	m_uniformMat4Loc[UNIFORM_MODEL_MATRIX] = glGetUniformLocation(m_program, "glex_ModelMatrix");
+	m_uniformMat4[UNIFORM_MODEL_MATRIX] = glm::mat4(1.0f);
 
-	m_uniform_mat4_loc[UNIFORM_VIEW_MATRIX] = glGetUniformLocation(m_program, "glex_ViewMatrix");
-	m_uniform_mat4[UNIFORM_VIEW_MATRIX] = glm::mat4(1.0f);
+	m_uniformMat4Loc[UNIFORM_VIEW_MATRIX] = glGetUniformLocation(m_program, "glex_ViewMatrix");
+	m_uniformMat4[UNIFORM_VIEW_MATRIX] = glm::mat4(1.0f);
 
-	m_uniform_mat4_loc[UNIFORM_PROJECTION_MATRIX] = glGetUniformLocation(m_program, "glex_ProjectionMatrix");
-	m_uniform_mat4[UNIFORM_PROJECTION_MATRIX] = glm::perspective(90.0f, 4.0f / 3.0f, 0.1f, 80.0f);
+	m_uniformMat4Loc[UNIFORM_PROJECTION_MATRIX] = glGetUniformLocation(m_program, "glex_ProjectionMatrix");
+	m_uniformMat4[UNIFORM_PROJECTION_MATRIX] = glm::perspective(90.0f, 4.0f / 3.0f, 0.1f, 80.0f);
 
 	return true;
 
 bad2:
-	glDeleteShader(m_fragment_shader);
-	m_fragment_shader = 0;
+	glDeleteShader(m_fragmentShader);
+	m_fragmentShader = 0;
 
 bad1:
-	glDeleteShader(m_vertex_shader);
-	m_vertex_shader = 0;
+	glDeleteShader(m_vertexShader);
+	m_vertexShader = 0;
 
 bad0:
 	return false;
 }
 
-void Context::ShutdownProgram(void)
+void Context::shutdownProgram(void)
 {
-	glDeleteShader(m_fragment_shader);
-	m_fragment_shader = 0;
+	glDeleteShader(m_fragmentShader);
+	m_fragmentShader = 0;
 
-	glDeleteShader(m_vertex_shader);
-	m_vertex_shader = 0;
+	glDeleteShader(m_vertexShader);
+	m_vertexShader = 0;
 }
 
-void Context::CommitUniforms(void)
+void Context::commitUniforms(void)
 {
 	for (int i = 0; i < UNIFORM_FLOAT_MAX; ++i) {
-		if (m_uniform_float_loc[i] >= 0)
-			glUniform1f(m_uniform_float_loc[i], m_uniform_float[i]);
+		if (m_uniformFloatLoc[i] >= 0)
+			glUniform1f(m_uniformFloatLoc[i], m_uniformFloat[i]);
 	}
 
 	for (int i = 0; i < UNIFORM_MAT4_MAX; ++i) {
-		if (m_uniform_mat4_loc[i] >= 0)
-			glUniformMatrix4fv(m_uniform_mat4_loc[i], 1, GL_FALSE, glm::value_ptr(m_uniform_mat4[i]));
+		if (m_uniformMat4Loc[i] >= 0)
+			glUniformMatrix4fv(m_uniformMat4Loc[i], 1, GL_FALSE, glm::value_ptr(m_uniformMat4[i]));
 	}
 }
 

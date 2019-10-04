@@ -7,8 +7,8 @@
 #include <sge/entity.hpp>
 #include <sge/event.hpp>
 #include <sge/game.hpp>
+#include <sge/keycode.hpp>
 #include <sge/scene.hpp>
 #include <sge/view.hpp>
 
 #endif // SGE_HPP
-

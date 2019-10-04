@@ -4,28 +4,28 @@
 
 SGE_BEGIN
 
-scene::scene(void)
+Scene::Scene(void)
 {
 }
 
-scene::~scene(void)
+Scene::~Scene(void)
 {
 }
 
-bool scene::init(void)
+bool Scene::init(void)
 {
 	return true;
 }
 
-void scene::shutdown(void)
+void Scene::shutdown(void)
 {
 }
 
-void scene::update(float elapsed)
+void Scene::update(float elapsed)
 {
 }
 
-void scene::draw(view *v)
+void Scene::draw(View *v)
 {
 }
 

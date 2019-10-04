@@ -4,13 +4,13 @@
 
 SGE_BEGIN
 
-entity::entity(void)
+Entity::Entity(void)
 	: m_dirty(false)
 {
-	set_transform(glm::mat4(1.0f));
+	setTransform(glm::mat4(1.0f));
 }
 
-entity::entity(const entity &that)
+Entity::Entity(const Entity &that)
 	: m_dirty(that.m_dirty)
 	, m_name(that.m_name)
 	// TODO
@@ -18,7 +18,7 @@ entity::entity(const entity &that)
 
 }
 
-entity::~entity(void)
+Entity::~Entity(void)
 {
 }
 

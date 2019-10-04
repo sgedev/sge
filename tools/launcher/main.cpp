@@ -23,12 +23,14 @@ static void PollEvents(void)
 	SDL_Event event;
 
 	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_QUIT) {
+		switch (event.type) {
+		case SDL_QUIT:
 			Running = false;
-			continue;
+			break;
+		default:
+			MainGame.handleEvent(&event);
+			break;
 		}
-
-		MainGame.HandleEvent(&event);
 	}
 }
 
@@ -42,7 +44,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (!MainGame.Init()) {
+	if (!MainGame.init("/")) {
 		SDL_Quit();
 		PHYSFS_deinit();
 		return EXIT_FAILURE;
@@ -51,11 +53,11 @@ int main(int argc, char *argv[])
 	Running = true;
 	while (Running) {
 		PollEvents();
-		MainGame.Frame(16);
+		MainGame.frame(16);
 		SDL_Delay(16);
 	}
 
-	MainGame.Shutdown();
+	MainGame.shutdown();
 	SDL_Quit();
 	PHYSFS_deinit();
 

@@ -26,33 +26,33 @@ public:
 	virtual ~Context(void);
 
 public:
-	bool Init(void);
-	void Shutdown(void);
-	void BeginFrame(void);
-	void EndFrame(void);
+	bool init(void);
+	void shutdown(void);
+	void beginFrame(void);
+	void endFrame(void);
 
 private:
-	bool InitProgram(void);
-	void ShutdownProgram(void);
-	void CommitUniforms(void);
+	bool initProgram(void);
+	void shutdownProgram(void);
+	void commitUniforms(void);
 
 private:
-	bool InitTest(void);
-	void ShutdownTest(void);
-	void DrawTest(void);
+	bool initTest(void);
+	void shutdownTest(void);
+	void drawTest(void);
 
 private:
-	GLuint m_vertex_shader;
-	GLuint m_fragment_shader;
+	GLuint m_vertexShader;
+	GLuint m_fragmentShader;
 	GLuint m_program;
-	GLint m_uniform_float_loc[UNIFORM_FLOAT_MAX];
-	GLfloat m_uniform_float[UNIFORM_FLOAT_MAX];
-	GLint m_uniform_mat4_loc[UNIFORM_MAT4_MAX];
-	glm::mat4 m_uniform_mat4[UNIFORM_MAT4_MAX];
+	GLint m_uniformFloatLoc[UNIFORM_FLOAT_MAX];
+	GLfloat m_uniformFloat[UNIFORM_FLOAT_MAX];
+	GLint m_uniformMat4Loc[UNIFORM_MAT4_MAX];
+	glm::mat4 m_uniformMat4[UNIFORM_MAT4_MAX];
 
-	GLuint m_test_vertex_buffer;
-	GLuint m_test_index_buffer;
-	GLuint m_test_vertex_array;
+	GLuint m_testVertexBuffer;
+	GLuint m_testIndexBuffer;
+	GLuint m_testVertexArray;
 };
 
 GLEX_END

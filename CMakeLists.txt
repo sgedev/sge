@@ -6,6 +6,10 @@ cmake_minimum_required(VERSION 3.13.2)
 
 project(sge VERSION 0.1.0)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 
@@ -25,6 +29,14 @@ if(UV_FOUND)
 	link_libraries(${UV_LIBRARIES})
 else()
 	message(FATAL_ERROR "libuv not found.")
+endif()
+
+include(FindPhysFS)
+if(PHYSFS_FOUND)
+	include_directories(${PHYSFS_INCLUDE_DIR})
+	link_libraries(${PHYSFS_LIBRARY})
+else()
+	message(FATAL_ERROR "PhysFS not found.")
 endif()
 
 include_directories(

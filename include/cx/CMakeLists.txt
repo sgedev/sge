@@ -3,10 +3,12 @@ target_sources(sge
 	PUBLIC
 		common.h
 		common.hpp
-		config.h.in
+		filesystem.hpp
 		list.h
 		noncopyable.hpp
 		signal.hpp
+	PRIVATE
+		config.h.in
 	)
 
 configure_file(

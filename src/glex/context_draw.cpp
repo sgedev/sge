@@ -4,17 +4,17 @@
 
 GLEX_BEGIN
 
-void Context::BeginFrame(void)
+void Context::beginFrame(void)
 {
 }
 
-void Context::EndFrame(void)
+void Context::endFrame(void)
 {
 	glUseProgram(m_program);
 
-	CommitUniforms();
+	commitUniforms();
 
-	DrawTest();
+	drawTest();
 }
 
 GLEX_END

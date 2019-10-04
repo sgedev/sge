@@ -243,7 +243,7 @@ static const char *keycode_name_map[] = {
 	"KEY_SLEEP",
 };
 
-int keycode_from_name(const char *name)
+int KeycodeFromName(const char *name)
 {
 	SGE_ASSERT(name != NULL);
 
@@ -255,7 +255,7 @@ int keycode_from_name(const char *name)
 	return KEY_UNKNOWN;
 }
 
-const char *keycode_to_name(int key)
+const char *KeycodeToName(int key)
 {
 	if (KEY_UNKNOWN < key && key < KEY_MAX)
 		return keycode_name_map[key];

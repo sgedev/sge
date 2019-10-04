@@ -11,11 +11,11 @@
 
 SGE_BEGIN
 
-class entity {
+class Entity {
 public:
-	entity(void);
-	entity(const entity &that);
-	virtual ~entity(void);
+	Entity(void);
+	Entity(const Entity &that);
+	virtual ~Entity(void);
 
 public:
 	const char *name(void) const;
@@ -24,11 +24,11 @@ public:
 	void scaling(const glm::vec3 &xyz);
 	const glm::vec3 &position(void) const;
 	void move(const glm::vec3 &xyz);
-	void move_to(const glm::vec3 &xyz);
+	void moveTo(const glm::vec3 &xyz);
 	const glm::quat &rotation(void) const;
 	void rotate(float angle, const glm::vec3 &axis);
 	const glm::mat4 &transform(void);
-	void set_transform(const glm::mat4 &v);
+	void setTransform(const glm::mat4 &v);
 
 private:
 	glm::vec3 m_scale;
@@ -39,54 +39,54 @@ private:
 	std::string m_name;
 };
 
-inline const char *entity::name(void) const
+inline const char *Entity::name(void) const
 {
 	return m_name.c_str();
 }
 
-inline void entity::rename(const char *name)
+inline void Entity::rename(const char *name)
 {
 	m_name = name;
 }
 
-inline const glm::vec3 &entity::scale(void) const
+inline const glm::vec3 &Entity::scale(void) const
 {
 	return m_scale;
 }
 
-inline void entity::scaling(const glm::vec3 &xyz)
+inline void Entity::scaling(const glm::vec3 &xyz)
 {
 	m_scale = xyz;
 	m_dirty = true;
 }
 
-inline const glm::vec3 &entity::position(void) const
+inline const glm::vec3 &Entity::position(void) const
 {
 	return m_position;
 }
 
-inline void entity::move(const glm::vec3 &xyz)
+inline void Entity::move(const glm::vec3 &xyz)
 {
 	m_position = xyz;
 	m_dirty = true;
 }
 
-inline void entity::move_to(const glm::vec3 &xyz)
+inline void Entity::moveTo(const glm::vec3 &xyz)
 {
 	m_position += xyz;
 	m_dirty = true;
 }
 
-inline const glm::quat &entity::rotation(void) const
+inline const glm::quat &Entity::rotation(void) const
 {
 	return m_rotation;
 }
 
-inline void entity::rotate(float angle, const glm::vec3 &axis)
+inline void Entity::rotate(float angle, const glm::vec3 &axis)
 {
 }
 
-inline const glm::mat4 &entity::transform(void)
+inline const glm::mat4 &Entity::transform(void)
 {
 	if (m_dirty) {
 		// TODO
@@ -96,7 +96,7 @@ inline const glm::mat4 &entity::transform(void)
 	return m_transform;
 }
 
-inline void entity::set_transform(const glm::mat4 &v)
+inline void Entity::setTransform(const glm::mat4 &v)
 {
 	m_transform = v;
 	glm::vec3 skew;

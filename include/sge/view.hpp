@@ -9,10 +9,10 @@
 
 SGE_BEGIN
 
-class view {
+class View {
 public:
-	view(void);
-	virtual ~view(void);
+	View(void);
+	virtual ~View(void);
 
 public:
 	bool init(GLEX::Context *context);

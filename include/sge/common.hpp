@@ -5,6 +5,7 @@
 
 #include <cstdint>
 
+#include <physfs.h>
 #include <glm.hpp>
 #include <cx/common.hpp>
 
@@ -16,7 +17,7 @@
 #	define SGE_ASSERT(expr)
 #endif
 
-#define SGE_BEGIN namespace sge {
+#define SGE_BEGIN namespace SGE {
 #define SGE_END }
 
 #endif // SGE_COMMON_HPP

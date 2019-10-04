@@ -247,8 +247,8 @@ enum {
 	KEY_MAX
 };
 
-int keycode_from_name(const char *name);
-const char *keycode_to_name(int key);
+int KeycodeFromName(const char *name);
+const char *KeycodeToName(int key);
 
 SGE_END
 

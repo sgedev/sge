@@ -4,9 +4,9 @@ target_sources(sge
 		common.hpp
 		entity.hpp
 		event.hpp
-		filesystem.hpp
 		game.h
 		game.hpp
+		input.hpp
 		keycode.hpp
 		scene.hpp
 		view.hpp

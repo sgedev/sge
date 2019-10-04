@@ -17,17 +17,17 @@ extern "C" {
 #endif
 
 typedef struct {
-	cx_list_node_t node;
+	CXListNode node;
 	uv_timer_t sleep_timer;
 	void *data;
-} sge_game_task_t;
+} SGEGameTask_t;
 
-void sge_game_init_lua(lua_State* L);
-void sge_game_shutdown_lua(lua_State* L);
-void sge_game_add_lua_task(lua_State* L, lua_State* L1);
-void sge_game_remove_lua_task(lua_State* L, lua_State* L1);
-void sge_game_resume_lua_task(lua_State* L, int n);
-void sge_game_yield_lua_task(lua_State* L, int n);
+void SGEGameInitLua(lua_State* L);
+void SGEGameShutdownLua(lua_State* L);
+void SGEGameAddLuaTask(lua_State* L, lua_State* L1);
+void SGEGameRemoveLuaTask(lua_State* L, lua_State* L1);
+void SGEGameResumeLuaTask(lua_State* L, int n);
+void SGEGameYieldLuaTask(lua_State* L, int n);
 
 #ifdef __cplusplus
 }
@@ -36,37 +36,37 @@ void sge_game_yield_lua_task(lua_State* L, int n);
 #ifdef LUA_EXTRASPACE
 #undef LUA_EXTRASPACE
 #endif
-#define LUA_EXTRASPACE sizeof(sge_game_task_t)
+#define LUA_EXTRASPACE sizeof(SGEGameTask_t)
 
 #if defined(luai_userstateopen)
 #undef luai_userstateopen
 #endif
-#define luai_userstateopen sge_game_init_lua
+#define luai_userstateopen SGEGameInitLua
 
 #if defined(luai_userstateclose)
 #undef luai_userstateclose
 #endif
-#define luai_userstateclose sge_game_shutdown_lua
+#define luai_userstateclose SGEGameShutdownLua
 
 #if defined(luai_userstatethread)
 #undef luai_userstatethread
 #endif
-#define luai_userstatethread sge_game_add_lua_task
+#define luai_userstatethread SGEGameAddLuaTask
 
 #if defined(luai_userstatefree)
 #undef luai_userstatefree
 #endif
-#define luai_userstatefree sge_game_remove_lua_task
+#define luai_userstatefree SGEGameRemoveLuaTask
 
 #if defined(luai_userstateresume)
 #undef luai_userstateresume
 #endif
-#define luai_userstateresume sge_game_resume_lua_task
+#define luai_userstateresume SGEGameResumeLuaTask
 
 #if defined(luai_userstateyield)
 #undef luai_userstateyield
 #endif
-#define luai_userstateyield sge_game_yield_lua_task
+#define luai_userstateyield SGEGameYieldLuaTask
 
 #endif /* SGE_GAME_H */
 

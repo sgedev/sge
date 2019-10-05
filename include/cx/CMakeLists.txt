@@ -3,8 +3,8 @@ target_sources(sge
 	PUBLIC
 		common.h
 		common.hpp
-		filesystem.hpp
 		list.h
+		filesystem.hpp
 		noncopyable.hpp
 		signal.hpp
 	PRIVATE

@@ -50,8 +50,8 @@ struct Event final {
 
 	union {
 		Key v_key;
-		MouseButton v_mouse_button;
-		MouseMove v_mouse_move;
+		MouseButton v_mouseButton;
+		MouseMove v_mouseMove;
 	} value;
 
 	Event(int t = TYPE_INVALID);
@@ -68,6 +68,16 @@ inline Event::Event(const Event& that)
 	: type(that.type)
 	, value(that.value)
 {
+}
+
+inline Event &Event::operator=(const Event &that)
+{
+	if (this != &that) {
+		type = that.type;
+		value = that.value;
+	}
+
+	return (*this);
 }
 
 SGE_END

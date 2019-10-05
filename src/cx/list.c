@@ -17,7 +17,7 @@ CX_API int CXGetListLength(CXList *list)
 	return length;
 }
 
-int CXIsListContains(CXList *list, CXListNode *node)
+CX_API int CXIsListContains(CXList *list, CXListNode *node)
 {
 	CXListNode *temp;
 
@@ -31,4 +31,3 @@ int CXIsListContains(CXList *list, CXListNode *node)
 
 	return 0;
 }
-

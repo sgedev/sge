@@ -1,33 +1,32 @@
-
-find_path(ASSIMP_INCLUDE_DIR assimp/version.h
-  HINTS
-    ENV ASSIMP_DIR
-  PATH_SUFFIXES include
-  PATHS
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /sw # Fink
-  /opt/local # DarwinPorts
-  /opt/csw # Blastwave
-  /opt
+# - Try to find Assimp
+# Once done, this will define
+#
+# ASSIMP_FOUND - system has Assimp
+# ASSIMP_INCLUDE_DIR - the Assimp include directories
+# ASSIMP_LIBRARIES - link these to use Assimp
+FIND_PATH( ASSIMP_INCLUDE_DIR assimp/mesh.h
+	/usr/include
+	/usr/local/include
+	/opt/local/include
+	${CMAKE_SOURCE_DIR}/includes
 )
-
-find_library(ASSIMP_LIBRARY
-  NAMES assimp
-  HINTS
-    ENV ASSIMP_DIR
-  PATH_SUFFIXES lib
-  PATHS
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /sw
-  /opt/local
-  /opt/csw
-  /opt
+FIND_LIBRARY( ASSIMP_LIBRARY assimp
+	/usr/lib64
+	/usr/lib
+	/usr/local/lib
+	/opt/local/lib
+	${CMAKE_SOURCE_DIR}/lib
 )
-
-include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(ASSIMP REQUIRED_VARS ASSIMP_LIBRARY ASSIMP_INCLUDE_DIR)
-
-mark_as_advanced(ASSIMP_INCLUDE_DIR ASSIMP_LIBRARY)
-
+IF(ASSIMP_INCLUDE_DIR AND ASSIMP_LIBRARY)
+	SET( ASSIMP_FOUND TRUE )
+	SET( ASSIMP_LIBRARIES ${ASSIMP_LIBRARY} )
+ENDIF(ASSIMP_INCLUDE_DIR AND ASSIMP_LIBRARY)
+IF(ASSIMP_FOUND)
+	IF(NOT ASSIMP_FIND_QUIETLY)
+	MESSAGE(STATUS "Found ASSIMP: ${ASSIMP_LIBRARY}")
+	ENDIF(NOT ASSIMP_FIND_QUIETLY)
+ELSE(ASSIMP_FOUND)
+	IF(ASSIMP_FIND_REQUIRED)
+	MESSAGE(FATAL_ERROR "Could not find libASSIMP")
+	ENDIF(ASSIMP_FIND_REQUIRED)
+ENDIF(ASSIMP_FOUND)

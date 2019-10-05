@@ -17,6 +17,7 @@ public:
 public:
 	bool init(GLEX::Context *context);
 	void shutdown(void);
+	void render(void);
 
 private:
 	GLEX::Context *m_context;

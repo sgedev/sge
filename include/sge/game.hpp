@@ -11,7 +11,7 @@
 #include <functional>
 
 #include <lua.hpp>
-#include <cx/filesystem.hpp>
+#include <physfs.h>
 
 #include <sge/common.hpp>
 #include <sge/event.hpp>
@@ -36,11 +36,12 @@ public:
 	virtual ~Game(void);
 
 public:
-	virtual bool init(const char *root);
+	virtual bool init(void);
 	virtual void shutdown(void);
 	virtual bool handleEvent(const Event *evt);
 	virtual void update(float elapsed);
 	virtual void draw(View *v);
+	PHYSFS_Context *fs(void);
 
 protected:
 	enum TrapType {
@@ -89,21 +90,29 @@ private:
 	void tmain(std::promise<bool> *init_result);
 
 private:
+	PHYSFS_Context *m_fs;
 	lua_State *m_L;
-	std::thread m_thread;
+	std::thread m_luaThread;
 	std::mutex m_mutex;
 	std::condition_variable_any m_cond;
 	uv_loop_t m_loop;
-	uv_async_t m_quit_async;
+	uv_async_t m_quitAsync;
 	bool m_running;
 	state m_state;
-	CXList m_task_list;
-	CXList m_task_list_sleep;
-	TrapType m_current_trap;
-	int m_current_trap_result;
-	lua_State *m_current_trap_L;
+	CXList m_taskList;
+	CXList m_taskListSleep;
+	TrapType m_currentTrap;
+	int m_currentTrapResult;
+	lua_State *m_currentTrapLua;
 	Scene m_scene;
 };
+
+inline PHYSFS_Context *Game::fs(void)
+{
+	SGE_ASSERT(m_fs != NULL);
+
+	return m_fs;
+}
 
 SGE_END
 

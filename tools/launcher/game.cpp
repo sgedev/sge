@@ -266,8 +266,11 @@ bool Game::init(const char *root)
 {
 	SGE_ASSERT(m_window == NULL);
 
-	if (!SGE::Game::init(root))
+	if (!SGE::Game::init())
 		goto bad0;
+
+	PHYSFS_makeCurrent(fs());
+	PHYSFS_mount(root, "/", 0);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -389,6 +392,7 @@ void Game::frame(float elapsed)
 		glClear(GL_COLOR_BUFFER_BIT);
 		m_glex.beginFrame();
 		draw(&m_view);
+		m_view.render();
 		m_glex.endFrame();
 		SDL_GL_SwapWindow(m_window);
 	}
@@ -445,13 +449,13 @@ bool Game::handleMouseButtonEvent(const SDL_Event *event)
 
 	switch (event->button.button) {
 	case SDL_BUTTON_LEFT:
-		evt.value.v_mouse_button.button = SGE::Event::MouseButton::BUTTON1;
+		evt.value.v_mouseButton.button = SGE::Event::MouseButton::BUTTON1;
 		break;
 	case SDL_BUTTON_MIDDLE:
-		evt.value.v_mouse_button.button = SGE::Event::MouseButton::BUTTON3;
+		evt.value.v_mouseButton.button = SGE::Event::MouseButton::BUTTON3;
 		break;
 	case SDL_BUTTON_RIGHT:
-		evt.value.v_mouse_button.button = SGE::Event::MouseButton::BUTTON2;
+		evt.value.v_mouseButton.button = SGE::Event::MouseButton::BUTTON2;
 		break;
 	default:
 		return false;
@@ -466,8 +470,8 @@ bool Game::handleMouseMoveEvent(const SDL_Event *event)
 
 	SGE::Event evt(SGE::Event::TYPE_MOUSE_MOVE);
 
-	evt.value.v_mouse_move.dx = event->motion.xrel;
-	evt.value.v_mouse_move.dy = event->motion.yrel;
+	evt.value.v_mouseMove.dx = event->motion.xrel;
+	evt.value.v_mouseMove.dy = event->motion.yrel;
 
 	return SGE::Game::handleEvent(&evt);
 }

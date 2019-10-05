@@ -32,5 +32,10 @@ void View::shutdown(void)
 	m_context = NULL;
 }
 
+void View::render(void)
+{
+	SGE_ASSERT(m_context != NULL);
+}
+
 SGE_END
 

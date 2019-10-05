@@ -31,25 +31,33 @@ static inline Game *GameFromLua(lua_State *L)
 
 Game::Game(void)
 	: m_L(NULL)
-	, m_current_trap(TRAP_INVALID)
+	, m_currentTrap(TRAP_INVALID)
 {
 }
 
 Game::~Game(void)
 {
+	if (m_fs != NULL)
+		shutdown();
 }
 
-bool Game::init(const char *root)
+bool Game::init(void)
 {
+	SGE_ASSERT(fs != NULL);
+	SGE_ASSERT(m_fs == NULL);
 	SGE_ASSERT(m_L == NULL);
+
+	m_fs = PHYSFS_createContext();
+	if (m_fs == NULL)
+		return false;
 	
 	return true;
 
 	m_running = true;
 
 	std::promise<bool> init_result;
-	m_thread = std::thread(&Game::tmain, this, &init_result);
-	if (!m_thread.joinable())
+	m_luaThread = std::thread(&Game::tmain, this, &init_result);
+	if (!m_luaThread.joinable())
 		return false;
 
 	auto init_done = init_result.get_future();
@@ -65,6 +73,11 @@ bool Game::init(const char *root)
 
 void Game::shutdown(void)
 {
+	SGE_ASSERT(m_fs != NULL);
+
+	PHYSFS_deleteContext(m_fs);
+	m_fs = NULL;
+
 	return;
 
 	if (!m_running)
@@ -72,10 +85,10 @@ void Game::shutdown(void)
 
 	SGE_ASSERT(m_L != NULL);
 
-	uv_async_send(&m_quit_async);
+	uv_async_send(&m_quitAsync);
 
-	if (m_thread.joinable())
-		m_thread.join();
+	if (m_luaThread.joinable())
+		m_luaThread.join();
 }
 
 bool Game::handleEvent(const Event *evt)
@@ -87,15 +100,15 @@ void Game::update(float elapsed)
 {
 	m_scene.update(elapsed);
 
-	if (m_current_trap == TRAP_INVALID)
+	if (m_currentTrap == TRAP_INVALID)
 		return;
 
 	std::lock_guard<std::mutex> lock(m_mutex);
 
-	if (m_current_trap == TRAP_INVALID)
+	if (m_currentTrap == TRAP_INVALID)
 		return;
 
-	m_current_trap_result = trapBE(m_current_trap_L, m_current_trap);
+	m_currentTrapResult = trapBE(m_currentTrapLua, m_currentTrap);
 	m_cond.notify_all();
 }
 
@@ -117,26 +130,26 @@ void Game::draw(View *v)
 
 int Game::trapFE(lua_State *L, TrapType tt)
 {
-	SGE_ASSERT(m_current_trap == TRAP_INVALID);
-	SGE_ASSERT(m_current_trap_L == NULL);
+	SGE_ASSERT(m_currentTrap == TRAP_INVALID);
+	SGE_ASSERT(m_currentTrapLua == NULL);
 	SGE_ASSERT(L != NULL);
 	SGE_ASSERT(tt != TRAP_INVALID);
 
-	m_current_trap = tt;
-	m_current_trap_L = L;
-	m_current_trap_result = TRAP_RESULT_NOT_SET;
+	m_currentTrap = tt;
+	m_currentTrapLua = L;
+	m_currentTrapResult = TRAP_RESULT_NOT_SET;
 
 	m_cond.wait(m_mutex);
 
-	SGE_ASSERT(m_current_trap_result != TRAP_RESULT_NOT_SET);
+	SGE_ASSERT(m_currentTrapResult != TRAP_RESULT_NOT_SET);
 
-	switch (m_current_trap_result) {
+	switch (m_currentTrapResult) {
 	case TRAP_RESULT_NOT_SUPPORT:
 		luaL_error(L, "trap %d not support.", tt); // FIXME: how about the mutex if longjmp?
 		break;
 	}
 
-	return m_current_trap_result;
+	return m_currentTrapResult;
 }
 
 int Game::trapBE(lua_State *L, TrapType tt)
@@ -206,8 +219,8 @@ void Game::sleepDone(uv_timer_t *timer)
 	Game *G = GameFromTask(T);
 	SGE_ASSERT(V != NULL);
 
-	CXDeleteListNode(&G->m_task_list_sleep, &T->node);
-	CXAddListTail(&G->m_task_list, &T->node);
+	CXDeleteListNode(&G->m_taskListSleep, &T->node);
+	CXAddListTail(&G->m_taskList, &T->node);
 }
 
 int Game::trapSleep(lua_State *L)
@@ -222,7 +235,7 @@ int Game::trapSleep(lua_State *L)
 		Game *G = GameFromTask(T);
 		SGE_ASSERT(V != NULL);
 		uv_timer_start(&T->sleep_timer, &Game::sleepDone, ms, 0);
-		CXAddListTail(&G->m_task_list_sleep, &T->node);
+		CXAddListTail(&G->m_taskListSleep, &T->node);
 	}
 
 	return lua_yield(L, 0);
@@ -295,7 +308,7 @@ void Game::gmain(std::promise<bool> *init_result)
 	SGE_ASSERT(init_result != NULL);
 
 	uv_loop_init(&m_loop);
-	uv_async_init(&m_loop, &m_quit_async, &Game::quitAsync);
+	uv_async_init(&m_loop, &m_quitAsync, &Game::quitAsync);
 
 	initLuaTraps();
 

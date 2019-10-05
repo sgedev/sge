@@ -10,6 +10,7 @@ target_sources(sge
 	PUBLIC
 		glex.hpp
 		glm.hpp
+		physfs.h
 		sge.hpp
 	PRIVATE
 		lauxlib.h

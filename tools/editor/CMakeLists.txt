@@ -1,4 +1,12 @@
 
+include(FindAssimp)
+if(ASSIMP_FOUND)
+	include_directories(${ASSIMP_INCLUDE_DIR})
+	link_libraries(${ASSIMP_LIBRARY})
+else()
+	message(FATAL_ERROR "Assimp not found. ${ASSIMP_INCLUDE_DIR}")
+endif()
+
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5Core)
@@ -12,11 +20,16 @@ link_libraries(
 	)
 
 add_executable(sge-editor
+	common.hpp
 	consoleview.cpp
 	consoleview.hpp
+	importer.cpp
+	importer.hpp
 	main.cpp
 	mainwindow.cpp
 	mainwindow.hpp
+	newprojectdialog.cpp
+	newprojectdialog.hpp
 	project.cpp
 	project.hpp
 	projectview.cpp

@@ -46,7 +46,6 @@ public:
 
 public:
 	virtual int flags(void) = 0;
-	virtual const char *getcwd(void) = 0;
 	virtual Dir *openDir(const char *dirpath) = 0;
 	virtual void close(Dir *dir) = 0;
 	virtual bool readDir(Dir *dir, Entry *ent) = 0;
@@ -65,6 +64,52 @@ inline Filesystem::Filesystem(void)
 inline Filesystem::~Filesystem(void)
 {
 }
+
+class Dir {
+public:
+	Dir(Filesystem &fs, Filesystem::Dir *dir = NULL);
+	virtual ~Dir(void);
+
+private:
+	Filesystem &m_fs;
+	Filesystem::Dir *m_dir;
+};
+
+inline Dir::Dir(Filesystem &fs, Filesystem::Dir *dir)
+	: m_fs(fs)
+	, m_dir(dir)
+{
+}
+
+inline Dir::~Dir(void)
+{
+	if (m_dir != NULL)
+		m_fs.close(m_dir);
+}
+
+class File {
+public:
+	File(Filesystem &fs, Filesystem::File *file = NULL);
+	virtual ~File(void);
+
+private:
+	Filesystem &m_fs;
+	Filesystem::File *m_file;
+};
+
+inline File::File(Filesystem &fs, Filesystem::File *file)
+	: m_fs(fs)
+	, m_file(file)
+{
+}
+
+inline File::~File(void)
+{
+	if (m_file != NULL)
+		m_fs.close(m_file);
+}
+
+CX_API Filesystem *createNativeFilesystem(const char *root_path);
 
 CX_END
 

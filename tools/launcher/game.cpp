@@ -266,11 +266,8 @@ bool Game::init(const char *root)
 {
 	SGE_ASSERT(m_window == NULL);
 
-	if (!SGE::Game::init())
+	if (!SGE::Game::init(root))
 		goto bad0;
-
-	PHYSFS_makeCurrent(fs());
-	PHYSFS_mount(root, "/", 0);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -311,16 +308,10 @@ bool Game::init(const char *root)
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-	if (!m_glex.init())
+	if (!m_view.init())
 		goto bad3;
 
-	if (!m_view.init(&m_glex))
-		goto bad4;
-
 	return true;
-
-bad4:
-	m_glex.shutdown();
 
 bad3:
 	SDL_GL_DeleteContext(m_gl);
@@ -341,7 +332,7 @@ void Game::shutdown(void)
 {
 	SGE_ASSERT(m_window != NULL);
 
-	m_glex.shutdown();
+	m_view.shutdown();
 
 	SDL_GL_DeleteContext(m_gl);
 	m_gl = NULL;
@@ -390,10 +381,9 @@ void Game::frame(float elapsed)
 		gl3wProcs = &m_gl3w;
 		glViewport(0, 0, m_windowRect[2], m_windowRect[3]);
 		glClear(GL_COLOR_BUFFER_BIT);
-		m_glex.beginFrame();
+		m_view.beginFrame();
 		draw(&m_view);
-		m_view.render();
-		m_glex.endFrame();
+		m_view.endFrame();
 		SDL_GL_SwapWindow(m_window);
 	}
 }

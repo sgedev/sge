@@ -1,8 +1,11 @@
 //
 //
+#include <QFile>
+
 #include "project.hpp"
 
-Project::Project(void)
+Project::Project(QObject *parent)
+	: QObject(parent)
 {
 }
 
@@ -10,65 +13,71 @@ Project::~Project(void)
 {
 }
 
-bool Project::init(const char *root)
+void Project::reset(void)
 {
-	if (!SGE::Game::init())
-		return false;
+	m_game.shutdown();
+}
 
-	PHYSFS_makeCurrent(fs());
-	PHYSFS_mount(root, "/", 0);
+bool Project::setup(const QDir &d)
+{
+	if (!d.path().isEmpty()) {
+		if (!d.exists())
+			return false;
+
+		QDir::setCurrent(d.path());
+
+		QFile version_file(d.path() + "/version");
+		if (!version_file.open(QIODevice::ReadWrite)) {
+			printf("failed to create version.\n");
+		}
+
+		version_file.write("SGEV1\n", 6);
+		version_file.close();
+
+		QString vroot = "/" + d.dirName();
+
+		if (!m_game.init(vroot.toStdString().c_str()))
+			return false;
+	}
+
+	m_dir = d;
+	dirChanged(d);
 
 	return true;
 }
 
-void Project::shutdown(void)
+bool Project::handleEvent(const QEvent *evt)
 {
-	SGE::Game::shutdown();
-}
-
-bool Project::handleEvent(const SGE::Event *evt)
-{
-	return SGE::Game::handleEvent(evt);
+	return m_game.handleEvent(evt);
 }
 
 void Project::update(float elapsed)
 {
-	SGE::Game::update(elapsed);
+	m_game.update(elapsed);
 }
 
 void Project::draw(SGE::View *v)
 {
-	SGE::Game::draw(v);
+	m_game.draw(v);
 }
 
-bool Project::save(const char *path)
+bool Project::save(const QDir &d)
 {
 	return true;
 }
 
-bool Project::load(const char *path)
+bool Project::load(const QDir &d)
 {
 	return true;
 }
 
-bool Project::importFile(const char *import_path, const char *filename)
+bool Project::importFile(const QString &import_path, const QString &filename)
 {
 	return true;
 }
 
-bool Project::exportFile(const char *export_path, const char *filename)
+bool Project::exportFile(const QString &export_path, const QString &filename)
 {
 	return true;
 }
 
-int Project::trapFps(lua_State *L)
-{
-	lua_pushinteger(L, 0);
-	return 1;
-}
-
-int Project::trapEditorIsEnabled(lua_State *L)
-{
-	lua_pushboolean(L, 1);
-	return 1;
-}

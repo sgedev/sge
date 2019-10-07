@@ -7,32 +7,49 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-#include <sge.hpp>
-
+#include <QEvent>
 #include <QList>
+#include <QDir>
 
-class Project: public SGE::Game {
+#include "game.hpp"
+
+class Project: public QObject {
+	Q_OBJECT
+
 public:
-	Project(void);
+	Project(QObject *parent = Q_NULLPTR);
 	virtual ~Project(void);
 
-public:
-	bool init(const char *root);
-	void shutdown(void) override;
-	bool handleEvent(const SGE::Event *evt) override;
-	void update(float elapsed) override;
-	void draw(SGE::View *v) override;
-	bool save(const char *path);
-	bool load(const char *path);
-	bool importFile(const char *import_path, const char *filename);
-	bool exportFile(const char *export_path, const char *filename);
+signals:
+	void dirChanged(const QDir &d);
 
-protected:
-	int trapFps(lua_State *L) override;
-	int trapEditorIsEnabled(lua_State *L) override;
+public:
+	void reset(void);
+	bool setup(const QDir &d);
+	bool handleEvent(const QEvent *evt);
+	void update(float elapsed);
+	void draw(SGE::View *v);
+	bool save(const QDir &d);
+	bool load(const QDir &d);
+	bool importFile(const QString &import_path, const QString &filename);
+	bool exportFile(const QString &export_path, const QString &filename);
+	Game &game(void);
+	const QDir &dir(void) const;
 
 private:
+	Game m_game;
+	QDir m_dir;
 	Assimp::Importer m_importer;
 };
+
+inline Game &Project::game(void)
+{
+	return m_game;
+}
+
+inline const QDir &Project::dir(void) const
+{
+	return m_dir;
+}
 
 #endif // SGE_EDITOR_PROJECT_HPP

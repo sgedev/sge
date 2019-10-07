@@ -7,6 +7,7 @@
 #include <glex.hpp>
 #include <sge.hpp>
 
+#include <QEvent>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
 
@@ -20,10 +21,11 @@ public:
 	virtual ~SceneView(void);
 
 public:
-	bool attachProject(Project *project);
+	bool setProject(Project *project);
 	Project *project(void);
 
 protected:
+	bool event(QEvent *evt) override;
 	void initializeGL(void) override;
 	void paintGL(void) override;
 	void resizeGL(int w, int h) override;
@@ -31,7 +33,6 @@ protected:
 private:
 	Project *m_project;
 	GL3WProcs m_gl3w;
-	GLEX::Context m_glex;
 	SGE::View m_view;
 };
 

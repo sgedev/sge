@@ -2,8 +2,6 @@
 //
 #include <cstdio>
 
-#include <physfs.h>
-
 #define WIN32_LEAN_AND_MEAN
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -36,17 +34,11 @@ static void PollEvents(void)
 
 int main(int argc, char *argv[])
 {
-	if (!PHYSFS_init(NULL))
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 		return EXIT_FAILURE;
-
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		PHYSFS_deinit();
-		return EXIT_FAILURE;
-	}
 
 	if (!MainGame.init("/")) {
 		SDL_Quit();
-		PHYSFS_deinit();
 		return EXIT_FAILURE;
 	}
 
@@ -59,7 +51,6 @@ int main(int argc, char *argv[])
 
 	MainGame.shutdown();
 	SDL_Quit();
-	PHYSFS_deinit();
 
 	return EXIT_SUCCESS;
 }

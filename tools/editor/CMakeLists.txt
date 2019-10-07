@@ -4,7 +4,7 @@ if(ASSIMP_FOUND)
 	include_directories(${ASSIMP_INCLUDE_DIR})
 	link_libraries(${ASSIMP_LIBRARY})
 else()
-	message(FATAL_ERROR "Assimp not found. ${ASSIMP_INCLUDE_DIR}")
+	message(FATAL_ERROR "Assimp not found.")
 endif()
 
 set(CMAKE_AUTOMOC ON)
@@ -23,6 +23,8 @@ add_executable(sge-editor
 	common.hpp
 	consoleview.cpp
 	consoleview.hpp
+	game.cpp
+	game.hpp
 	importer.cpp
 	importer.hpp
 	main.cpp

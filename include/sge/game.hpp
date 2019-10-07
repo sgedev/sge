@@ -8,7 +8,7 @@
 #include <thread>
 #include <condition_variable>
 #include <mutex>
-#include <functional>
+#include <string>
 
 #include <lua.hpp>
 #include <physfs.h>
@@ -36,12 +36,20 @@ public:
 	virtual ~Game(void);
 
 public:
-	virtual bool init(void);
+	virtual bool init(const std::string &root);
 	virtual void shutdown(void);
 	virtual bool handleEvent(const Event *evt);
 	virtual void update(float elapsed);
 	virtual void draw(View *v);
-	PHYSFS_Context *fs(void);
+
+private:
+	static void quitAsync(uv_async_t *p);
+	void initLuaTraps(void);
+	bool initMainTask(void);
+	void schedule(void);
+	void gmain(std::promise<bool> *init_result);
+	static int pmain(lua_State *L);
+	void tmain(std::promise<bool> *init_result);
 
 protected:
 	enum TrapType {
@@ -81,16 +89,7 @@ private:
 	static int trapEditorIsEnabledFE(lua_State *L);
 
 private:
-	static void quitAsync(uv_async_t *p);
-	void initLuaTraps(void);
-	bool initMainTask(void);
-	void schedule(void);
-	void gmain(std::promise<bool> *init_result);
-	static int pmain(lua_State *L);
-	void tmain(std::promise<bool> *init_result);
-
-private:
-	PHYSFS_Context *m_fs;
+	std::string m_root;
 	lua_State *m_L;
 	std::thread m_luaThread;
 	std::mutex m_mutex;
@@ -106,13 +105,6 @@ private:
 	lua_State *m_currentTrapLua;
 	Scene m_scene;
 };
-
-inline PHYSFS_Context *Game::fs(void)
-{
-	SGE_ASSERT(m_fs != NULL);
-
-	return m_fs;
-}
 
 SGE_END
 

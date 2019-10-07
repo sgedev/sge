@@ -37,20 +37,15 @@ Game::Game(void)
 
 Game::~Game(void)
 {
-	if (m_fs != NULL)
-		shutdown();
+	// TODO
 }
 
-bool Game::init(void)
+bool Game::init(const std::string &root)
 {
-	SGE_ASSERT(fs != NULL);
-	SGE_ASSERT(m_fs == NULL);
 	SGE_ASSERT(m_L == NULL);
 
-	m_fs = PHYSFS_createContext();
-	if (m_fs == NULL)
-		return false;
-	
+	m_root = root;
+
 	return true;
 
 	m_running = true;
@@ -73,11 +68,6 @@ bool Game::init(void)
 
 void Game::shutdown(void)
 {
-	SGE_ASSERT(m_fs != NULL);
-
-	PHYSFS_deleteContext(m_fs);
-	m_fs = NULL;
-
 	return;
 
 	if (!m_running)
@@ -126,6 +116,118 @@ void Game::draw(View *v)
 	}
 
 	m_scene.draw(v);
+}
+
+void Game::quitAsync(uv_async_t *p)
+{
+	Game *G = (Game *)(p->data);
+	G->m_running = false;
+	uv_stop(&G->m_loop);
+}
+
+void Game::initLuaTraps(void)
+{
+	lua_newtable(m_L);
+
+	lua_pushcfunction(m_L, &Game::trapVersion);
+	lua_setfield(m_L, -2, "version");
+
+	lua_pushcfunction(m_L, &Game::trapTask);
+	lua_setfield(m_L, -2, "task");
+
+	lua_pushcfunction(m_L, &Game::trapCurrent);
+	lua_setfield(m_L, -2, "current");
+
+	lua_pushcfunction(m_L, &Game::trapSleep);
+	lua_setfield(m_L, -2, "sleep");
+
+	lua_pushcfunction(m_L, &Game::trapFpsFE);
+	lua_setfield(m_L, -2, "fps");
+
+	lua_newtable(m_L);
+
+	lua_pushcfunction(m_L, &Game::trapEditorIsEnabledFE);
+	lua_setfield(m_L, -2, "enabled");
+
+	lua_setfield(m_L, -2, "editor");
+
+	lua_setglobal(m_L, "sge");
+}
+
+bool Game::initMainTask(void)
+{
+	return false;
+}
+
+void Game::schedule(void)
+{
+
+}
+
+void Game::gmain(std::promise<bool> *init_result)
+{
+	SGE_ASSERT(init_result != NULL);
+
+	uv_loop_init(&m_loop);
+	uv_async_init(&m_loop, &m_quitAsync, &Game::quitAsync);
+
+	initLuaTraps();
+
+	if (!initMainTask()) {
+		init_result->set_value(false);
+		return;
+	}
+
+	init_result->set_value(true);
+
+	while (m_running) {
+		uv_run(&m_loop, UV_RUN_DEFAULT);
+		schedule();
+	}
+
+	uv_loop_close(&m_loop);
+}
+
+int Game::pmain(lua_State *L)
+{
+	auto gp = (Game *)lua_touserdata(L, 1);
+	auto init_result = (std::promise<bool> *)lua_touserdata(L, 2);
+
+	SGE_ASSERT(init_result != NULL);
+
+	gp->gmain(init_result);
+
+	return 0;
+}
+
+void Game::tmain(std::promise<bool> *init_result)
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+
+	SGE_ASSERT(m_L == NULL);
+
+	m_L = luaL_newstate();
+	if (m_L == NULL) {
+		init_result->set_value(false);
+		return;
+	}
+
+	GameAttach(this, m_L);
+
+	lua_pushcfunction(m_L, &pmain);
+	lua_pushlightuserdata(m_L, this);
+	lua_pushlightuserdata(m_L, init_result);
+
+	int ret;
+
+	ret = lua_pcall(m_L, 2, 1, 0);
+	// TODO
+
+	ret = lua_toboolean(m_L, -1);
+	// TODO
+
+	lua_close(m_L);
+	m_L = NULL;
 }
 
 int Game::trapFE(lua_State *L, TrapType tt)
@@ -255,118 +357,6 @@ int Game::trapEditorIsEnabledFE(lua_State *L)
 	SGE_ASSERT(G != NULL);
 
 	return G->trapFE(L, TRAP_EDITOR_IS_ENABLED);
-}
-
-void Game::quitAsync(uv_async_t *p)
-{
-	Game *G = (Game *)(p->data);
-	G->m_running = false;
-	uv_stop(&G->m_loop);
-}
-
-void Game::initLuaTraps(void)
-{
-	lua_newtable(m_L);
-
-	lua_pushcfunction(m_L, &Game::trapVersion);
-	lua_setfield(m_L, -2, "version");
-
-	lua_pushcfunction(m_L, &Game::trapTask);
-	lua_setfield(m_L, -2, "task");
-
-	lua_pushcfunction(m_L, &Game::trapCurrent);
-	lua_setfield(m_L, -2, "current");
-
-	lua_pushcfunction(m_L, &Game::trapSleep);
-	lua_setfield(m_L, -2, "sleep");
-
-	lua_pushcfunction(m_L, &Game::trapFpsFE);
-	lua_setfield(m_L, -2, "fps");
-
-	lua_newtable(m_L);
-
-	lua_pushcfunction(m_L, &Game::trapEditorIsEnabledFE);
-	lua_setfield(m_L, -2, "enabled");
-
-	lua_setfield(m_L, -2, "editor");
-
-	lua_setglobal(m_L, "sge");
-}
-
-bool Game::initMainTask(void)
-{
-	return false;
-}
-
-void Game::schedule(void)
-{
-
-}
-
-void Game::gmain(std::promise<bool> *init_result)
-{
-	SGE_ASSERT(init_result != NULL);
-
-	uv_loop_init(&m_loop);
-	uv_async_init(&m_loop, &m_quitAsync, &Game::quitAsync);
-
-	initLuaTraps();
-
-	if (!initMainTask()) {
-		init_result->set_value(false);
-		return;
-	}
-
-	init_result->set_value(true);
-
-	while (m_running) {
-		uv_run(&m_loop, UV_RUN_DEFAULT);
-		schedule();
-	}
-
-	uv_loop_close(&m_loop);
-}
-
-int Game::pmain(lua_State *L)
-{
-	auto gp = (Game *)lua_touserdata(L, 1);
-	auto init_result = (std::promise<bool> *)lua_touserdata(L, 2);
-
-	SGE_ASSERT(init_result != NULL);
-
-	gp->gmain(init_result);
-
-	return 0;
-}
-
-void Game::tmain(std::promise<bool> *init_result)
-{
-	std::lock_guard<std::mutex> lock(m_mutex);
-
-	SGE_ASSERT(m_L == NULL);
-
-	m_L = luaL_newstate();
-	if (m_L == NULL) {
-		init_result->set_value(false);
-		return;
-	}
-
-	GameAttach(this, m_L);
-
-	lua_pushcfunction(m_L, &pmain);
-	lua_pushlightuserdata(m_L, this);
-	lua_pushlightuserdata(m_L, init_result);
-
-	int ret;
-
-	ret = lua_pcall(m_L, 2, 1, 0);
-	// TODO
-
-	ret = lua_toboolean(m_L, -1);
-	// TODO
-
-	lua_close(m_L);
-	m_L = NULL;
 }
 
 SGE_END

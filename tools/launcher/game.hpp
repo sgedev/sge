@@ -35,7 +35,6 @@ private:
 	bool m_windowVisibled;
 	SDL_GLContext m_gl;
 	union GL3WProcs m_gl3w;
-	GLEX::Context m_glex;
 	SGE::View m_view;
 };
 

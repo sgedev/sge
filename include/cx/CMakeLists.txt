@@ -4,7 +4,6 @@ target_sources(sge
 		common.h
 		common.hpp
 		list.h
-		filesystem.hpp
 		noncopyable.hpp
 		signal.hpp
 	PRIVATE

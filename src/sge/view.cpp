@@ -6,7 +6,6 @@ SGE_BEGIN
 
 View::View(void)
 	: m_glex(NULL)
-	, m_nanovg(NULL)
 {
 }
 
@@ -16,27 +15,16 @@ View::~View(void)
 		shutdown();
 }
 
-bool View::init(void)
+bool View::init(GL3WGetProcAddressProc proc)
 {
+	SGE_ASSERT(proc != NULL);
 	SGE_ASSERT(m_glex == NULL);
-	SGE_ASSERT(m_nanovg == NULL);
 
-	m_glex = new GLEX::Context();
+	m_glex = glexCreateContext(proc);
 	if (m_glex == NULL)
 		return false;
 
-	if (!m_glex->init()) {
-		delete m_glex;
-		m_glex = NULL;
-		return false;
-	}
-
-	m_nanovg = nvgCreateGL3(0);
-	if (m_nanovg == NULL) {
-		delete m_glex;
-		m_glex = NULL;
-		return false;
-	}
+	glexMakeCurrent(m_glex);
 
 	return true;
 }
@@ -44,33 +32,28 @@ bool View::init(void)
 void View::shutdown(void)
 {
 	SGE_ASSERT(m_glex != NULL);
-	SGE_ASSERT(m_nanovg != NULL);
 
-	delete m_glex;
+	glexDeleteContext(m_glex);
 	m_glex = NULL;
-
-	nvgDeleteGL3(m_nanovg);
-	m_nanovg = NULL;
 }
 
 void View::beginFrame(void)
 {
 	SGE_ASSERT(m_glex != NULL);
-	SGE_ASSERT(m_nanovg != NULL);
+
+	glexMakeCurrent(m_glex);
 
 	//glViewport(m_viewport[0], m_viewport[1], m_viewport[2], m_viewport[3]);
 
-	m_glex->beginFrame();
-	//nvgBeginFrame(m_nanovg, float(m_viewport[2]), float(m_viewport[3]), 1.0f);
+	glexBeginFrame();
 }
 
 void View::endFrame(void)
 {
 	SGE_ASSERT(m_glex != NULL);
-	SGE_ASSERT(m_nanovg != NULL);
+	SGE_ASSERT(m_glex == glexGetCurrentContext());
 
-	//nvgEndFrame(m_nanovg);
-	m_glex->endFrame();
+	glexEndFrame();
 }
 
 SGE_END

@@ -1,4 +1,0 @@
-//
-//
-#include <GLEX/material.hpp>
-

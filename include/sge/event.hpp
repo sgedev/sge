@@ -3,12 +3,14 @@
 #ifndef SGE_EVENT_HPP
 #define SGE_EVENT_HPP
 
+#include <cx/noncopyable.hpp>
+
 #include <sge/common.hpp>
 #include <sge/keycode.hpp>
 
 SGE_BEGIN
 
-struct Event final {
+struct Event: public CX::Noncopyable {
 	enum {
 		TYPE_INVALID = 0,
 
@@ -22,7 +24,7 @@ struct Event final {
 		TYPE_MAX
 	};
 	
-	struct Key {
+	struct Keyboard {
 		int keycode;
 	};
 
@@ -49,35 +51,17 @@ struct Event final {
 	int type;
 
 	union {
-		Key v_key;
-		MouseButton v_mouseButton;
-		MouseMove v_mouseMove;
+		Keyboard keyboard;
+		MouseButton mouseButton;
+		MouseMove mouseMove;
 	} value;
 
-	Event(int t = TYPE_INVALID);
-	Event(const Event &that);
-	Event &operator=(const Event &that);
+	Event(void);
 };
 
-inline Event::Event(int t)
-	: type(t)
+inline Event::Event(void)
+	: type(TYPE_INVALID)
 {
-}
-
-inline Event::Event(const Event& that)
-	: type(that.type)
-	, value(that.value)
-{
-}
-
-inline Event &Event::operator=(const Event &that)
-{
-	if (this != &that) {
-		type = that.type;
-		value = that.value;
-	}
-
-	return (*this);
 }
 
 SGE_END

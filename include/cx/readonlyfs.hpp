@@ -23,7 +23,7 @@ public:
 		SEEK_MODE_END
 	};
 
-	struct Dent {
+	struct DirEntry {
 		enum {
 			TYPE_DIR = 0,
 			TYPE_FILE

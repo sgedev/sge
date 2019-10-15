@@ -3,11 +3,7 @@
 #ifndef SGE_VIEW_HPP
 #define SGE_VIEW_HPP
 
-#include <glex.hpp>
-
-#include <nanovg.h>
-#include <nanovg_gl.h>
-#include <nanovg_gl_utils.h>
+#include <GL/glex.h>
 
 #include <sge/common.hpp>
 
@@ -19,29 +15,22 @@ public:
 	virtual ~View(void);
 
 public:
-	bool init(void);
+	bool init(GL3WGetProcAddressProc proc);
 	void shutdown(void);
 	void beginFrame(void);
 	void endFrame(void);
-	GLEX::Context *glex(void);
-	struct NVGcontext *nanovg(void);
+	GLEXContext *glex(void);
 	const glm::ivec4 &viewport(void) const;
 	void setViewport(int x, int y, int width, int height);
 
 private:
-	GLEX::Context *m_glex;
-	struct NVGcontext *m_nanovg;
+	GLEXContext *m_glex;
 	glm::ivec4 m_viewport;
 };
 
-inline GLEX::Context *View::glex(void)
+inline GLEXContext *View::glex(void)
 {
 	return m_glex;
-}
-
-inline struct NVGcontext *View::nanovg(void)
-{
-	return m_nanovg;
 }
 
 inline const glm::ivec4 &View::viewport(void) const

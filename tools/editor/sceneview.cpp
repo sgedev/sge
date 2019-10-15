@@ -6,7 +6,7 @@
 static GL3WglProc GetOpenGLProcAddress(const char *proc)
 {
 	SGE_ASSERT(QOpenGLContext::currentContext() != Q_NULLPTR);
-	return (GL3WglProc)(QOpenGLContext::currentContext()->getProcAddress(proc));
+	return (GL3WglProc)QOpenGLContext::currentContext()->getProcAddress(proc);
 }
 
 SceneView::SceneView(QWidget *parent, Qt::WindowFlags flags)
@@ -37,16 +37,11 @@ bool SceneView::event(QEvent *evt)
 
 void SceneView::initializeGL(void)
 {
-	gl3wInit(&m_gl3w, GetOpenGLProcAddress);
-	gl3wProcs = &m_gl3w;
-
-	m_view.init();
+	m_view.init(GetOpenGLProcAddress);
 }
 
 void SceneView::paintGL(void)
 {
-	gl3wProcs = &m_gl3w;
-
 	m_view.beginFrame();
 
 	if (m_project != Q_NULLPTR)
@@ -57,8 +52,6 @@ void SceneView::paintGL(void)
 
 void SceneView::resizeGL(int w, int h)
 {
-	gl3wProcs = &m_gl3w;
-
-	glViewport(0, 0, w, h);
+	// TODO
 }
 

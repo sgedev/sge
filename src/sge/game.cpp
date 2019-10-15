@@ -45,31 +45,36 @@ bool Game::init(const std::string &root)
 	SGE_ASSERT(m_L == NULL);
 
 	m_root = root;
-
-	return true;
-
 	m_running = true;
+	m_state = STATE_INITIALIZING;
+
+	printf("%s(%d)\n", __func__, __LINE__);
 
 	std::promise<bool> init_result;
+
 	m_luaThread = std::thread(&Game::tmain, this, &init_result);
 	if (!m_luaThread.joinable())
 		return false;
 
+	printf("%s(%d)\n", __func__, __LINE__);
+#if 0
 	auto init_done = init_result.get_future();
 	init_done.wait();
 
+	printf("%s(%d)\n", __func__, __LINE__);
+
 	if (!init_done.get())
 		return false;
-
+#endif
 	m_state = STATE_LOADING;
+
+	printf("%s(%d)\n", __func__, __LINE__);
 
 	return true;
 }
 
 void Game::shutdown(void)
 {
-	return;
-
 	if (!m_running)
 		return;
 
@@ -190,12 +195,13 @@ void Game::gmain(std::promise<bool> *init_result)
 
 int Game::pmain(lua_State *L)
 {
-	auto gp = (Game *)lua_touserdata(L, 1);
+	auto G = (Game *)lua_touserdata(L, 1);
 	auto init_result = (std::promise<bool> *)lua_touserdata(L, 2);
 
+	SGE_ASSERT(G != NULL);
 	SGE_ASSERT(init_result != NULL);
 
-	gp->gmain(init_result);
+	G->gmain(init_result);
 
 	return 0;
 }

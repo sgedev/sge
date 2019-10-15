@@ -6,6 +6,7 @@
 #include <SDL.h>
 
 #include <sge/game.hpp>
+#include <sge/view.hpp>
 
 class Game: public SGE::Game {
 public:
@@ -34,7 +35,6 @@ private:
 	int m_windowRect[4];
 	bool m_windowVisibled;
 	SDL_GLContext m_gl;
-	union GL3WProcs m_gl3w;
 	SGE::View m_view;
 };
 

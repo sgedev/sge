@@ -265,10 +265,10 @@ Game::~Game(void)
 bool Game::init(const char *root)
 {
 	SGE_ASSERT(m_window == NULL);
-
+	printf("%s(%d)\n", __func__, __LINE__);
 	if (!SGE::Game::init(root))
 		goto bad0;
-
+	printf("%s(%d)\n", __func__, __LINE__);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -283,14 +283,14 @@ bool Game::init(const char *root)
 #ifdef SGE_DEBUG
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
-
+	printf("%s(%d)\n", __func__, __LINE__);
 	m_window = SDL_CreateWindow("SGE",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
 
 	if (m_window == NULL)
 		goto bad1;
-
+	printf("%s(%d)\n", __func__, __LINE__);
 	m_windowId = SDL_GetWindowID(m_window);
 	SDL_GetWindowPosition(m_window, &m_windowRect[0], &m_windowRect[1]);
 	SDL_GetWindowSize(m_window, &m_windowRect[2], &m_windowRect[3]);
@@ -298,19 +298,12 @@ bool Game::init(const char *root)
 	m_gl = SDL_GL_CreateContext(m_window);
 	if (m_gl == NULL)
 		goto bad2;
-
+	printf("%s(%d)\n", __func__, __LINE__);
 	SDL_GL_MakeCurrent(m_window, m_gl);
-
-	if (gl3wInit(&m_gl3w, (GL3WGetProcAddressProc)SDL_GL_GetProcAddress) != GL3W_OK)
+	printf("%s(%d)\n", __func__, __LINE__);
+	if (!m_view.init((GL3WGetProcAddressProc)SDL_GL_GetProcAddress))
 		goto bad3;
-
-	gl3wProcs = &m_gl3w;
-
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-
-	if (!m_view.init())
-		goto bad3;
-
+	printf("%s(%d)\n", __func__, __LINE__);
 	return true;
 
 bad3:
@@ -378,9 +371,6 @@ void Game::frame(float elapsed)
 	update(elapsed);
 
 	if (m_windowVisibled && m_windowRect[2] > 1 && m_windowRect[3] > 1) {
-		gl3wProcs = &m_gl3w;
-		glViewport(0, 0, m_windowRect[2], m_windowRect[3]);
-		glClear(GL_COLOR_BUFFER_BIT);
 		m_view.beginFrame();
 		draw(&m_view);
 		m_view.endFrame();
@@ -414,8 +404,8 @@ bool Game::handleKeyEvent(const SDL_Event *event)
 		return false;
 	}
 
-	evt.value.v_key.keycode = MapKey(event->key.keysym.sym);
-	if (evt.value.v_key.keycode == SGE::KEY_UNKNOWN)
+	evt.value.keyboard.keycode = MapKey(event->key.keysym.sym);
+	if (evt.value.keyboard.keycode == SGE::KEY_UNKNOWN)
 		return false;
 
 	return SGE::Game::handleEvent(&evt);
@@ -439,13 +429,13 @@ bool Game::handleMouseButtonEvent(const SDL_Event *event)
 
 	switch (event->button.button) {
 	case SDL_BUTTON_LEFT:
-		evt.value.v_mouseButton.button = SGE::Event::MouseButton::BUTTON1;
+		evt.value.mouseButton.button = SGE::Event::MouseButton::BUTTON1;
 		break;
 	case SDL_BUTTON_MIDDLE:
-		evt.value.v_mouseButton.button = SGE::Event::MouseButton::BUTTON3;
+		evt.value.mouseButton.button = SGE::Event::MouseButton::BUTTON3;
 		break;
 	case SDL_BUTTON_RIGHT:
-		evt.value.v_mouseButton.button = SGE::Event::MouseButton::BUTTON2;
+		evt.value.mouseButton.button = SGE::Event::MouseButton::BUTTON2;
 		break;
 	default:
 		return false;
@@ -458,10 +448,11 @@ bool Game::handleMouseMoveEvent(const SDL_Event *event)
 {
 	SGE_ASSERT(event->type == SDL_MOUSEMOTION);
 
-	SGE::Event evt(SGE::Event::TYPE_MOUSE_MOVE);
+	SGE::Event evt;
 
-	evt.value.v_mouseMove.dx = event->motion.xrel;
-	evt.value.v_mouseMove.dy = event->motion.yrel;
+	evt.type = SGE::Event::TYPE_MOUSE_MOVE;
+	evt.value.mouseMove.dx = event->motion.xrel;
+	evt.value.mouseMove.dy = event->motion.yrel;
 
 	return SGE::Game::handleEvent(&evt);
 }

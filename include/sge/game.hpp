@@ -10,9 +10,6 @@
 #include <mutex>
 #include <string>
 
-#include <lua.hpp>
-#include <physfs.h>
-
 #include <sge/common.hpp>
 #include <sge/event.hpp>
 #include <sge/scene.hpp>
@@ -26,9 +23,11 @@ public:
 
 	enum state {
 		STATE_IDLE = 0,
+		STATE_INITIALIZING,
 		STATE_LOADING,
 		STATE_READY,
 		STATE_PLAYING,
+		STATE_PAUSED
 	};
 
 public:

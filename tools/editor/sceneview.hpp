@@ -3,8 +3,6 @@
 #ifndef SGE_EDITOR_SCENEVIEW_HPP
 #define SGE_EDITOR_SCENEVIEW_HPP
 
-#include <GL/gl3w.h>
-#include <glex.hpp>
 #include <sge.hpp>
 
 #include <QEvent>
@@ -32,7 +30,6 @@ protected:
 
 private:
 	Project *m_project;
-	GL3WProcs m_gl3w;
 	SGE::View m_view;
 };
 

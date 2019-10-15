@@ -6,15 +6,14 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include <GL/gl3w.h>
+#include <GL/glex.h>
 
-#include <glex.hpp>
 #include <sge.hpp>
 
 #include "game.hpp"
 
 static bool Running;
-static Game MainGame;
+static Game *MainGame;
 
 static void PollEvents(void)
 {
@@ -26,7 +25,7 @@ static void PollEvents(void)
 			Running = false;
 			break;
 		default:
-			MainGame.handleEvent(&event);
+			MainGame->handleEvent(&event);
 			break;
 		}
 	}
@@ -34,23 +33,46 @@ static void PollEvents(void)
 
 int main(int argc, char *argv[])
 {
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
-		return EXIT_FAILURE;
+	int ret;
+	int exit_code = EXIT_FAILURE;
 
-	if (!MainGame.init("/")) {
+	printf("%s(%d)\n", __func__, __LINE__);
+	PHYSFS_init(argv[0]);
+	printf("%s(%d)\n", __func__, __LINE__);
+	glexInit(NULL);
+	printf("%s(%d)\n", __func__, __LINE__);
+
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		PHYSFS_deinit();
+		return EXIT_FAILURE;
+	}
+
+	printf("%s(%d)\n", __func__, __LINE__);
+
+	MainGame = new Game();
+
+	printf("%s(%d)\n", __func__, __LINE__);
+
+	if (!MainGame->init("/")) {
 		SDL_Quit();
 		return EXIT_FAILURE;
 	}
 
+	printf("%s(%d)\n", __func__, __LINE__);
+
 	Running = true;
 	while (Running) {
 		PollEvents();
-		MainGame.frame(16);
+		MainGame->frame(16);
 		SDL_Delay(16);
 	}
 
-	MainGame.shutdown();
+	MainGame->shutdown();
+	delete MainGame;
+
 	SDL_Quit();
+	glexShutdown();
+	PHYSFS_deinit();
 
 	return EXIT_SUCCESS;
 }

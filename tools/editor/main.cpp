@@ -24,11 +24,17 @@ int main(int argc, char *argv[])
 	format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
 	QSurfaceFormat::setDefaultFormat(format);
 
+	PHYSFS_init(argv[0]);
+
 	MainWindow mw;
 
 	mw.Init();
 	mw.setWindowTitle("SGE Editor");
 	mw.show();
 
-	return app.exec();
+	int ret = app.exec();
+
+	PHYSFS_deinit();
+
+	return ret;
 }

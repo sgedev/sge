@@ -3,7 +3,7 @@
  */
 #include <cx/list.h>
 
-CX_API int CXGetListLength(CXList *list)
+CX_API int cxGetListLength(CXList *list)
 {
 	int length = 0;
 	CXListNode *node;
@@ -17,7 +17,7 @@ CX_API int CXGetListLength(CXList *list)
 	return length;
 }
 
-CX_API int CXIsListContains(CXList *list, CXListNode *node)
+CX_API int cxIsListContains(CXList *list, CXListNode *node)
 {
 	CXListNode *temp;
 

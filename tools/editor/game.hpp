@@ -3,6 +3,7 @@
 #ifndef SGE_EDITOR_GAME_HPP
 #define SGE_EDITOR_GAME_HPP
 
+#include <QDir>
 #include <QEvent>
 
 #include <sge/game.hpp>
@@ -13,7 +14,7 @@ public:
 	virtual ~Game(void);
 
 public:
-	bool init(const std::string &root) override;
+	bool init(ttvfs::Root *root) override;
 	void shutdown(void) override;
 	bool handleEvent(const QEvent *evt);
 	void update(float elapsed) override;

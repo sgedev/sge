@@ -4,11 +4,14 @@
 #define SGE_GAME_HPP
 
 #include <map>
-#include <future>
-#include <thread>
-#include <condition_variable>
-#include <mutex>
 #include <string>
+#include <thread>
+#include <mutex>
+#include <future>
+#include <condition_variable>
+
+#include <ttvfs.h>
+#include <pugixml.hpp>
 
 #include <sge/common.hpp>
 #include <sge/event.hpp>
@@ -19,7 +22,7 @@ SGE_BEGIN
 
 class Game {
 public:
-	typedef SGEGameTask_t Task_t;
+	typedef SGE_Game_Task_t Task_t;
 
 	enum state {
 		STATE_IDLE = 0,
@@ -27,7 +30,9 @@ public:
 		STATE_LOADING,
 		STATE_READY,
 		STATE_PLAYING,
-		STATE_PAUSED
+		STATE_PAUSED,
+		STATE_FAILED,
+		STATE_EXITED
 	};
 
 public:
@@ -35,16 +40,22 @@ public:
 	virtual ~Game(void);
 
 public:
-	virtual bool init(const std::string &root);
+	virtual bool init(ttvfs::Root *root);
 	virtual void shutdown(void);
 	virtual bool handleEvent(const Event *evt);
 	virtual void update(float elapsed);
 	virtual void draw(View *v);
 
+public:
+	void addLuaTask(lua_State *L);
+	void removeLuaTask(lua_State *L);
+	void resumeLuaTask(lua_State *L, int n);
+	void yieldLuaTask(lua_State *L, int n);
+
 private:
 	static void quitAsync(uv_async_t *p);
-	void initLuaTraps(void);
-	bool initMainTask(void);
+	void initTraps(void);
+	bool loadMainTask(void);
 	void schedule(void);
 	void gmain(std::promise<bool> *init_result);
 	static int pmain(lua_State *L);
@@ -54,15 +65,6 @@ protected:
 	enum TrapType {
 		TRAP_INVALID = 0,
 		TRAP_FPS,
-		TRAP_WINDOW_VISIBLED,
-		TRAP_WINDOW_SHOW,
-		TRAP_WINDOW_HIDE,
-		TRAP_WINDOW_TITLE,
-		TRAP_WINDOW_SET_TITLE,
-		TRAP_WINDOW_POSITION,
-		TRAP_WINDOW_MOVE,
-		TRAP_WINDOW_SIZE,
-		TRAP_WINDOW_RESIZE,
 		TRAP_EDITOR_IS_ENABLED
 	};
 
@@ -88,7 +90,8 @@ private:
 	static int trapEditorIsEnabledFE(lua_State *L);
 
 private:
-	std::string m_root;
+	ttvfs::Root *m_root;
+	pugi::xml_document m_manifest;
 	lua_State *m_L;
 	std::thread m_luaThread;
 	std::mutex m_mutex;
@@ -99,6 +102,7 @@ private:
 	state m_state;
 	CXList m_taskList;
 	CXList m_taskListSleep;
+	Task_t *m_taskCurrent;
 	TrapType m_currentTrap;
 	int m_currentTrapResult;
 	lua_State *m_currentTrapLua;
@@ -108,3 +112,4 @@ private:
 SGE_END
 
 #endif // SGE_GAME_HPP
+

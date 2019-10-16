@@ -25,12 +25,20 @@ GLEX_API GLEXContext *glexCreateContext(GL3WGetProcAddressProc proc)
 
 	gl3wProcs = &context->gl3w;
 
-	// TODO
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	if (!glexInitProgram(context))
+		goto bad1;
+
+	if (!glexInitTest(context))
+		goto bad2;
 
 	gl3wProcs = backup;
 
 	return context;
+
+bad2:
+	glexShutdownTest(context);
 
 bad1:
 	gl3wProcs = backup;
@@ -42,10 +50,23 @@ bad0:
 
 GLEX_API void glexDeleteContext(GLEXContext *context)
 {
+	union GL3WProcs *backup;
+
 	if (context == NULL)
 		return;
 
+	if (glex == context)
+		glex = NULL;
+
+	backup = gl3wProcs;
+	gl3wProcs = &context->gl3w;
+
+	glexShutdownTest(context);
+	glexShutdownProgram(context);
+
 	glexFreeMemory(context);
+
+	gl3wProcs = backup;
 }
 
 GLEX_API GLEXContext *glexGetCurrentContext(void)

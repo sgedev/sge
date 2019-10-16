@@ -26,6 +26,8 @@ struct GLEXContext_ {
 	union GL3WProcs gl3w;
 	union GL3WProcs *gl3wBackup;
 
+	int viewport[4];
+
 	GLuint vertexShader;
 	GLuint fragmentShader;
 	GLuint program;
@@ -44,10 +46,10 @@ struct GLEXContext_ {
 extern GLEXContext *glex;
 
 void glexInitContextGlobals(void);
-int glexInitProgram(GLEXContext *context);
+GLboolean glexInitProgram(GLEXContext *context);
 void glexShutdownProgram(GLEXContext *context);
 void glexCommitUniforms(void);
-int glexInitTest(GLEXContext *context);
+GLboolean glexInitTest(GLEXContext *context);
 void glexShutdownTest(GLEXContext *context);
 void glexDrawTest(void);
 

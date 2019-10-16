@@ -5,7 +5,6 @@
 
 #include <cstdint>
 
-#include <physfs.h>
 #include <lua.hpp>
 #include <glm.hpp>
 #include <cx/common.hpp>

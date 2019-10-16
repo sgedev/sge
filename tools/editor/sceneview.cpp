@@ -42,16 +42,16 @@ void SceneView::initializeGL(void)
 
 void SceneView::paintGL(void)
 {
+	if (m_project == Q_NULLPTR)
+		return;
+
 	m_view.beginFrame();
-
-	if (m_project != Q_NULLPTR)
-		m_project->draw(&m_view);
-
+	m_project->draw(&m_view);
 	m_view.endFrame();
 }
 
 void SceneView::resizeGL(int w, int h)
 {
-	// TODO
+	m_view.setViewport(0, 0, w, h);
 }
 

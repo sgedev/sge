@@ -76,7 +76,7 @@ static GLuint glexCreateProgram(GLuint vshader, GLuint fshader)
 	return program;
 }
 
-int glexInitProgram(GLEXContext *context)
+GLboolean glexInitProgram(GLEXContext *context)
 {
 	GLEX_ASSERT(context != NULL);
 
@@ -107,7 +107,7 @@ int glexInitProgram(GLEXContext *context)
 	context->uniformMat4Loc[GLEX_UNIFORM_PROJECTION_MATRIX] = glGetUniformLocation(context->program, "glex_ProjectionMatrix");
 	context->uniformMat4[GLEX_UNIFORM_PROJECTION_MATRIX] = HMM_Perspective(90.0f, 4.0f / 3.0f, 0.1f, 80.0f);
 
-	return GLEX_OK;
+	return GL_TRUE;
 
 bad2:
 	glDeleteShader(context->fragmentShader);
@@ -118,7 +118,7 @@ bad1:
 	context->vertexShader = 0;
 
 bad0:
-	return -1;
+	return GL_FALSE;
 }
 
 void glexShutdownProgram(GLEXContext *context)
@@ -142,11 +142,15 @@ void glexCommitUniforms(void)
 {
 	GLEX_ASSERT(glex != NULL);
 
-#if 0
 	for (int i = 0; i < GLEX_UNIFORM_FLOAT_MAX; ++i) {
-		if (glex->uniformElapsedLoc[i] >= 0)
-			glUniform1f(
+		if (glex->uniformFloatLoc[i] >= 0)
+			glUniform1f(glex->uniformFloatLoc[i], glex->uniformFloat[i]);
 	}
-#endif
+
+	for (int i = 0; i < GLEX_UNIFORM_MAT4_MAX; ++i) {
+		if (glex->uniformMat4Loc[i] >= 0)
+			glUniformMatrix4fv(glex->uniformMat4Loc[i], 1, GL_FALSE,
+				(const GLfloat *)(glex->uniformMat4[i].Elements));
+	}
 }
 

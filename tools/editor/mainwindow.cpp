@@ -16,8 +16,10 @@
 #include <iostream>
 #include <physfs.h>
 
-#include "common.hpp"
 #include "newprojectdialog.hpp"
+#include "newfolderdialog.hpp"
+#include "newscriptdialog.hpp"
+#include "newscenedialog.hpp"
 #include "mainwindow.hpp"
 
 MainWindow::MainWindow(void)
@@ -34,13 +36,190 @@ bool MainWindow::Init(void)
 	restoreGeometry(settings.value("MainWindow/geometry").toByteArray());
 	restoreState(settings.value("MainWindow/state").toByteArray());
 
-	restoreDockWidget(&m_projectViewDocker);
-	restoreDockWidget(&m_consoleViewDocker);
+	initMainMenu();
+	initToolBars();
 
+	setCentralWidget(&m_mdiArea);
+	m_mdiArea.setViewMode(QMdiArea::TabbedView);
+	m_mdiArea.setTabsClosable(true);
+	m_mdiArea.setTabsMovable(true);
+
+	initProjectView();
+	initConsoleView();
+
+	statusBar()->showMessage("Ready");
+
+	return true;
+}
+
+void MainWindow::projectOpenFile(const QString &filename)
+{
+	if (filename.endsWith(".action", Qt::CaseInsensitive))
+		openScript(filename);
+	else if (filename.endsWith(".scene", Qt::CaseInsensitive))
+		openScene(filename);
+	else
+		QMessageBox::critical(this, "Unknown file: " + filename, "Error");
+}
+
+void MainWindow::projectFolderContextMenuRequested(const QPoint &pos)
+{
+	m_projectContextMenu.popup(m_projectView.mapToGlobal(pos));
+}
+
+void MainWindow::projectFileContextMenuRequested(const QPoint &pos)
+{
+	m_projectContextMenu.popup(m_projectView.mapToGlobal(pos));
+}
+
+void MainWindow::projectOtherContextMenuRequested(const QPoint &pos)
+{
+	m_projectContextMenu.popup(m_projectView.mapToGlobal(pos));
+}
+
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+	QSettings settings;
+
+	settings.setValue("MainWindow/geometry", saveGeometry());
+	settings.setValue("MainWindow/state", saveState());
+
+	QMainWindow::closeEvent(event);
+}
+
+void MainWindow::fileNewProject(void)
+{
+	NewProjectDialog dlg(this);
+
+	if (dlg.exec() == QDialog::Accepted)
+		setupProject(dlg.path());
+}
+
+void MainWindow::fileNewFolder(void)
+{
+	NewFolderDialog dlg(this);
+
+	dlg.exec();
+}
+
+void MainWindow::fileNewScript(void)
+{
+	NewScriptDialog dlg(this);
+
+	dlg.exec();
+}
+
+void MainWindow::fileNewScene(void)
+{
+	NewSceneDialog dlg(this);
+
+	dlg.exec();
+}
+
+void MainWindow::fileOpen(void)
+{
+	QString path = QFileDialog::getExistingDirectory(this, "Open Project Directory");
+	if (!path.isEmpty())
+		setupProject(path);
+}
+
+void MainWindow::fileClose(void)
+{
+}
+
+void MainWindow::fileSave(void)
+{
+}
+
+void MainWindow::fileSaveAs(void)
+{
+}
+
+void MainWindow::fileImport(void)
+{
+}
+
+void MainWindow::fileExport(void)
+{
+}
+
+void MainWindow::fileQuit(void)
+{
+	close();
+}
+
+void MainWindow::gameBuild(void)
+{
+}
+
+void MainWindow::gameClean(void)
+{
+}
+
+void MainWindow::gameRun(void)
+{
+}
+
+void MainWindow::helpAbout(void)
+{
+	QString text = "SGE Editor v0.1";
+
+	QMessageBox::about(this, "About", text);
+}
+
+void MainWindow::helpAboutQt(void)
+{
+	QMessageBox::aboutQt(this);
+}
+
+bool MainWindow::setupProject(const QString &path)
+{
+	QDir dir(path);
+
+	m_projectView.setProject(NULL);
+
+	if (!dir.exists() && !dir.mkpath(path)) {
+		QMessageBox::critical(this, "Error", "Cannot create project directory: " + path);
+		return false;
+	}
+
+	ProjectPtr project(new Project());
+	if (!project) {
+		QMessageBox::critical(this, "Error", "Cannot create project.");
+		return false;
+	}
+
+	if (!project->setup(path)) {
+		QMessageBox::critical(this, "Error", "Failed to initialize project.");
+		return false;
+	}
+
+	m_projectPath = path;
+	m_project = project;
+
+	m_projectView.setProject(m_project.data());
+
+	return true;
+}
+
+void MainWindow::initMainMenu(void)
+{
 	m_fileMenu = menuBar()->addMenu("&File");
 
-	m_fileNew = m_fileMenu->addAction("New...");
-	connect(m_fileNew, &QAction::triggered, this, &MainWindow::fileNew);
+	m_fileNewMenu = m_fileMenu->addMenu("New");
+
+	m_fileNewProject = m_fileNewMenu->addAction("Project...");
+	connect(m_fileNewProject, &QAction::triggered, this, &MainWindow::fileNewProject);
+
+	m_fileNewFolder = m_fileNewMenu->addAction("Folder...");
+	connect(m_fileNewFolder, &QAction::triggered, this, &MainWindow::fileNewFolder);
+
+	m_fileNewScene = m_fileNewMenu->addAction("Scene...");
+	connect(m_fileNewScene, &QAction::triggered, this, &MainWindow::fileNewScene);
+
+	m_fileNewScript = m_fileNewMenu->addAction("Script...");
+	connect(m_fileNewScript, &QAction::triggered, this, &MainWindow::fileNewScript);
 
 	m_fileOpen = m_fileMenu->addAction("Open...");
 	connect(m_fileOpen, &QAction::triggered, this, &MainWindow::fileOpen);
@@ -53,20 +232,6 @@ bool MainWindow::Init(void)
 
 	m_fileSaveAs = m_fileMenu->addAction("Save As...");
 	connect(m_fileSaveAs, &QAction::triggered, this, &MainWindow::fileSaveAs);
-
-	m_fileMenu->addSeparator();
-
-	m_fileNewProject = m_fileMenu->addAction("New Project...");
-	connect(m_fileNewProject, &QAction::triggered, this, &MainWindow::fileNewProject);
-
-	m_fileOpenProject = m_fileMenu->addAction("Open Project...");
-	connect(m_fileOpenProject, &QAction::triggered, this, &MainWindow::fileOpenProject);
-
-	m_fileCloseProject = m_fileMenu->addAction("Close Project");
-	connect(m_fileCloseProject, &QAction::triggered, this, &MainWindow::fileCloseProject);
-
-	m_fileSaveProject = m_fileMenu->addAction("Save Project");
-	connect(m_fileSaveProject, &QAction::triggered, this, &MainWindow::fileSaveProject);
 
 	m_fileMenu->addSeparator();
 
@@ -99,138 +264,86 @@ bool MainWindow::Init(void)
 	m_viewConsole->setText("Console");
 	m_viewMenu->addAction(m_viewConsole);
 
+	m_gameMenu = menuBar()->addMenu("&Game");
+
+	m_gameBuild = m_gameMenu->addAction("&Build");
+	connect(m_gameBuild, &QAction::triggered, this, &MainWindow::gameBuild);
+
+	m_gameClean = m_gameMenu->addAction("&Clean");
+	connect(m_gameClean, &QAction::triggered, this, &MainWindow::gameClean);
+
+	m_gameRun = m_gameMenu->addAction("&Run");
+	connect(m_gameRun, &QAction::triggered, this, &MainWindow::gameRun);
+
 	m_toolMenu = menuBar()->addMenu("&Tool");
 	m_toolOptions = m_toolMenu->addAction("&Options");
 
 	m_helpMenu = menuBar()->addMenu("&Help");
+
 	m_helpAbout = m_helpMenu->addAction("&About...");
+	connect(m_helpAbout, &QAction::triggered, this, &MainWindow::helpAbout);
 
-	setCentralWidget(&m_mdiArea);
+	m_helpAboutQt = m_helpMenu->addAction("About &Qt...");
+	connect(m_helpAboutQt, &QAction::triggered, this, &MainWindow::helpAboutQt);
+}
 
-	m_mdiArea.setViewMode(QMdiArea::TabbedView);
-	m_mdiArea.setTabsClosable(true);
-	m_mdiArea.setTabsMovable(true);
+void MainWindow::initToolBars(void)
+{
+	m_mainToolBar.setObjectName("MainToolBar");
+	m_mainToolBar.addAction(m_fileNewProject);
+	m_mainToolBar.addAction(m_fileNewFolder);
+	m_mainToolBar.addAction(m_fileNewScene);
+	m_mainToolBar.addAction(m_fileNewScript);
+	addToolBar(&m_mainToolBar);
 
-	m_projectViewDocker.setParent(this);
+	m_viewToolBar.setObjectName("ViewToolBar");
+	m_viewToolBar.addAction(m_viewProject);
+	m_viewToolBar.addAction(m_viewConsole);
+	addToolBar(&m_viewToolBar);
+}
+
+void MainWindow::initProjectView(void)
+{
+	restoreDockWidget(&m_projectViewDocker);
+
 	m_projectViewDocker.setObjectName("ProjectView");
-	m_projectViewDocker.setWidget(&m_projectView);
 	m_projectViewDocker.setWindowTitle("Project");
-	addDockWidget(Qt::LeftDockWidgetArea, &m_projectViewDocker);
+	m_projectViewDocker.setWidget(&m_projectView);
+
 	m_projectView.setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(&m_projectView, &QWidget::customContextMenuRequested, this, &MainWindow::projectContextMenuRequested);
-	m_projectContextMenu.addAction(m_fileNew);
+	m_projectView.setParent(&m_projectViewDocker);
+
+	connect(&m_projectView, &ProjectView::customFolderContextMenuRequested, this, &MainWindow::projectFolderContextMenuRequested);
+	connect(&m_projectView, &ProjectView::customFileContextMenuRequested, this, &MainWindow::projectFileContextMenuRequested);
+	connect(&m_projectView, &ProjectView::customOtherContextMenuRequested, this, &MainWindow::projectOtherContextMenuRequested);
+
+	m_projectContextNewMenu = m_projectContextMenu.addMenu("New");
+	m_projectContextNewMenu->addAction(m_fileNewFolder);
+	m_projectContextNewMenu->addAction(m_fileNewScene);
+	m_projectContextNewMenu->addAction(m_fileNewScript);
+
 	m_projectContextMenu.addAction(m_fileImport);
 	m_projectContextMenu.addAction(m_fileExport);
 
-	m_consoleViewDocker.setParent(this);
+	addDockWidget(Qt::LeftDockWidgetArea, &m_projectViewDocker);
+}
+
+void MainWindow::initConsoleView(void)
+{
+	restoreDockWidget(&m_consoleViewDocker);
+
 	m_consoleViewDocker.setObjectName("ConsoleView");
-	m_consoleViewDocker.setWidget(&m_consoleView);
 	m_consoleViewDocker.setWindowTitle("Console");
+	m_consoleViewDocker.setWidget(&m_consoleView);
+
 	addDockWidget(Qt::BottomDockWidgetArea, &m_consoleViewDocker);
-
-	statusBar()->showMessage("Ready");
-
-	return true;
 }
 
-void MainWindow::projectContextMenuRequested(const QPoint &pos)
-{
-	m_projectContextMenu.popup(m_projectView.mapToGlobal(pos));
-}
-
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-	QSettings settings;
-
-	settings.setValue("MainWindow/geometry", saveGeometry());
-	settings.setValue("MainWindow/state", saveState());
-
-	QMainWindow::closeEvent(event);
-}
-
-void MainWindow::fileNew(void)
+void MainWindow::openScript(const QString &filename)
 {
 }
 
-void MainWindow::fileOpen(void)
+void MainWindow::openScene(const QString &filename)
 {
-}
-
-void MainWindow::fileClose(void)
-{
-}
-
-void MainWindow::fileSave(void)
-{
-}
-
-void MainWindow::fileSaveAs(void)
-{
-}
-
-void MainWindow::fileNewProject(void)
-{
-	NewProjectDialog dlg(this);
-
-	if (dlg.exec() == QDialog::Accepted)
-		setupProject(dlg.path());
-}
-
-void MainWindow::fileOpenProject(void)
-{
-	QString path = QFileDialog::getExistingDirectory(this, "Open Project Directory");
-	if (!path.isEmpty())
-		setupProject(path);
-}
-
-void MainWindow::fileCloseProject(void)
-{
-}
-
-void MainWindow::fileSaveProject(void)
-{
-}
-
-void MainWindow::fileImport(void)
-{
-}
-
-void MainWindow::fileExport(void)
-{
-}
-
-void MainWindow::fileQuit(void)
-{
-	close();
-}
-
-bool MainWindow::setupProject(const QString &path)
-{
-	QDir dir(path);
-
-	m_projectView.setProject(NULL);
-
-	if (!dir.exists() && !dir.mkpath(path)) {
-		QMessageBox::critical(this, "Error", "Cannot create project directory: " + path);
-		return false;
-	}
-
-	ProjectPtr project(new Project());
-	if (!project) {
-		QMessageBox::critical(this, "Error", "Cannot create project.");
-		return false;
-	}
-
-	if (!project->setup(path)) {
-		QMessageBox::critical(this, "Error", "Failed to initialize project.");
-		return false;
-	}
-
-	m_projectPath = path;
-	m_project = project;
-
-	m_projectView.setProject(m_project.data());
-
-	return true;
 }
 

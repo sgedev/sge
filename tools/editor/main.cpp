@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QFont>
 
+#include <GL/glex.h>
 #include <sge.hpp>
 
 #include "mainwindow.hpp"
@@ -24,7 +25,7 @@ int main(int argc, char *argv[])
 	format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
 	QSurfaceFormat::setDefaultFormat(format);
 
-	PHYSFS_init(argv[0]);
+	glexInit(NULL);
 
 	MainWindow mw;
 
@@ -34,7 +35,7 @@ int main(int argc, char *argv[])
 
 	int ret = app.exec();
 
-	PHYSFS_deinit();
+	glexShutdown();
 
 	return ret;
 }

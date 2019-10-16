@@ -5,6 +5,7 @@
 
 #include <QTreeView>
 #include <QModelIndex>
+#include <QHeaderView>
 #include <QFileSystemModel>
 
 #include "project.hpp"
@@ -16,13 +17,22 @@ public:
 	ProjectView(QWidget *parent = Q_NULLPTR);
 	virtual ~ProjectView(void);
 
+signals:
+	void openFile(const QString &filename);
+	void customFolderContextMenuRequested(const QPoint &pos);
+	void customFileContextMenuRequested(const QPoint &pos);
+	void customOtherContextMenuRequested(const QPoint &pos);
+
 public:
 	bool init(void);
+	QPoint mapToGlobal(const QPoint &pos);
 	void setProject(Project *project);
 	Project *project(void);
 
 protected slots:
 	void dirChanged(const QDir &dir);
+	void openItem(const QModelIndex &index);
+	void contextMenuRequested(const QPoint &pos);
 
 private:
 	QFileSystemModel m_fs;

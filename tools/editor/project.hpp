@@ -10,6 +10,7 @@
 #include <QEvent>
 #include <QList>
 #include <QDir>
+#include <QDomDocument>
 
 #include "game.hpp"
 
@@ -37,7 +38,9 @@ public:
 	const QDir &dir(void) const;
 
 private:
+	QDomDocument m_manifest;
 	Game m_game;
+	ttvfs::Root m_root;
 	QDir m_dir;
 	Assimp::Importer m_importer;
 };

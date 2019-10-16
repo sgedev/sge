@@ -4,51 +4,54 @@
 
 SGE_BEGIN
 
-static inline Game::Task_t *GameTaskFromLua(lua_State *L)
+static inline Game::Task_t *luaToGameTask(lua_State *L)
 {
 	return (Game::Task_t *)lua_getextraspace(L);
 }
 
-static inline lua_State *GameTaskToLua(Game::Task_t *T)
+static inline lua_State *luaFromGameTask(Game::Task_t *T)
 {
 	return (lua_State *)CX_PMOVB(T, LUA_EXTRASPACE);
 }
 
-static inline void GameAttach(Game *G, lua_State *L)
+static inline void luaAttachGame(lua_State *L, Game *G)
 {
-	GameTaskFromLua(L)->data = G;
+	luaToGameTask(L)->data = G;
 }
 
-static inline Game *GameFromTask(Game::Task_t *T)
+static inline Game *gameFromTask(Game::Task_t *T)
 {
 	return (Game *)(T->data);
 }
 
-static inline Game *GameFromLua(lua_State *L)
+static inline Game *gameFromLua(lua_State *L)
 {
-	return GameFromTask(GameTaskFromLua(L));
+	return gameFromTask(luaToGameTask(L));
 }
 
 Game::Game(void)
-	: m_L(NULL)
+	: m_root(NULL)
+	, m_L(NULL)
+	, m_taskCurrent(NULL)
 	, m_currentTrap(TRAP_INVALID)
 {
 }
 
 Game::~Game(void)
 {
-	// TODO
+	if (m_L != NULL)
+		shutdown();
 }
 
-bool Game::init(const std::string &root)
+bool Game::init(ttvfs::Root *root)
 {
+	SGE_ASSERT(root != NULL);
 	SGE_ASSERT(m_L == NULL);
+	SGE_ASSERT(m_state == STATE_IDLE);
 
 	m_root = root;
 	m_running = true;
 	m_state = STATE_INITIALIZING;
-
-	printf("%s(%d)\n", __func__, __LINE__);
 
 	std::promise<bool> init_result;
 
@@ -56,28 +59,18 @@ bool Game::init(const std::string &root)
 	if (!m_luaThread.joinable())
 		return false;
 
-	printf("%s(%d)\n", __func__, __LINE__);
-#if 0
 	auto init_done = init_result.get_future();
 	init_done.wait();
 
-	printf("%s(%d)\n", __func__, __LINE__);
-
 	if (!init_done.get())
 		return false;
-#endif
-	m_state = STATE_LOADING;
-
-	printf("%s(%d)\n", __func__, __LINE__);
 
 	return true;
 }
 
 void Game::shutdown(void)
 {
-	if (!m_running)
-		return;
-
+	SGE_ASSERT(m_running);
 	SGE_ASSERT(m_L != NULL);
 
 	uv_async_send(&m_quitAsync);
@@ -123,6 +116,31 @@ void Game::draw(View *v)
 	m_scene.draw(v);
 }
 
+void Game::addLuaTask(lua_State *L)
+{
+	Task_t *T = luaToGameTask(L);
+	cxResetListNode(&T->node);
+	cxAddListTail(&m_taskList, &T->node);	
+	luaAttachGame(L, this);
+}
+
+void Game::removeLuaTask(lua_State *L)
+{
+	Task_t *T = luaToGameTask(L);
+	cxUnlinkListNode(&T->node);	
+}
+
+void Game::resumeLuaTask(lua_State *L, int n)
+{
+	Task_t *T = luaToGameTask(L);
+	m_taskCurrent = T;
+}
+
+void Game::yieldLuaTask(lua_State *L, int n)
+{
+	m_taskCurrent = NULL;
+}
+
 void Game::quitAsync(uv_async_t *p)
 {
 	Game *G = (Game *)(p->data);
@@ -130,7 +148,7 @@ void Game::quitAsync(uv_async_t *p)
 	uv_stop(&G->m_loop);
 }
 
-void Game::initLuaTraps(void)
+void Game::initTraps(void)
 {
 	lua_newtable(m_L);
 
@@ -159,9 +177,9 @@ void Game::initLuaTraps(void)
 	lua_setglobal(m_L, "sge");
 }
 
-bool Game::initMainTask(void)
+bool Game::loadMainTask(void)
 {
-	return false;
+	return true;
 }
 
 void Game::schedule(void)
@@ -174,11 +192,13 @@ void Game::gmain(std::promise<bool> *init_result)
 	SGE_ASSERT(init_result != NULL);
 
 	uv_loop_init(&m_loop);
+
 	uv_async_init(&m_loop, &m_quitAsync, &Game::quitAsync);
+	m_quitAsync.data = this;
 
-	initLuaTraps();
+	initTraps();
 
-	if (!initMainTask()) {
+	if (!loadMainTask()) {
 		init_result->set_value(false);
 		return;
 	}
@@ -218,7 +238,7 @@ void Game::tmain(std::promise<bool> *init_result)
 		return;
 	}
 
-	GameAttach(this, m_L);
+	luaAttachGame(m_L, this);
 
 	lua_pushcfunction(m_L, &pmain);
 	lua_pushlightuserdata(m_L, this);
@@ -311,7 +331,7 @@ int Game::trapTask(lua_State *L)
 
 int Game::trapCurrent(lua_State *L)
 {
-	if (L == GameFromLua(L)->m_L)
+	if (L == gameFromLua(L)->m_L)
 		luaL_error(L, "Not in a thread");
 
 	lua_pushthread(L);
@@ -324,11 +344,11 @@ void Game::sleepDone(uv_timer_t *timer)
 	Task_t *T = (Task_t *)(timer->data);
 	SGE_ASSERT(T != NULL);
 
-	Game *G = GameFromTask(T);
+	Game *G = gameFromTask(T);
 	SGE_ASSERT(V != NULL);
 
-	CXDeleteListNode(&G->m_taskListSleep, &T->node);
-	CXAddListTail(&G->m_taskList, &T->node);
+	cxDeleteListNode(&G->m_taskListSleep, &T->node);
+	cxAddListTail(&G->m_taskList, &T->node);
 }
 
 int Game::trapSleep(lua_State *L)
@@ -338,12 +358,12 @@ int Game::trapSleep(lua_State *L)
 		luaL_error(L, "bad arg");
 
 	if (ms > 0) {
-		Task_t *T = GameTaskFromLua(L);
+		Task_t *T = luaToGameTask(L);
 		SGE_ASSERT(T != NULL);
-		Game *G = GameFromTask(T);
+		Game *G = gameFromTask(T);
 		SGE_ASSERT(V != NULL);
-		uv_timer_start(&T->sleep_timer, &Game::sleepDone, ms, 0);
-		CXAddListTail(&G->m_taskListSleep, &T->node);
+		uv_timer_start(&T->sleepTimer, &Game::sleepDone, ms, 0);
+		cxAddListTail(&G->m_taskListSleep, &T->node);
 	}
 
 	return lua_yield(L, 0);
@@ -351,7 +371,7 @@ int Game::trapSleep(lua_State *L)
 
 int Game::trapFpsFE(lua_State *L)
 {
-	Game *G = GameFromLua(L);
+	Game *G = gameFromLua(L);
 	SGE_ASSERT(G != NULL);
 
 	return G->trapFE(L, TRAP_FPS);
@@ -359,7 +379,7 @@ int Game::trapFpsFE(lua_State *L)
 
 int Game::trapEditorIsEnabledFE(lua_State *L)
 {
-	Game *G = GameFromLua(L);
+	Game *G = gameFromLua(L);
 	SGE_ASSERT(G != NULL);
 
 	return G->trapFE(L, TRAP_EDITOR_IS_ENABLED);
@@ -367,26 +387,38 @@ int Game::trapEditorIsEnabledFE(lua_State *L)
 
 SGE_END
 
-extern "C" void SGEGameInitLua(lua_State *L)
+extern "C" void SGE_Game_InitLua(lua_State *L)
 {
 }
 
-extern "C" void SGEGameShutdownLua(lua_State *L)
+extern "C" void SGE_Game_ShutdownLua(lua_State *L)
 {
 }
 
-extern "C" void SGEGameAddLuaTask(lua_State *L, lua_State *L1)
+extern "C" void SGE_Game_AddLuaTask(lua_State *L, lua_State *L1)
 {
+	SGE::Game *G = SGE::gameFromLua(L);
+	SGE_ASSERT(G != NULL);
+	G->addLuaTask(L1);
 }
 
-extern "C" void SGEGameRemoveLuaTask(lua_State *L, lua_State *L1)
+extern "C" void SGE_Game_RemoveLuaTask(lua_State *L, lua_State *L1)
 {
+	SGE::Game *G = SGE::gameFromLua(L);
+	SGE_ASSERT(G != NULL);
+	G->removeLuaTask(L1);
 }
 
-extern "C" void SGEGameResumeLuaTask(lua_State *L, int n)
+extern "C" void SGE_Game_ResumeLuaTask(lua_State *L, int n)
 {
+	SGE::Game *G = SGE::gameFromLua(L);
+	SGE_ASSERT(G != NULL);
+	G->resumeLuaTask(L, n);
 }
 
-extern "C" void SGEGameYieldLuaTask(lua_State *L, int n)
+extern "C" void SGE_Game_YieldLuaTask(lua_State *L, int n)
 {
+	SGE::Game *G = SGE::gameFromLua(L);
+	SGE_ASSERT(G != NULL);
+	G->yieldLuaTask(L, n);
 }

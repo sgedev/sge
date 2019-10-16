@@ -8,6 +8,7 @@
 #include <QEvent>
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
+#include <QTabWidget>
 
 class Project;
 
@@ -29,6 +30,7 @@ protected:
 	void resizeGL(int w, int h) override;
 
 private:
+	QTabWidget m_tab;
 	Project *m_project;
 	SGE::View m_view;
 };

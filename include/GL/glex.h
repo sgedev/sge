@@ -68,6 +68,7 @@ GLEX_API void glexMakeCurrent(GLEXContext *context);
 GLEX_API void glexBeginFrame(void);
 GLEX_API void glexEndFrame(void);
 
+GLEX_API void glexViewport(int x, int y, int width, int height);
 GLEX_API void glexElapsed(GLfloat v);
 GLEX_API void glexModelMatrix(const GLfloat *v);
 GLEX_API void glexViewMatrix(const GLfloat *v);

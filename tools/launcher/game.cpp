@@ -262,13 +262,13 @@ Game::~Game(void)
 		shutdown();
 }
 
-bool Game::init(const char *root)
+bool Game::init(ttvfs::Root *root)
 {
 	SGE_ASSERT(m_window == NULL);
-	printf("%s(%d)\n", __func__, __LINE__);
+
 	if (!SGE::Game::init(root))
 		goto bad0;
-	printf("%s(%d)\n", __func__, __LINE__);
+
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -283,14 +283,14 @@ bool Game::init(const char *root)
 #ifdef SGE_DEBUG
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
-	printf("%s(%d)\n", __func__, __LINE__);
+
 	m_window = SDL_CreateWindow("SGE",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
 		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI);
 
 	if (m_window == NULL)
 		goto bad1;
-	printf("%s(%d)\n", __func__, __LINE__);
+
 	m_windowId = SDL_GetWindowID(m_window);
 	SDL_GetWindowPosition(m_window, &m_windowRect[0], &m_windowRect[1]);
 	SDL_GetWindowSize(m_window, &m_windowRect[2], &m_windowRect[3]);
@@ -298,12 +298,12 @@ bool Game::init(const char *root)
 	m_gl = SDL_GL_CreateContext(m_window);
 	if (m_gl == NULL)
 		goto bad2;
-	printf("%s(%d)\n", __func__, __LINE__);
+
 	SDL_GL_MakeCurrent(m_window, m_gl);
-	printf("%s(%d)\n", __func__, __LINE__);
+
 	if (!m_view.init((GL3WGetProcAddressProc)SDL_GL_GetProcAddress))
 		goto bad3;
-	printf("%s(%d)\n", __func__, __LINE__);
+
 	return true;
 
 bad3:
@@ -372,6 +372,7 @@ void Game::frame(float elapsed)
 
 	if (m_windowVisibled && m_windowRect[2] > 1 && m_windowRect[3] > 1) {
 		m_view.beginFrame();
+		m_view.setViewport(0, 0, m_windowRect[2], m_windowRect[3]);
 		draw(&m_view);
 		m_view.endFrame();
 		SDL_GL_SwapWindow(m_window);

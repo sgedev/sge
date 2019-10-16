@@ -25,6 +25,7 @@ bool View::init(GL3WGetProcAddressProc proc)
 		return false;
 
 	glexMakeCurrent(m_glex);
+	// TODO
 
 	return true;
 }
@@ -42,9 +43,7 @@ void View::beginFrame(void)
 	SGE_ASSERT(m_glex != NULL);
 
 	glexMakeCurrent(m_glex);
-
-	//glViewport(m_viewport[0], m_viewport[1], m_viewport[2], m_viewport[3]);
-
+	glexViewport(m_viewport[0], m_viewport[1], m_viewport[2], m_viewport[3]);
 	glexBeginFrame();
 }
 

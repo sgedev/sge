@@ -10,7 +10,7 @@ Game::~Game(void)
 {
 }
 
-bool Game::init(const std::string &root)
+bool Game::init(ttvfs::Root *root)
 {
 	if (!SGE::Game::init(root))
 		return false;

@@ -1,5 +1,6 @@
 //
 //
+#include <QDebug>
 #include <QFile>
 
 #include "project.hpp"
@@ -20,25 +21,21 @@ void Project::reset(void)
 
 bool Project::setup(const QDir &d)
 {
-	if (!d.path().isEmpty()) {
-		if (!d.exists())
-			return false;
-
-		QDir::setCurrent(d.path());
-
-		QFile version_file(d.path() + "/version");
-		if (!version_file.open(QIODevice::ReadWrite)) {
-			printf("failed to create version.\n");
-		}
-
-		version_file.write("SGEV1\n", 6);
-		version_file.close();
-
-		QString vroot = "/" + d.dirName();
-
-		if (!m_game.init(vroot.toStdString().c_str()))
-			return false;
+	if (d.path().isEmpty()) {
+		m_dir = d;
+		dirChanged(d);
+		return true;
 	}
+
+	if (!d.exists())
+		return false;
+
+	QDir::setCurrent(d.path());
+
+	m_root.AddLoader(new ttvfs::DiskLoader);
+	m_root.Mount(d.path().toStdString().c_str(), "");
+
+	m_game.init(&m_root);
 
 	m_dir = d;
 	dirChanged(d);

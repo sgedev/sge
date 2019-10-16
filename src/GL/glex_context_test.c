@@ -4,7 +4,7 @@
 
 #include "glex_context.h"
 
-int glexInitTest(GLEXContext *context)
+GLboolean glexInitTest(GLEXContext *context)
 {
 	GLEX_ASSERT(context != NULL);
 
@@ -47,18 +47,20 @@ int glexInitTest(GLEXContext *context)
 	glGenVertexArrays(1, &context->testVertexArray);
 	glBindVertexArray(context->testVertexArray);
 
-	glBindBuffer(GL_ARRAY_BUFFER, context->testVertexArray);
+	glBindBuffer(GL_ARRAY_BUFFER, context->testVertexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, context->testIndexBuffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *)0);
 	glEnableVertexAttribArray(0);
 
 	glBindVertexArray(0);
 
-	return GLEX_OK;
+	return GL_TRUE;
 }
 
 void glexShutdownTest(GLEXContext *context)
 {
+	GLEX_ASSERT(context != NULL);
+
 	glDeleteVertexArrays(1, &context->testVertexArray);
 	glDeleteBuffers(1, &context->testIndexBuffer);
 	glDeleteBuffers(1, &context->testVertexBuffer);
@@ -78,10 +80,11 @@ void glexDrawTest(void)
 	for (x = 0.0f; x < size; x += step) {
 		for (y = 0.0f; y < size; y += step) {
 			for (z = 0.0f; z < size; z += step) {
-				//glm::vec3 pos = { x, y, z };
-				//m = glm::translate(pos);
-				//glUniformMatrix4fv(m_uniformMat4Loc[UNIFORM_MODEL_MATRIX], 1, GL_FALSE, glm::value_ptr(m));
-				//glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+				hmm_vec3 pos = { x, y, z };
+				m = HMM_Translate(pos);
+				glUniformMatrix4fv(glex->uniformMat4Loc[GLEX_UNIFORM_MODEL_MATRIX],
+					1, GL_FALSE, (const GLfloat *)m.Elements);
+				glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 			}
 		}
 	}

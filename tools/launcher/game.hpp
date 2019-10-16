@@ -14,7 +14,7 @@ public:
 	virtual ~Game(void);
 
 public:
-	bool init(const char *root);
+	bool init(ttvfs::Root *root);
 	void shutdown(void) override;
 	bool handleEvent(const SDL_Event *event);
 	void frame(float elapsed);

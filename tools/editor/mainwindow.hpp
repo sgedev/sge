@@ -29,10 +29,8 @@ public:
 	bool Init(void);
 
 protected slots:
-	void projectOpenFile(const QString &filename);
-	void projectFolderContextMenuRequested(const QPoint &pos);
-	void projectFileContextMenuRequested(const QPoint &pos);
-	void projectOtherContextMenuRequested(const QPoint &pos);
+	void projectOpenItem(const QModelIndex &index);
+	void projectContextMenuRequested(const QPoint &pos);
 
 protected:
 	void closeEvent(QCloseEvent *event) override;
@@ -61,8 +59,6 @@ private:
 	void initToolBars(void);
 	void initProjectView(void);
 	void initConsoleView(void);
-	void openScript(const QString &filename);
-	void openScene(const QString &filename);
 
 private:
 	QMenu *m_fileMenu;

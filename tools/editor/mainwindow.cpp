@@ -1,5 +1,6 @@
 //
 //
+#include <QDebug>
 #include <QApplication>
 #include <QCloseEvent>
 #include <QList>
@@ -48,35 +49,19 @@ bool MainWindow::Init(void)
 	initConsoleView();
 
 	statusBar()->showMessage("Ready");
+	qDebug() << sizeof(QDomNode);
 
 	return true;
 }
 
-void MainWindow::projectOpenFile(const QString &filename)
+void MainWindow::projectOpenItem(const QModelIndex &index)
 {
-	if (filename.endsWith(".action", Qt::CaseInsensitive))
-		openScript(filename);
-	else if (filename.endsWith(".scene", Qt::CaseInsensitive))
-		openScene(filename);
-	else
-		QMessageBox::critical(this, "Unknown file: " + filename, "Error");
 }
 
-void MainWindow::projectFolderContextMenuRequested(const QPoint &pos)
+void MainWindow::projectContextMenuRequested(const QPoint &pos)
 {
 	m_projectContextMenu.popup(m_projectView.mapToGlobal(pos));
 }
-
-void MainWindow::projectFileContextMenuRequested(const QPoint &pos)
-{
-	m_projectContextMenu.popup(m_projectView.mapToGlobal(pos));
-}
-
-void MainWindow::projectOtherContextMenuRequested(const QPoint &pos)
-{
-	m_projectContextMenu.popup(m_projectView.mapToGlobal(pos));
-}
-
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -177,6 +162,10 @@ bool MainWindow::setupProject(const QString &path)
 {
 	QDir dir(path);
 
+	m_fileNewFolder->setDisabled(true);
+	m_fileNewScene->setDisabled(true);
+	m_fileNewScript->setDisabled(true);
+
 	m_projectView.setProject(NULL);
 
 	if (!dir.exists() && !dir.mkpath(path)) {
@@ -190,7 +179,7 @@ bool MainWindow::setupProject(const QString &path)
 		return false;
 	}
 
-	if (!project->setup(path)) {
+	if (!project->setup(dir)) {
 		QMessageBox::critical(this, "Error", "Failed to initialize project.");
 		return false;
 	}
@@ -199,6 +188,12 @@ bool MainWindow::setupProject(const QString &path)
 	m_project = project;
 
 	m_projectView.setProject(m_project.data());
+
+	m_fileNewFolder->setEnabled(true);
+	m_fileNewScene->setEnabled(true);
+	m_fileNewScript->setEnabled(true);
+	m_fileImport->setEnabled(true);
+	m_fileExport->setEnabled(true);
 
 	return true;
 }
@@ -213,12 +208,15 @@ void MainWindow::initMainMenu(void)
 	connect(m_fileNewProject, &QAction::triggered, this, &MainWindow::fileNewProject);
 
 	m_fileNewFolder = m_fileNewMenu->addAction("Folder...");
+	m_fileNewFolder->setDisabled(true);
 	connect(m_fileNewFolder, &QAction::triggered, this, &MainWindow::fileNewFolder);
 
 	m_fileNewScene = m_fileNewMenu->addAction("Scene...");
+	m_fileNewScene->setDisabled(true);
 	connect(m_fileNewScene, &QAction::triggered, this, &MainWindow::fileNewScene);
 
 	m_fileNewScript = m_fileNewMenu->addAction("Script...");
+	m_fileNewScript->setDisabled(true);
 	connect(m_fileNewScript, &QAction::triggered, this, &MainWindow::fileNewScript);
 
 	m_fileOpen = m_fileMenu->addAction("Open...");
@@ -236,9 +234,11 @@ void MainWindow::initMainMenu(void)
 	m_fileMenu->addSeparator();
 
 	m_fileImport = m_fileMenu->addAction("Import...");
+	m_fileImport->setDisabled(true);
 	connect(m_fileImport, &QAction::triggered, this, &MainWindow::fileImport);
 
 	m_fileExport = m_fileMenu->addAction("Export...");
+	m_fileExport->setDisabled(true);
 	connect(m_fileExport, &QAction::triggered, this, &MainWindow::fileExport);
 
 	m_fileMenu->addSeparator();
@@ -313,9 +313,8 @@ void MainWindow::initProjectView(void)
 	m_projectView.setContextMenuPolicy(Qt::CustomContextMenu);
 	m_projectView.setParent(&m_projectViewDocker);
 
-	connect(&m_projectView, &ProjectView::customFolderContextMenuRequested, this, &MainWindow::projectFolderContextMenuRequested);
-	connect(&m_projectView, &ProjectView::customFileContextMenuRequested, this, &MainWindow::projectFileContextMenuRequested);
-	connect(&m_projectView, &ProjectView::customOtherContextMenuRequested, this, &MainWindow::projectOtherContextMenuRequested);
+	connect(&m_projectView, &QAbstractItemView::doubleClicked, this, &MainWindow::projectOpenItem);
+	connect(&m_projectView, &QWidget::customContextMenuRequested, this, &MainWindow::projectContextMenuRequested);
 
 	m_projectContextNewMenu = m_projectContextMenu.addMenu("New");
 	m_projectContextNewMenu->addAction(m_fileNewFolder);
@@ -337,13 +336,5 @@ void MainWindow::initConsoleView(void)
 	m_consoleViewDocker.setWidget(&m_consoleView);
 
 	addDockWidget(Qt::BottomDockWidgetArea, &m_consoleViewDocker);
-}
-
-void MainWindow::openScript(const QString &filename)
-{
-}
-
-void MainWindow::openScene(const QString &filename)
-{
 }
 

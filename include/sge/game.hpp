@@ -5,13 +5,14 @@
 
 #include <map>
 #include <string>
+#include <vector>
+#include <memory>
 #include <thread>
 #include <mutex>
 #include <future>
 #include <condition_variable>
 
 #include <ttvfs.h>
-#include <pugixml.hpp>
 
 #include <sge/common.hpp>
 #include <sge/event.hpp>
@@ -53,6 +54,7 @@ public:
 	void yieldLuaTask(lua_State *L, int n);
 
 private:
+	bool loadManifest(ttvfs::Root *root);
 	static void quitAsync(uv_async_t *p);
 	void initTraps(void);
 	bool loadMainTask(void);
@@ -91,7 +93,7 @@ private:
 
 private:
 	ttvfs::Root *m_root;
-	pugi::xml_document m_manifest;
+	Scene m_scene;
 	lua_State *m_L;
 	std::thread m_luaThread;
 	std::mutex m_mutex;
@@ -106,7 +108,6 @@ private:
 	TrapType m_currentTrap;
 	int m_currentTrapResult;
 	lua_State *m_currentTrapLua;
-	Scene m_scene;
 };
 
 SGE_END

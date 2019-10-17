@@ -18,8 +18,6 @@ target_sources(sge
 		miniz_common.h
 		miniz_tdef.h
 		miniz_zip.h
-		pugiconfig.hpp
-		pugixml.hpp
 		sge.hpp
 		ttvfs.h
 		ttvfs_stdio.h

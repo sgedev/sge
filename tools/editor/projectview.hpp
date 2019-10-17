@@ -6,7 +6,6 @@
 #include <QTreeView>
 #include <QModelIndex>
 #include <QHeaderView>
-#include <QFileSystemModel>
 
 #include "project.hpp"
 
@@ -18,10 +17,7 @@ public:
 	virtual ~ProjectView(void);
 
 signals:
-	void openFile(const QString &filename);
-	void customFolderContextMenuRequested(const QPoint &pos);
-	void customFileContextMenuRequested(const QPoint &pos);
-	void customOtherContextMenuRequested(const QPoint &pos);
+	void openItem(const QString &filename);
 
 public:
 	bool init(void);
@@ -31,11 +27,8 @@ public:
 
 protected slots:
 	void dirChanged(const QDir &dir);
-	void openItem(const QModelIndex &index);
-	void contextMenuRequested(const QPoint &pos);
 
 private:
-	QFileSystemModel m_fs;
 	QModelIndex m_root;
 	Project *m_project;
 };

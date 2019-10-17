@@ -11,10 +11,7 @@ ProjectView::ProjectView(QWidget *parent)
 {
 	setWindowTitle("Project");
 	setSelectionMode(QAbstractItemView::SingleSelection);
-	setModel(&m_fs);
-
-	connect(this, &QAbstractItemView::doubleClicked, this, &ProjectView::openItem);
-	connect(this, &QWidget::customContextMenuRequested, this, &ProjectView::contextMenuRequested);
+	setModel(NULL);
 }
 
 ProjectView::~ProjectView(void)
@@ -47,35 +44,13 @@ void ProjectView::setProject(Project *project)
 	if (m_project == NULL)
 		return;
 
-	connect(project, &Project::dirChanged, this, &ProjectView::dirChanged);
+	setModel(m_project);
+
+	connect(m_project, &Project::dirChanged, this, &ProjectView::dirChanged);
 	dirChanged(m_project->dir());
 }
 
 void ProjectView::dirChanged(const QDir &dir)
 {
-	m_root = m_fs.setRootPath(dir.path());
-	setRootIndex(m_root);
-}
-
-void ProjectView::openItem(const QModelIndex &index)
-{
-	if (!index.isValid())
-		return;
-
-	if (m_fs.isDir(index))
-		return;
-
-	openFile(m_fs.fileInfo(index).absolutePath());
-}
-
-void ProjectView::contextMenuRequested(const QPoint &pos)
-{
-	QModelIndex index = indexAt(pos);
-	if (!index.isValid())
-		customOtherContextMenuRequested(pos);
-	else if (m_fs.isDir(index))
-		customFolderContextMenuRequested(pos);
-	else
-		customFileContextMenuRequested(pos);
 }
 

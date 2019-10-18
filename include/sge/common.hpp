@@ -3,18 +3,12 @@
 #ifndef SGE_COMMON_HPP
 #define SGE_COMMON_HPP
 
-#include <cstdint>
-
-#include <lua.hpp>
-#include <glm.hpp>
-#include <cx/common.hpp>
+#include <QtGlobal>
 
 #include <sge/config.hpp>
 
 #ifdef SGE_DEBUG
-#	define SGE_ASSERT(expr) CX_ASSERT(expr)
-#else
-#	define SGE_ASSERT(expr)
+#	include <QDebug>
 #endif
 
 #define SGE_BEGIN namespace SGE {

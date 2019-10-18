@@ -1,6 +1,5 @@
 
-target_sources(sge
-	PRIVATE
-		list.c
+sge_sources(
+	list.c
 	)
 

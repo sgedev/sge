@@ -3,21 +3,25 @@
 #ifndef SGE_SCENE_HPP
 #define SGE_SCENE_HPP
 
+#include <QObject>
+
 #include <sge/common.hpp>
-#include <sge/view.hpp>
+#include <sge/renderer.hpp>
 
 SGE_BEGIN
 
-class Scene {
+class Scene: public QObject {
+	Q_OBJECT
+
 public:
-	Scene(void);
+	Scene(QObject *parent = Q_NULLPTR);
 	virtual ~Scene(void);
 
 public:
 	bool init(void);
 	void shutdown(void);
 	void update(float elapsed);
-	void draw(View *v);
+	void draw(Renderer::Context *rc);
 };
 
 SGE_END

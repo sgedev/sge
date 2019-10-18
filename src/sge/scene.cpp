@@ -4,7 +4,8 @@
 
 SGE_BEGIN
 
-Scene::Scene(void)
+Scene::Scene(QObject *parent)
+	: QObject(parent)
 {
 }
 
@@ -25,7 +26,7 @@ void Scene::update(float elapsed)
 {
 }
 
-void Scene::draw(View *v)
+void Scene::draw(Renderer::Context *rc)
 {
 }
 

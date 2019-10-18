@@ -1,6 +1,0 @@
-
-target_sources(sge
-	PUBLIC
-		khrplatform.h
-	)
-

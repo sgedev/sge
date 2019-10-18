@@ -1,16 +1,14 @@
 
-target_sources(sge
-	PRIVATE
-		entity.cpp
-		game.cpp
-		input.cpp
-		keycode.cpp
-		scene.cpp
-		view.cpp
+sge_subdirectories(
+	editor
+	launcher
+	renderer
+	server
 	)
 
-if(UNIX)
-target_compile_options(sge PUBLIC "-pthread")
-target_link_libraries(sge "pthread")
-endif()
+sge_sources(
+	client.cpp
+	main.cpp
+	scene.cpp
+	)
 

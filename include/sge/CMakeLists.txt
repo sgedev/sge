@@ -1,26 +1,21 @@
 
-target_sources(sge
-	PUBLIC
-		common.hpp
-		entity.hpp
-		event.hpp
-		game.h
-		game.hpp
-		input.hpp
-		keycode.hpp
-		scene.hpp
-		view.hpp
-	PRIVATE
-		config.hpp.in
+sge_subdirectories(
+	editor
+	launcher
+	renderer
+	server
+	)
+
+sge_sources(
+	client.hpp
+	common.hpp
+	renderer.hpp
+	scene.hpp
+	config.hpp.in
 	)
 
 configure_file(
 	config.hpp.in
 	config.hpp
-	)
-
-target_compile_definitions(sge
-	PUBLIC
-		LUA_USER_H=\"${CMAKE_CURRENT_SOURCE_DIR}/game.h\"
 	)
 

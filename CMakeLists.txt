@@ -6,10 +6,6 @@ cmake_minimum_required(VERSION 3.13.2)
 
 project(sge VERSION 0.1.0)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 
@@ -23,28 +19,71 @@ if(MSVC)
 	add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 endif()
 
-include(FindUV)
-if(UV_FOUND)
-	include_directories(${UV_INCLUDE_DIRS})
-	link_libraries(${UV_LIBRARIES})
-else()
-	message(FATAL_ERROR "libuv not found.")
-endif()
+# qt5
 
-include_directories(
+set(CMAKE_AUTOMOC ON)
+
+find_package(Qt5Core)
+find_package(Qt5Gui)
+find_package(Qt5Widgets)
+find_package(Qt5Xml)
+
+link_libraries(
+	Qt5::Core
+	Qt5::Gui
+	Qt5::Widgets
+	Qt5::Xml
+	)
+
+# sge macros
+
+macro(sge_subdirectories)
+	foreach(SUBDIR ${ARGN})
+		add_subdirectory(${SUBDIR} ${SUBDIR})
+	endforeach()
+endmacro()
+
+macro(sge_sources)
+	target_sources(sge PRIVATE ${ARGN})
+endmacro()
+
+macro(sge_include_directories)
+	target_include_directories(sge PRIVATE ${ARGN})
+endmacro()
+
+macro(sge_compile_definitions)
+	target_compile_definitions(sge PRIVATE ${ARGN})
+endmacro()
+
+macro(sge_link_libraries)
+	target_link_libraries(sge ${ARGN})
+endmacro()
+
+macro(sge_properties)
+	set_target_properties(sge PROPERTIES ${ARGN})
+endmacro()
+
+# sge
+
+set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
+
+add_executable(sge)
+
+sge_include_directories(
 	${CMAKE_SOURCE_DIR}/include
 	${CMAKE_BINARY_DIR}/include
 	)
 
-set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
+sge_subdirectories(
+	include
+	src
+	)
 
-add_library(sge STATIC)
-add_subdirectory(include include)
-add_subdirectory(src src)
 get_target_property(SGE_SOURCES sge SOURCES)
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SGE_SOURCES})
 
+add_subdirectory(docs docs)
 add_subdirectory(test test)
 add_subdirectory(tools tools)
-add_subdirectory(docs docs)
+
 

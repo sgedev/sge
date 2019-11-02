@@ -31,17 +31,17 @@ public:
 	class Item {
 	public:
 		enum Type {
-			TYPE_UNKNOWN = 0,
-			TYPE_ASSETS,
-			TYPE_ASSET,
-			TYPE_SCENES,
-			TYPE_SCENE,
-			TYPE_LEVELS,
-			TYPE_LEVEL,
+			TypeUnknown = 0,
+			TypeAssets,
+			TypeAsset,
+			TypeScenes,
+			TypeScene,
+			TypeLevels,
+			TypeLevel,
 		};
 
 	public:
-		Item(const QDomNode &node, int row, Item *parent = nullptr, Type type = TYPE_UNKNOWN);
+		Item(const QDomNode &node, int row, Item *parent = nullptr, Type type = TypeUnknown);
 		~Item();
 
 	public:
@@ -61,16 +61,16 @@ public:
 
 public:
 	enum State {
-		STATE_IDLE = 0,
-		STATE_READY,
-		STATE_DIRTY,
-		STATE_ERROR,
-		STATE_BUILDING,
-		STATE_CLEANNING,
-		STATE_SAVING,
-		STATE_LOADING,
-		STATE_STARTING,
-		STATE_RUNNING,
+		StateIdle = 0,
+		StateReady,
+		StateDirty,
+		StateError,
+		StateBuilding,
+		StateCleanning,
+		StateSaving,
+		StateLoading,
+		StateStarting,
+		StateRunning,
 	};
 
 public:

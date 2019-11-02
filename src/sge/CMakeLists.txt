@@ -3,6 +3,7 @@ sge_subdirectories(
 	editor
 	launcher
 	renderer
+	resource
 	server
 	)
 

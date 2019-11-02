@@ -1,7 +1,7 @@
 
 sge_sources(
-	mainwindow.cpp
+	application.cpp
 	game.cpp
-	gamewidget.cpp
+	mainwindow.cpp
 	)
 

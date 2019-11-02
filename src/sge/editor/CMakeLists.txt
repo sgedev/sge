@@ -13,6 +13,7 @@ else()
 endif()
 
 sge_sources(
+	application.cpp
 	assetview.cpp
 	consoleview.cpp
 	game.cpp

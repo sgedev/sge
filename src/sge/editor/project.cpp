@@ -28,7 +28,7 @@ Project::Item *Project::Item::child(int i)
 
 Project::Project(QObject *parent)
 	: QAbstractItemModel(parent)
-	, m_state(STATE_IDLE)
+	, m_state(StateIdle)
 	, m_rootItem(Q_NULLPTR)
 {
 	connect(&m_gameLauncher, &QProcess::started, this, &Project::launcherStarted);
@@ -215,7 +215,7 @@ bool Project::setup(const QDir &dir)
 	m_game.init(&m_rootFS);
 
 	setDir(dir);
-	setState(STATE_READY);
+	setState(StateReady);
 
 	return true;
 }
@@ -263,13 +263,15 @@ bool Project::start(const QString &launcher)
 {
 	QStringList args;
 
-	if (state() != STATE_READY)
+	if (state() != StateReady)
 		return false;
 
-	setState(STATE_STARTING);
+	setState(StateStarting);
 
 	args << m_outDir.path();
 	m_gameLauncher.start(launcher, args);
+
+	return true;
 }
 
 void Project::setDir(const QDir &d)
@@ -292,20 +294,20 @@ void Project::setState(State st)
 
 void Project::launcherStarted(void)
 {
-	setState(STATE_RUNNING);
+	setState(StateRunning);
 }
 
 void Project::launcherStateChanged(QProcess::ProcessState newState)
 {
 	switch (newState) {
 	case QProcess::NotRunning:
-		setState(STATE_READY);
+		setState(StateReady);
 		break;
 	case QProcess::Starting:
-		setState(STATE_STARTING);
+		setState(StateStarting);
 		break;
 	case QProcess::Running:
-		setState(STATE_RUNNING);
+		setState(StateRunning);
 		break;
 	}
 }
@@ -322,7 +324,7 @@ void Project::launcherError(QProcess::ProcessError error)
 
 void Project::launcherFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-	setState(STATE_READY);
+	setState(StateReady);
 }
 
 void Project::launcherStdoutReady(void)

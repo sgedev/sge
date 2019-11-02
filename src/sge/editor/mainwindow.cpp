@@ -14,9 +14,6 @@
 #include <QFileDialog>
 #include <QStringList>
 
-#include <iostream>
-#include <physfs.h>
-
 #include <sge/editor/newprojectdialog.hpp>
 #include <sge/editor/newfolderdialog.hpp>
 #include <sge/editor/newscriptdialog.hpp>

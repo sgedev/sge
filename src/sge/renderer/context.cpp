@@ -60,8 +60,8 @@ void Context::render(View *view)
 		m_gl->glClear(GL_COLOR_BUFFER_BIT);
 	}
 
-	QMatrix4x4 viewMatrix = view->viewMatrix();
-	QMatrix4x4 projectMatrix = view->projectMatrix();
+	const QMatrix4x4 &viewMatrix = view->viewMatrix();
+	const QMatrix4x4 &projectMatrix = view->projectMatrix();
 	// TODO
 }
 

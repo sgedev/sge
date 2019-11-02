@@ -18,6 +18,7 @@ Client::~Client(void)
 
 bool Client::init(ttvfs::Root *root)
 {
+	return true;
 }
 
 void Client::shutdown(void)

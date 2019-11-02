@@ -1,5 +1,6 @@
 
 sge_sources(
+	application.hpp
 	assetview.hpp
 	common.hpp
 	consoleview.hpp

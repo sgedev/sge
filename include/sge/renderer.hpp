@@ -9,4 +9,3 @@
 #include <sge/renderer/view.hpp>
 
 #endif // SGE_RENDERER_HPP
-

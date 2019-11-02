@@ -1,8 +1,7 @@
 
 sge_sources(
+	application.hpp
 	common.hpp
-	mainwindow.hpp
 	game.hpp
-	gamewidget.hpp
+	mainwindow.hpp
 	)
-

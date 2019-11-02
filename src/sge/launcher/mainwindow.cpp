@@ -9,8 +9,6 @@ SGE_LAUNCHER_BEGIN
 
 MainWindow::MainWindow(void)
 {
-	setWindowTitle("SGE Launcher");
-	setCentralWidget(&m_gameWidget);
 	resize(800, 600);
 	setMinimumSize(size());
 	setMaximumSize(size());
@@ -25,8 +23,30 @@ MainWindow::~MainWindow(void)
 
 void MainWindow::timerEvent(QTimerEvent *event)
 {
-	if (event->timerId() == m_frameTimer)
-		m_gameWidget.frame(16);
+	if (event->timerId() == m_frameTimer) {
+		m_game.update(16.6f);
+		update();
+	}
+}
+
+void MainWindow::initializeGL(void)
+{
+	m_game.init(&m_root);
+	m_rc.init();
+}
+
+void MainWindow::paintGL(void)
+{
+	m_view.clear();
+	m_game.draw(&m_view);
+
+	m_rc.clear();
+	m_rc.render(&m_view);
+}
+
+void MainWindow::resizeGL(int w, int h)
+{
+	m_view.setViewport(0, 0, w, h);
 }
 
 SGE_LAUNCHER_END

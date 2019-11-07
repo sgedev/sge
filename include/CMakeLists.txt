@@ -10,6 +10,7 @@ sge_sources(
 	miniz_common.h
 	miniz_tdef.h
 	miniz_zip.h
+	physfs.h
 	sge.hpp
 	ttvfs.h
 	ttvfs_stdio.h

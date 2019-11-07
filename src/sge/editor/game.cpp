@@ -13,9 +13,9 @@ Game::~Game(void)
 {
 }
 
-bool Game::init(ttvfs::Root *root)
+bool Game::init(SGE::FileSystem *fs)
 {
-	if (!Client::init(root))
+	if (!Client::init(fs))
 		return false;
 
 	return true;

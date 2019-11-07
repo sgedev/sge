@@ -9,7 +9,8 @@ sge_subdirectories(
 
 sge_sources(
 	client.cpp
-	main.cpp
+	filesystem.cpp
+	physfile.cpp
 	scene.cpp
 	)
 

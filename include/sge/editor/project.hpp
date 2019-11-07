@@ -100,7 +100,7 @@ public:
 public:
 	void reset(void);
 	State state(void) const;
-	bool setup(const QDir &dir);
+	bool create(const QDir &dir);
 	void update(float elapsed);
 	void draw(Renderer::View *view);
 	bool save(const QDir &d);
@@ -133,7 +133,7 @@ private:
 	QDir m_assetDir;
 	QDomDocument m_manifest;
 	Item *m_rootItem;
-	ttvfs::Root m_rootFS;
+	SGE::FileSystem m_fs;
 	Assimp::Importer m_importer;
 	Game m_game;
 	QProcess m_gameLauncher;

@@ -13,7 +13,9 @@ sge_sources(
 	compiler.hpp
 	config.hpp.in
 	editor.hpp
+	filesystem.hpp
 	launcher.hpp
+	physfile.hpp
 	renderer.hpp
 	resource.hpp
 	scene.hpp

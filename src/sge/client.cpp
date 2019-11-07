@@ -8,7 +8,7 @@ SGE_BEGIN
 
 Client::Client(QObject *parent)
 	: QObject(parent)
-	, m_root(NULL)
+	, m_fs(Q_NULLPTR)
 {
 }
 
@@ -16,8 +16,13 @@ Client::~Client(void)
 {
 }
 
-bool Client::init(ttvfs::Root *root)
+bool Client::init(FileSystem *fs)
 {
+	Q_ASSERT(m_fs == Q_NULLPTR);
+	Q_ASSERT(fs != Q_NULLPTR);
+
+	m_fs = fs;
+
 	return true;
 }
 

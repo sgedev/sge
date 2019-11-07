@@ -31,7 +31,7 @@ void MainWindow::timerEvent(QTimerEvent *event)
 
 void MainWindow::initializeGL(void)
 {
-	m_game.init(&m_root);
+	m_game.init(&m_fs);
 	m_rc.init();
 }
 

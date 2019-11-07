@@ -18,7 +18,7 @@ public:
 	virtual ~Game(void);
 
 public:
-	bool init(ttvfs::Root *root) override;
+	bool init(SGE::FileSystem *fs) override;
 	void shutdown(void) override;
 	void update(float elapsed) override;
 	void draw(Renderer::View *view) override;

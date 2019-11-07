@@ -7,9 +7,8 @@
 #include <QThread>
 #include <QMutex>
 
-#include <ttvfs.h>
-
 #include <sge/common.hpp>
+#include <sge/filesystem.hpp>
 #include <sge/scene.hpp>
 #include <sge/renderer.hpp>
 
@@ -35,24 +34,23 @@ public:
 	virtual ~Client(void);
 
 public:
-	virtual bool init(ttvfs::Root *root);
+	virtual bool init(FileSystem *fs);
 	virtual void shutdown(void);
 	virtual void update(float elapsed);
 	virtual void draw(Renderer::View *view);
-	ttvfs::Root &root(void);
+	FileSystem *fs(void);
 	Scene &scene(void);
 	State state(void) const;
 
 private:
-	ttvfs::Root *m_root;
+	FileSystem *m_fs;
 	Scene m_scene;
 	State m_state;
 };
 
-inline ttvfs::Root &Client::root(void)
+inline FileSystem *Client::fs(void)
 {
-	Q_ASSERT(m_root != Q_NULLPTR);
-	return (*m_root);
+	return m_fs;
 }
 
 inline Scene &Client::scene(void)

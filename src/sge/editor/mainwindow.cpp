@@ -174,7 +174,7 @@ bool MainWindow::setupProject(const QString &path)
 		return false;
 	}
 
-	if (!project->setup(dir)) {
+	if (!project->create(dir)) {
 		QMessageBox::critical(this, "Error", "Failed to initialize project.");
 		return false;
 	}

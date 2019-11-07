@@ -26,7 +26,7 @@ protected:
 
 private:
 	int m_frameTimer;
-	ttvfs::Root m_root;
+	SGE::FileSystem m_fs;
 	Game m_game;
 	Renderer::Context m_rc;
 	Renderer::View m_view;

@@ -165,7 +165,7 @@ void Project::reset(void)
 	m_manifest.clear();
 }
 
-bool Project::setup(const QDir &dir)
+bool Project::create(const QDir &dir)
 {
 	if (dir.path().isEmpty()) {
 		m_dir = dir;
@@ -209,10 +209,15 @@ bool Project::setup(const QDir &dir)
 	m_manifest = manifest;
 	m_rootItem = new Item(m_manifest.firstChild(), 0);
 
-	m_rootFS.AddLoader(new ttvfs::DiskLoader);
-	m_rootFS.Mount(m_outDir.path().toStdString().c_str(), "");
+	m_fs.load(dir.path() + "/test.zip");
 
-	m_game.init(&m_rootFS);
+	SGE::FilePtr fp = m_fs.open("test.xml", QIODevice::ReadOnly);
+	char buf[5] = { 0 };
+	qDebug() << fp->read(buf, 4);
+	qDebug() << buf;
+	qDebug() << fp->size();
+
+	m_game.init(&m_fs);
 
 	setDir(dir);
 	setState(StateReady);

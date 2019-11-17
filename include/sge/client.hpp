@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QThread>
 #include <QMutex>
+#include <QDomDocument>
 
 #include <sge/common.hpp>
 #include <sge/filesystem.hpp>
@@ -38,30 +39,12 @@ public:
 	virtual void shutdown(void);
 	virtual void update(float elapsed);
 	virtual void draw(Renderer::View *view);
-	FileSystem *fs(void);
-	Scene &scene(void);
-	State state(void) const;
 
 private:
 	FileSystem *m_fs;
 	Scene m_scene;
 	State m_state;
 };
-
-inline FileSystem *Client::fs(void)
-{
-	return m_fs;
-}
-
-inline Scene &Client::scene(void)
-{
-	return m_scene;
-}
-
-inline Client::State Client::state(void) const
-{
-	return m_state;
-}
 
 SGE_END
 

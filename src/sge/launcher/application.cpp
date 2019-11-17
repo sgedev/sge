@@ -1,5 +1,6 @@
 //
 //
+#include <QFileInfo>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 
@@ -27,6 +28,17 @@ bool Application::init(const QStringList &args)
 	parser.addPositionalArgument("game path", "Specify the game path");
 	parser.addHelpOption();
 	parser.process(args);
+
+	const QStringList pargs = parser.positionalArguments();
+	if (pargs.count() != 1)
+		return false;
+
+	QFileInfo fi(pargs.at(0));
+	if (!fi.isReadable())
+		return false;
+
+	if (!m_mainWindow.init(pargs.at(0)))
+		return false;
 
 	m_mainWindow.show();
 

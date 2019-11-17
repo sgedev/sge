@@ -8,6 +8,7 @@
 
 #include <sge/launcher/common.hpp>
 #include <sge/launcher/game.hpp>
+#include <sge/launcher/zipfilesystem.hpp>
 
 SGE_LAUNCHER_BEGIN
 
@@ -18,6 +19,9 @@ public:
 	MainWindow(void);
 	virtual ~MainWindow(void);
 
+public:
+	bool init(const QString &filename);
+
 protected:
     void timerEvent(QTimerEvent *event) override;
 	void initializeGL(void) override;
@@ -26,7 +30,7 @@ protected:
 
 private:
 	int m_frameTimer;
-	SGE::FileSystem m_fs;
+	ZipFileSystem m_fs;
 	Game m_game;
 	Renderer::Context m_rc;
 	Renderer::View m_view;

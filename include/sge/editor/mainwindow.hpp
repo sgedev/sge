@@ -14,7 +14,6 @@
 #include <QDir>
 
 #include <sge/editor/common.hpp>
-#include <sge/editor/assetview.hpp>
 #include <sge/editor/consoleview.hpp>
 #include <sge/editor/projectview.hpp>
 #include <sge/editor/sceneview.hpp>
@@ -60,7 +59,6 @@ private:
 	void initToolBars(void);
 	void initProjectView(void);
 	void initConsoleView(void);
-	void initAssetView(void);
 
 private:
 	QMenu *m_fileMenu;
@@ -114,9 +112,6 @@ private:
 
 	QDockWidget m_consoleViewDocker;
 	ConsoleView m_consoleView;
-
-	QDockWidget m_assetViewDocker;
-	AssetView m_assetView;
 
 	typedef QSharedPointer<Project> ProjectPtr;
 	QString m_projectPath;

@@ -40,7 +40,6 @@ MainWindow::MainWindow(void)
 
 	initProjectView();
 	initConsoleView();
-	initAssetView();
 
 	statusBar()->showMessage("Ready");
 }
@@ -183,7 +182,6 @@ bool MainWindow::setupProject(const QString &path)
 	m_project = project;
 
 	m_projectView.setProject(m_project.data());
-	m_assetView.setProject(m_project.data());
 
 	m_fileNewFolder->setEnabled(true);
 	m_fileNewScene->setEnabled(true);
@@ -332,17 +330,6 @@ void MainWindow::initConsoleView(void)
 	m_consoleViewDocker.setWidget(&m_consoleView);
 
 	addDockWidget(Qt::BottomDockWidgetArea, &m_consoleViewDocker);
-}
-
-void MainWindow::initAssetView(void)
-{
-	restoreDockWidget(&m_assetViewDocker);
-
-	m_assetViewDocker.setObjectName("AssetView");
-	m_assetViewDocker.setWindowTitle("Asset");
-	m_assetViewDocker.setWidget(&m_assetView);
-
-	addDockWidget(Qt::BottomDockWidgetArea, &m_assetViewDocker);
 }
 
 SGE_EDITOR_END

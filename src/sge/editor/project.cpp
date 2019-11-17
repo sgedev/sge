@@ -29,7 +29,6 @@ Project::Item *Project::Item::child(int i)
 Project::Project(QObject *parent)
 	: QAbstractItemModel(parent)
 	, m_state(StateIdle)
-	, m_rootItem(Q_NULLPTR)
 {
 	connect(&m_gameLauncher, &QProcess::started, this, &Project::launcherStarted);
 	connect(&m_gameLauncher, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(launcherFinished(int, QProcess::ExitStatus)));
@@ -41,8 +40,6 @@ Project::Project(QObject *parent)
 
 Project::~Project(void)
 {
-	if (m_rootItem != Q_NULLPTR)
-		delete m_rootItem;
 }
 
 QVariant Project::data(const QModelIndex &index, int role) const
@@ -93,50 +90,17 @@ QVariant Project::headerData(int section, Qt::Orientation orientation, int role)
 
 QModelIndex Project::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!hasIndex(row, column, parent))
-        return QModelIndex();
-
-	Item *parentItem;
-
-	if (!parent.isValid())
-        parentItem = m_rootItem;
-    else
-        parentItem = static_cast<Item *>(parent.internalPointer());
-
-    Item *childItem = parentItem->child(row);
-    if (childItem != Q_NULLPTR)
-        return createIndex(row, column, childItem);
-
     return QModelIndex();
 }
 
 QModelIndex Project::parent(const QModelIndex &child) const
 {
-    if (!child.isValid())
-        return QModelIndex();
-
-    Item *childItem = static_cast<Item *>(child.internalPointer());
-    Item *parentItem = childItem->parent();
-
-    if (parentItem == NULL || parentItem == m_rootItem)
-        return QModelIndex();
-
-    return createIndex(parentItem->row(), 0, parentItem);
+    return QModelIndex();
 }
 
 int Project::rowCount(const QModelIndex &parent) const
 {
-    if (parent.column() > 0)
-        return 0;
-
-    Item *parentItem;
-
-    if (!parent.isValid())
-        parentItem = m_rootItem;
-    else
-        parentItem = static_cast<Item *>(parent.internalPointer());
-
-    return parentItem->node().childNodes().count();
+    return 0;
 }
 
 int Project::columnCount(const QModelIndex &parent) const
@@ -162,7 +126,6 @@ bool Project::removeRows(int row, int count, const QModelIndex &parent)
 void Project::reset(void)
 {
 	m_game.shutdown();
-	m_manifest.clear();
 }
 
 bool Project::create(const QDir &dir)
@@ -180,38 +143,9 @@ bool Project::create(const QDir &dir)
 
 	QDir::setCurrent(dir.path());
 
-	m_outDir.setPath(dir.path() + "/out");
-	dir.mkpath(m_outDir.path());
+	m_fs.init(dir.path());
 
-	m_assetDir.setPath(dir.path() + "/asset");
-	dir.mkpath(m_assetDir.path());
-	m_assetDir.mkpath("Models");
-	m_assetDir.mkpath("Sounds");
-	m_assetDir.mkpath("Textures");
-
-	QDomDocument manifest;
-	QDomElement rootNode = manifest.createElement("sge");
-	rootNode.setAttribute("version", "0.1");
-	manifest.appendChild(rootNode);
-
-	rootNode.appendChild(manifest.createElement("scenes"));
-	rootNode.appendChild(manifest.createElement("levels"));
-
-	QFile file(dir.path() + "/manifest.xml");
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-		return false;
-
-	QTextStream s(&file);
-	s << manifest.toString();
-	qDebug() << manifest.toString();
-	file.close();
-
-	m_manifest = manifest;
-	m_rootItem = new Item(m_manifest.firstChild(), 0);
-
-	m_fs.load(dir.path() + "/test.zip");
-
-	SGE::FilePtr fp = m_fs.open("test.xml", QIODevice::ReadOnly);
+	SGE::FilePtr fp = m_fs.open("/test.xml", QIODevice::ReadOnly);
 	char buf[5] = { 0 };
 	qDebug() << fp->read(buf, 4);
 	qDebug() << buf;
@@ -272,9 +206,6 @@ bool Project::start(const QString &launcher)
 		return false;
 
 	setState(StateStarting);
-
-	args << m_outDir.path();
-	m_gameLauncher.start(launcher, args);
 
 	return true;
 }

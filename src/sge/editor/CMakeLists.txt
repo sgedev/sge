@@ -14,11 +14,11 @@ endif()
 
 sge_sources(
 	application.cpp
-	assetview.cpp
 	consoleview.cpp
 	game.cpp
 	importer.cpp
 	mainwindow.cpp
+	nativefilesystem.cpp
 	newfolderdialog.cpp
 	newprojectdialog.cpp
 	newscenedialog.cpp

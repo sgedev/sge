@@ -1,12 +1,12 @@
 
 sge_sources(
 	application.hpp
-	assetview.hpp
 	common.hpp
 	consoleview.hpp
 	game.hpp
 	importer.hpp
 	mainwindow.hpp
+	nativefilesystem.hpp
 	newfolderdialog.hpp
 	newprojectdialog.hpp
 	newscenedialog.hpp

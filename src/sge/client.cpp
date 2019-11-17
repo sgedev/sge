@@ -1,7 +1,5 @@
 //
 //
-#include <QMutexLocker>
-
 #include <sge/client.hpp>
 
 SGE_BEGIN
@@ -18,8 +16,8 @@ Client::~Client(void)
 
 bool Client::init(FileSystem *fs)
 {
-	Q_ASSERT(m_fs == Q_NULLPTR);
 	Q_ASSERT(fs != Q_NULLPTR);
+	Q_ASSERT(m_fs == Q_NULLPTR);
 
 	m_fs = fs;
 

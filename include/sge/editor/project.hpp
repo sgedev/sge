@@ -13,14 +13,12 @@
 #include <QList>
 #include <QDir>
 #include <QHash>
-#include <QDomNode>
-#include <QDomElement>
-#include <QDomDocument>
 #include <QProcess>
 #include <QAbstractItemModel>
 
 #include <sge/editor/common.hpp>
 #include <sge/editor/game.hpp>
+#include <sge/editor/nativefilesystem.hpp>
 
 SGE_EDITOR_BEGIN
 
@@ -129,11 +127,7 @@ protected slots:
 private:
 	State m_state;
 	QDir m_dir;
-	QDir m_outDir;
-	QDir m_assetDir;
-	QDomDocument m_manifest;
-	Item *m_rootItem;
-	SGE::FileSystem m_fs;
+	NativeFileSystem m_fs;
 	Assimp::Importer m_importer;
 	Game m_game;
 	QProcess m_gameLauncher;
@@ -180,16 +174,6 @@ inline Project::State Project::state(void) const
 inline const QDir &Project::dir(void) const
 {
 	return m_dir;
-}
-
-inline const QDir &Project::outDir(void) const
-{
-	return m_outDir;
-}
-
-inline const QDir &Project::assetDir(void) const
-{
-	return m_assetDir;
 }
 
 SGE_EDITOR_END

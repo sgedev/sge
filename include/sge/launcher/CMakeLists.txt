@@ -4,4 +4,5 @@ sge_sources(
 	common.hpp
 	game.hpp
 	mainwindow.hpp
+	zipfilesystem.hpp
 	)

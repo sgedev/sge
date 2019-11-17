@@ -4,7 +4,6 @@
 #include <QStringList>
 #include <QSurfaceFormat>
 
-#include <physfs.h>
 #include <sge.hpp>
 
 static void setupApp(void)
@@ -123,8 +122,6 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	PHYSFS_init(NULL);
-
 	QStringList args;
 	for (int i = 2; i < argc; ++i)
 		args << argv[i];
@@ -153,15 +150,11 @@ int main(int argc, char *argv[])
 	else
 		printHelp();
 
-	if (app == Q_NULLPTR) {
-		PHYSFS_deinit();
+	if (app == Q_NULLPTR)
 		return EXIT_FAILURE;
-	}
 
 	int ret = app->exec();
 	delete app;
-
-	PHYSFS_deinit();
 
 	return ret;
 }

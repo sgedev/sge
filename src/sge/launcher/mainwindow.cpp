@@ -21,6 +21,16 @@ MainWindow::~MainWindow(void)
 		killTimer(m_frameTimer);
 }
 
+bool MainWindow::init(const QString &filename)
+{
+	if (!m_fs.load(filename))
+		return false;
+
+	m_game.init(&m_fs);
+
+	return true;
+}
+
 void MainWindow::timerEvent(QTimerEvent *event)
 {
 	if (event->timerId() == m_frameTimer) {
@@ -31,7 +41,6 @@ void MainWindow::timerEvent(QTimerEvent *event)
 
 void MainWindow::initializeGL(void)
 {
-	m_game.init(&m_fs);
 	m_rc.init();
 }
 

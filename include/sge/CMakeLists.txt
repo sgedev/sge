@@ -10,8 +10,8 @@ sge_sources(
 	client.hpp
 	common.hpp
 	config.hpp.in
+	database.hpp
 	editor.hpp
-	filesystem.hpp
 	launcher.hpp
 	renderer.hpp
 	scene.hpp

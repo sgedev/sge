@@ -8,7 +8,7 @@ sge_subdirectories(
 
 sge_sources(
 	client.cpp
-	filesystem.cpp
+	database.cpp
 	scene.cpp
 	)
 

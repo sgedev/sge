@@ -1,5 +1,6 @@
 
 sge_subdirectories(
+	database
 	editor
 	launcher
 	renderer

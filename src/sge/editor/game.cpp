@@ -13,9 +13,9 @@ Game::~Game(void)
 {
 }
 
-bool Game::init(SGE::FileSystem *fs)
+bool Game::init(Database::Connection *db)
 {
-	if (!Client::init(fs))
+	if (!Client::init(db))
 		return false;
 
 	return true;

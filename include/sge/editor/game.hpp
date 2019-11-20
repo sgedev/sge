@@ -7,6 +7,7 @@
 #include <QEvent>
 
 #include <sge/client.hpp>
+#include <sge/database.hpp>
 #include <sge/renderer.hpp>
 #include <sge/editor/common.hpp>
 
@@ -18,7 +19,7 @@ public:
 	virtual ~Game(void);
 
 public:
-	bool init(SGE::FileSystem *fs) override;
+	bool init(Database::Connection *db) override;
 	void shutdown(void) override;
 	void update(float elapsed) override;
 	void draw(Renderer::View *view) override;

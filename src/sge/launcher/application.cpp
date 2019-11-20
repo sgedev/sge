@@ -1,5 +1,6 @@
 //
 //
+#include <QDir>
 #include <QFileInfo>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
@@ -37,7 +38,10 @@ bool Application::init(const QStringList &args)
 	if (!fi.isReadable())
 		return false;
 
-	if (!m_mainWindow.init(pargs.at(0)))
+	QString filename = QDir::fromNativeSeparators(pargs.at(0));
+	qDebug() << filename;
+
+	if (!m_mainWindow.init(filename))
 		return false;
 
 	m_mainWindow.show();

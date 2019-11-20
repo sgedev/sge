@@ -6,7 +6,6 @@ sge_sources(
 	game.hpp
 	importer.hpp
 	mainwindow.hpp
-	nativefilesystem.hpp
 	newfolderdialog.hpp
 	newprojectdialog.hpp
 	newscenedialog.hpp

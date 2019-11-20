@@ -143,15 +143,28 @@ bool Project::create(const QDir &dir)
 
 	QDir::setCurrent(dir.path());
 
-	m_fs.init(dir.path());
+	m_dbfs.init(dir.path());
+	m_db.load(&m_dbfs);
+	//m_db.reset();
 
-	SGE::FilePtr fp = m_fs.open("/test.xml", QIODevice::ReadOnly);
-	char buf[5] = { 0 };
-	qDebug() << fp->read(buf, 4);
-	qDebug() << buf;
-	qDebug() << fp->size();
+	Database::Group root = m_db.root();
+	//Database::Group assets = root.createChildGroup("Assets");
+	//Database::Asset a1 = assets.createChildAsset("Box");
+	//Database::Value v1 = assets.createChildValue("Version");
+	//v1.setInt(123);
+	//Database::Group scenes = root.createChildGroup("Scenes");
+	//Database::Group levels = root.createChildGroup("Levels");
 
-	m_game.init(&m_fs);
+	//m_db.save();
+
+	Database::Group g1 = root.firstChildGroup("Assets");
+	Database::Value v2 = g1.firstChildValue("Version");
+	qDebug() << v2.toBool();
+	qDebug() << v2.toInt();
+	qDebug() << v2.toDouble();
+	qDebug() << v2.toString();
+
+	m_game.init(&m_db);
 
 	setDir(dir);
 	setState(StateReady);

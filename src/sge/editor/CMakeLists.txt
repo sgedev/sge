@@ -18,7 +18,6 @@ sge_sources(
 	game.cpp
 	importer.cpp
 	mainwindow.cpp
-	nativefilesystem.cpp
 	newfolderdialog.cpp
 	newprojectdialog.cpp
 	newscenedialog.cpp

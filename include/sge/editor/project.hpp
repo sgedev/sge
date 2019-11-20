@@ -16,9 +16,9 @@
 #include <QProcess>
 #include <QAbstractItemModel>
 
+#include <sge/database.hpp>
 #include <sge/editor/common.hpp>
 #include <sge/editor/game.hpp>
-#include <sge/editor/nativefilesystem.hpp>
 
 SGE_EDITOR_BEGIN
 
@@ -127,7 +127,8 @@ protected slots:
 private:
 	State m_state;
 	QDir m_dir;
-	NativeFileSystem m_fs;
+	Database::Connection m_db;
+	Database::FileSystemNative m_dbfs;
 	Assimp::Importer m_importer;
 	Game m_game;
 	QProcess m_gameLauncher;

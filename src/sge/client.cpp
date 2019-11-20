@@ -6,7 +6,7 @@ SGE_BEGIN
 
 Client::Client(QObject *parent)
 	: QObject(parent)
-	, m_fs(Q_NULLPTR)
+	, m_db(Q_NULLPTR)
 {
 }
 
@@ -14,12 +14,12 @@ Client::~Client(void)
 {
 }
 
-bool Client::init(FileSystem *fs)
+bool Client::init(Database::Connection *db)
 {
-	Q_ASSERT(fs != Q_NULLPTR);
-	Q_ASSERT(m_fs == Q_NULLPTR);
+	Q_ASSERT(db != Q_NULLPTR);
+	Q_ASSERT(m_db == Q_NULLPTR);
 
-	m_fs = fs;
+	m_db = db;
 
 	return true;
 }

@@ -9,7 +9,7 @@
 #include <QDomDocument>
 
 #include <sge/common.hpp>
-#include <sge/filesystem.hpp>
+#include <sge/database.hpp>
 #include <sge/scene.hpp>
 #include <sge/renderer.hpp>
 
@@ -35,13 +35,13 @@ public:
 	virtual ~Client(void);
 
 public:
-	virtual bool init(FileSystem *fs);
+	virtual bool init(Database::Connection *db);
 	virtual void shutdown(void);
 	virtual void update(float elapsed);
 	virtual void draw(Renderer::View *view);
 
 private:
-	FileSystem *m_fs;
+	Database::Connection *m_db;
 	Scene m_scene;
 	State m_state;
 };

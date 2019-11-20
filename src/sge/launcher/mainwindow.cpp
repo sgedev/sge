@@ -23,10 +23,9 @@ MainWindow::~MainWindow(void)
 
 bool MainWindow::init(const QString &filename)
 {
-	if (!m_fs.load(filename))
-		return false;
-
-	m_game.init(&m_fs);
+	m_dbfs.init(filename);
+	m_db.load(&m_dbfs);
+	m_game.init(&m_db);
 
 	return true;
 }

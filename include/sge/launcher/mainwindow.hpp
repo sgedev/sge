@@ -6,9 +6,9 @@
 #include <QTimerEvent>
 #include <QOpenGLWindow>
 
+#include <sge/database.hpp>
 #include <sge/launcher/common.hpp>
 #include <sge/launcher/game.hpp>
-#include <sge/launcher/zipfilesystem.hpp>
 
 SGE_LAUNCHER_BEGIN
 
@@ -30,7 +30,8 @@ protected:
 
 private:
 	int m_frameTimer;
-	ZipFileSystem m_fs;
+	Database::Connection m_db;
+	Database::FileSystemZip m_dbfs;
 	Game m_game;
 	Renderer::Context m_rc;
 	Renderer::View m_view;

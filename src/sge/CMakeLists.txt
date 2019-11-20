@@ -1,5 +1,6 @@
 
 sge_subdirectories(
+	database
 	editor
 	launcher
 	renderer
@@ -8,7 +9,6 @@ sge_subdirectories(
 
 sge_sources(
 	client.cpp
-	database.cpp
 	scene.cpp
 	)
 

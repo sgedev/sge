@@ -20,6 +20,7 @@ public:
 
 public:
 	bool init(const QString &filename);
+	const QString &path(void) const;
 
 protected:
 	bool isDir(const QString &path) override;
@@ -33,9 +34,15 @@ protected:
 private:
 	typedef QMap<QString, int> FileList;
 
+	QString m_path;
 	mz_zip_archive m_zip;
 	FileList m_fileList;
 };
+
+inline const QString &FileSystemZip::path(void) const
+{
+	return m_path;
+}
 
 SGE_DATABASE_END
 

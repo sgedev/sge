@@ -4,20 +4,24 @@
 #include <QStringList>
 #include <QTextStream>
 
-#include <sge/database/connection.hpp>
+#include <sge/database/session.hpp>
 
 SGE_DATABASE_BEGIN
 
-Connection::Connection(void)
+Session::Session(void)
 	: m_fs(Q_NULLPTR)
 {
 }
 
-bool Connection::reset(FileSystem *fs)
+Session::~Session(void)
+{
+}
+
+bool Session::init(FileSystem *fs)
 {
 	Q_ASSERT(fs != Q_NULLPTR);
 
-	if (fs->isReadonly())
+	if ( fs->isReadonly())
 		return false;
 
 	FilePtr file(fs->openManifest(QIODevice::WriteOnly | QIODevice::Truncate));
@@ -38,22 +42,18 @@ bool Connection::reset(FileSystem *fs)
 
 	QStringList list = fs->archiveList();
 	for (auto it(list.begin()); it != list.end(); ++it)
-		m_fs->removeArchive(*it);
+		fs->removeArchive(*it);
 
 	return load(fs);
 }
 
-bool Connection::load(FileSystem *fs)
+bool Session::load(FileSystem *fs)
 {
 	Q_ASSERT(fs != Q_NULLPTR);
 
-	FilePtr manifestFile = fs->openManifest(QIODevice::ReadOnly);
+	FilePtr manifestFile = m_fs->openManifest(QIODevice::ReadOnly);
 	if (!manifestFile)
 		return false;
-
-	QByteArray d = manifestFile->readAll();
-	qDebug() << d.toStdString().c_str();
-	manifestFile->reset();
 
 	if (!m_manifest.setContent(manifestFile.data()))
 		return false;
@@ -67,18 +67,16 @@ bool Connection::load(FileSystem *fs)
 	return true;
 }
 
-bool Connection::save(FileSystem *fs)
+bool Session::save(FileSystem *fs)
 {
-	Q_ASSERT(fs != Q_NULLPTR);
+	FileSystem *targetFS = fs ? fs : m_fs;
 
-	if (fs->isReadonly())
+	if (targetFS->isReadonly())
 		return false;
 
-	FilePtr manifestFile = fs->openManifest(QIODevice::WriteOnly | QIODevice::Truncate);
+	FilePtr manifestFile = targetFS->openManifest(QIODevice::WriteOnly | QIODevice::Truncate);
 	if (!manifestFile)
 		return false;
-
-	qDebug() << m_manifest.toString();
 
 	QTextStream stream(manifestFile.data());
 	m_manifest.save(stream, 2);

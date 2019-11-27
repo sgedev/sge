@@ -11,17 +11,12 @@ SGE_DATABASE_BEGIN
 const QString Value::tag("value");
 const QString Value::attrName("name");
 
-Value Value::nextValue(const QString &name) const
+Value Value::next(const QString &name) const
 {
 	QDomElement element = m_element.nextSiblingElement(tag);
 	while (!element.isNull()) {
-		if (name.isEmpty()) {
-			if (element.hasAttribute(attrName))
-				return Value(m_fs, element);
-		} else {
-			if (element.attribute(attrName) == name)
-				return Value(m_fs, element);
-		}
+		if (!element.attribute(attrName).isEmpty())
+			return Value(m_fs, element);
 		element = element.nextSiblingElement(tag);
 	}
 

@@ -26,7 +26,7 @@ public:
 public:
 	bool isNull(void) const;
 	QString name(void) const;
-	Value nextValue(const QString &name) const;
+	Value next(const QString &name) const;
 	bool toBool(void) const;
 	int toInt(void) const;
 	double toDouble(void) const;

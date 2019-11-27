@@ -10,43 +10,36 @@ SGE_DATABASE_BEGIN
 const QString Group::tag("group");
 const QString Group::attrName("name");
 
-Group Group::firstChildGroup(const QString &name) const
+Group Group::firstGroup(void) const
 {
 	QDomElement element = m_element.firstChildElement(tag);
 	while (!element.isNull()) {
-		if (name.isEmpty()) {
-			if (element.hasAttribute(attrName))
-				return Group(m_fs, element);
-		} else {
-			if (element.attribute(attrName) == name)
-				return Group(m_fs, element);
-		}
+		if (!element.attribute(attrName).isEmpty())
+			return Group(m_fs, element);
 		element = element.nextSiblingElement(tag);
 	}
 
 	return Group();
 }
 
-Group Group::nextGroup(void) const
+Group Group::next(void) const
 {
 	QDomElement element = m_element.nextSiblingElement(tag);
 	while (!element.isNull()) {
-		if (element.hasAttribute(attrName))
+		if (element.attribute(attrName).size() > 0)
 			return Group(m_fs, element);
-
 		element = element.nextSiblingElement(tag);
 	}
 
 	return Group();
 }
 
-Group Group::createChildGroup(const QString &name)
+Group Group::createGroup(const QString &name)
 {
 	if (m_fs->isReadonly())
 		return Group();
 
-	Group old = firstChildGroup(name);
-	if (!old.isNull())
+	if (isNameExists(name))
 		return Group();
 
 	QDomElement element = m_element.ownerDocument().createElement(tag);
@@ -59,44 +52,41 @@ Group Group::createChildGroup(const QString &name)
 	return Group(m_fs, element);
 }
 
-bool Group::removeChildGroup(const QString &name)
+bool Group::removeGroup(const QString &name)
 {
 	if (m_fs->isReadonly())
 		return false;
 
-	Group g = firstChildGroup(name);
-	if (g.isNull())
-		return false;
+	QDomElement element = m_element.firstChildElement(tag);
+	while (!element.isNull()) {
+		if (element.attribute(attrName) == name) {
+			m_element.removeChild(element);
+			return true;
+		}
+		element = element.nextSiblingElement(tag);
+	}
 
-	m_element.removeChild(g.m_element);
-
-	return true;
+	return false;
 }
 
-Value Group::firstChildValue(const QString &name) const
+Value Group::firstValue(void) const
 {
 	QDomElement element = m_element.firstChildElement(Value::tag);
 	while (!element.isNull()) {
-		if (name.isEmpty()) {
-			if (element.hasAttribute(attrName))
-				return Value(m_fs, element);
-		} else {
-			if (element.attribute(attrName) == name)
-				return Value(m_fs, element);
-		}
+		if (!element.attribute(attrName).isEmpty())
+			return Value(m_fs, element);
 		element = element.nextSiblingElement(Value::tag);
 	}
 
 	return Value();
 }
 
-Value Group::createChildValue(const QString &name)
+Value Group::createValue(const QString &name)
 {
 	if (m_fs->isReadonly())
 		return Value();
 
-	Value old = firstChildValue(name);
-	if (!old.isNull())
+	if (isNameExists(name))
 		return Value();
 
 	QDomElement element = m_element.ownerDocument().createElement(Value::tag);
@@ -109,7 +99,7 @@ Value Group::createChildValue(const QString &name)
 	return Value(m_fs, element);
 }
 
-bool Group::removeChildValue(const QString &name)
+bool Group::removeValue(const QString &name)
 {
 	if (m_fs->isReadonly())
 		return false;
@@ -120,70 +110,144 @@ bool Group::removeChildValue(const QString &name)
 			m_element.removeChild(element);
 			return true;
 		}
-
 		element = element.nextSiblingElement(Value::tag);
 	}
 
 	return false;
 }
 
-Asset Group::firstChildAsset(const QString &name) const
+Blob Group::firstBlob(void) const
 {
-	QDomElement element = m_element.firstChildElement(Asset::tag);
+	QDomElement element = m_element.firstChildElement(Blob::tag);
 	while (!element.isNull()) {
-		if (name.isEmpty()) {
-			if (element.hasAttribute(attrName))
-				return Asset(m_fs, element);
-		} else {
-			if (element.attribute(attrName) == name)
-				return Asset(m_fs, element);
-		}
-		element = element.nextSiblingElement(Asset::tag);
+		if (!element.attribute(attrName).isEmpty())
+			return Blob(m_fs, element);
+		element = element.nextSiblingElement(Blob::tag);
 	}
 
-	return Asset();
+	return Blob();
 }
 
-Asset Group::createChildAsset(const QString &name)
+Blob Group::createBlob(const QString &name, QIODevice *dev)
 {
 	if (m_fs->isReadonly())
-		return Asset();
+		return Blob();
 
-	QDomElement element = m_element.ownerDocument().createElement(Asset::tag);
+	if (isNameExists(name))
+		return Blob();
+
+	QDomElement element = m_element.ownerDocument().createElement(Blob::tag);
 	if (element.isNull())
-		return Asset();
+		return Blob();
 
 	QString id = m_fs->createArchive();
 	if (id.isEmpty())
-		return Asset();
+		return Blob();
 
 	QDomText text = m_element.ownerDocument().createTextNode(id);
 	if (text.isNull())
-		return Asset();
+		return Blob();
 
 	element.appendChild(text);
-	element.setAttribute(Asset::attrName, name);
+	element.setAttribute(Blob::attrName, name);
 
 	m_element.appendChild(element);
 
-	return Asset(m_fs, element);
+	if (dev == Q_NULLPTR)
+		return Blob(m_fs, element);
+
+	FilePtr file = m_fs->openArchive(id, QIODevice::WriteOnly | QIODevice::Truncate);
+	if (!file)
+		return Blob();
+
+	qint64 size = dev->size();
+	while (size > 0) {
+		QByteArray data = dev->read(512);
+		qint64 len = file->write(data);
+		if (len != data.size())
+			return Blob();
+		size -= data.size();
+	}
+
+	return Blob(m_fs, element);
 }
 
-bool Group::removeChildAsset(const QString &name)
+Blob Group::createBlobShare(const QString &name, Blob &shareWith)
+{
+	if (m_fs->isReadonly())
+		return Blob();
+
+	if (isNameExists(name) || shareWith.isNull())
+		return Blob();
+
+	QDomElement element = m_element.ownerDocument().createElement(Blob::tag);
+	if (element.isNull())
+		return Blob();
+
+	QString id = shareWith.archiveId();
+#if 0
+	if (!m_fs->isArchiveExists(id))
+		return Blob();
+#else
+	if (id.isNull() || id.isEmpty())
+		return Blob();
+#endif
+
+	QDomText text = m_element.ownerDocument().createTextNode(id);
+	if (text.isNull())
+		return Blob();
+
+	m_element.appendChild(element);
+
+	return Blob(m_fs, element);
+}
+
+Blob Group::createBlobCopy(const QString &name, Blob &copyFrom)
+{
+	if (m_fs->isReadonly())
+		return Blob();
+
+	if (isNameExists(name) || copyFrom.isNull())
+		return Blob();
+
+	QDomElement element = m_element.ownerDocument().createElement(Blob::tag);
+	if (element.isNull())
+		return Blob();
+
+	FilePtr file = copyFrom.open(QIODevice::ReadOnly);
+	if (!file)
+		return Blob();
+
+	return createBlob(name, file.data());
+}
+
+bool Group::removeBlob(const QString &name)
 {
 	if (m_fs->isReadonly())
 		return false;
 
-	QDomElement element = m_element.firstChildElement(Asset::tag);
+	QDomElement element = m_element.firstChildElement(Blob::tag);
 	while (!element.isNull()) {
-		if (element.attribute(Asset::attrName) == name) {
+		if (element.attribute(Blob::attrName) == name) {
 			m_element.removeChild(element);
 			return true;
 		}
-		element = element.nextSiblingElement(Asset::tag);
+		element = element.nextSiblingElement(Blob::tag);
 	}
 
 	return false;
+}
+
+bool Group::isNameExists(const QString &name) const
+{
+	QDomElement element;
+
+	for (element = m_element.firstChildElement(); !element.isNull(); element = element.nextSiblingElement()) {
+		if (element.attribute(attrName) == name)
+			return true;
+	}
+
+	return true;
 }
 
 SGE_DATABASE_END

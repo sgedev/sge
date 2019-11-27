@@ -3,7 +3,6 @@ sge_sources(
 	application.hpp
 	common.hpp
 	consoleview.hpp
-	game.hpp
 	importer.hpp
 	mainwindow.hpp
 	newfolderdialog.hpp

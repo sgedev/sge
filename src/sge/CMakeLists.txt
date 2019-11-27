@@ -8,7 +8,9 @@ sge_subdirectories(
 	)
 
 sge_sources(
-	client.cpp
+	asset.cpp
+	game.cpp
+	level.cpp
 	scene.cpp
 	)
 

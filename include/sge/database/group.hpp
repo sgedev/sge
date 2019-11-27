@@ -3,13 +3,17 @@
 #ifndef SGE_DATABASE_GROUP_HPP
 #define SGE_DATABASE_GROUP_HPP
 
+#include <QList>
 #include <QString>
+#include <QSharedPointer>
 #include <QDomElement>
 
 #include <sge/database/common.hpp>
 #include <sge/database/filesystem.hpp>
 #include <sge/database/value.hpp>
 #include <sge/database/asset.hpp>
+#include <sge/database/scene.hpp>
+#include <sge/database/level.hpp>
 
 SGE_DATABASE_BEGIN
 
@@ -26,21 +30,26 @@ public:
 public:
 	bool isNull(void) const;
 	QString name(void) const;
-	Group firstChildGroup(const QString &name) const;
-	Group nextGroup(void) const;
-	Group createChildGroup(const QString &name);
-	bool removeChildGroup(const QString &name);
-	Value firstChildValue(const QString &name) const;
-	Value createChildValue(const QString &name);
-	bool removeChildValue(const QString &name);
-	Asset firstChildAsset(const QString &name) const;
-	Asset createChildAsset(const QString &name);
-	bool removeChildAsset(const QString &name);
+	Group firstGroup(void) const;
+	Group next(void) const;
+	Group createGroup(const QString &name);
+	bool removeGroup(const QString &name);
+	Value firstValue(void) const;
+	Value createValue(const QString &name);
+	bool removeValue(const QString &name);
+	Blob firstBlob(void) const;
+	Blob createBlob(const QString &name, QIODevice *fromIO = Q_NULLPTR);
+	Blob createBlobShare(const QString &name, Blob &refWith);
+	Blob createBlobCopy(const QString &name, Blob &copyFrom);
+	bool removeBlob(const QString &name);
 
 public:
 	Group &operator=(const Group &that);
 	bool operator==(const Group &that) const;
 	bool operator!=(const Group &that) const;
+
+protected:
+	bool isNameExists(const QString &name) const;
 
 private:
 	FileSystem *m_fs;

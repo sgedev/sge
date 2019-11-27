@@ -14,8 +14,6 @@
 
 SGE_DATABASE_BEGIN
 
-// FileSystem
-
 class FileSystem {
 public:
 	FileSystem(void);
@@ -26,13 +24,11 @@ public:
 	FilePtr openManifest(QIODevice::OpenMode mode);
 	QString createArchive(void);
 	bool removeArchive(const QString id);
+	bool isArchiveExists(const QString id);
 	FilePtr openArchive(const QString id, QIODevice::OpenMode mode);
 	QStringList archiveList(void);
 
 protected:
-	static const QString archivePath;
-	static const QString manifestPath;
-
 	virtual bool isDir(const QString &path) = 0;
 	virtual bool createDir(const QString &dirname) = 0;
 	virtual bool removeDir(const QString &dirname) = 0;
@@ -43,8 +39,11 @@ protected:
 
 protected:
 	void setReadonly(bool v);
-	bool checkPath(const QString &path);
 	bool createArchivePath(void);
+
+protected:
+	static const QString archivePath;
+	static const QString manifestPath;
 
 private:
 	bool m_readonly;

@@ -15,7 +15,6 @@ endif()
 sge_sources(
 	application.cpp
 	consoleview.cpp
-	game.cpp
 	importer.cpp
 	mainwindow.cpp
 	newfolderdialog.cpp

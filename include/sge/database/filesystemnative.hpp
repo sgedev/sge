@@ -14,7 +14,8 @@ public:
 	virtual ~FileSystemNative(void);
 
 public:
-	bool init(const QString &root);
+	bool init(const QString &dirname);
+	const QString &path(void) const;
 
 protected:
 	bool isDir(const QString &path) override;
@@ -26,8 +27,13 @@ protected:
 	bool removeFile(const QString &filename) override;
 
 private:
-	QString m_root;
+	QString m_path;
 };
+
+inline const QString &FileSystemNative::path(void) const
+{
+	return m_path;
+}
 
 SGE_DATABASE_END
 

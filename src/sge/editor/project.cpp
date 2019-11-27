@@ -3,28 +3,13 @@
 #include <QDebug>
 #include <QStringList>
 #include <QFile>
+#include <QFileInfo>
 #include <QByteArray>
 #include <QTextStream>
 
 #include <sge/editor/project.hpp>
 
 SGE_EDITOR_BEGIN
-
-Project::Item *Project::Item::child(int i)
-{
-    Project::Item *childItem = m_childItems.value(i);
-    if (childItem != NULL)
-        return childItem;
-
-    // if child does not yet exist, create it
-    if (i >= 0 && i < m_domNode.childNodes().count()) {
-        QDomNode childNode = m_domNode.childNodes().item(i);
-        childItem = new Item(childNode, i, this);
-        m_childItems[i] = childItem;
-    }
-
-    return childItem;
-}
 
 Project::Project(QObject *parent)
 	: QAbstractItemModel(parent)
@@ -123,52 +108,26 @@ bool Project::removeRows(int row, int count, const QModelIndex &parent)
 	return QAbstractItemModel::removeRows(row, count, parent);
 }
 
-void Project::reset(void)
+bool Project::create(const QString &path)
 {
-	m_game.shutdown();
-}
-
-bool Project::create(const QDir &dir)
-{
-	if (dir.path().isEmpty()) {
-		m_dir = dir;
-		dirChanged(dir);
-		return true;
-	}
-
-	if (!dir.exists())
+	if (!m_dbfs.init(path))
 		return false;
 
-	reset();
+	m_game.shutdown();
 
-	QDir::setCurrent(dir.path());
+	if (!m_game.init(&m_dbfs))
+		return false;
 
-	m_dbfs.init(dir.path());
-	m_db.load(&m_dbfs);
-	//m_db.reset();
+	return true;
+}
 
-	Database::Group root = m_db.root();
-	//Database::Group assets = root.createChildGroup("Assets");
-	//Database::Asset a1 = assets.createChildAsset("Box");
-	//Database::Value v1 = assets.createChildValue("Version");
-	//v1.setInt(123);
-	//Database::Group scenes = root.createChildGroup("Scenes");
-	//Database::Group levels = root.createChildGroup("Levels");
+bool Project::load(const QString &path)
+{
 
-	//m_db.save();
+}
 
-	Database::Group g1 = root.firstChildGroup("Assets");
-	Database::Value v2 = g1.firstChildValue("Version");
-	qDebug() << v2.toBool();
-	qDebug() << v2.toInt();
-	qDebug() << v2.toDouble();
-	qDebug() << v2.toString();
-
-	m_game.init(&m_db);
-
-	setDir(dir);
-	setState(StateReady);
-
+bool Project::save(void)
+{
 	return true;
 }
 
@@ -180,16 +139,6 @@ void Project::update(float elapsed)
 void Project::draw(Renderer::View *view)
 {
 	m_game.draw(view);
-}
-
-bool Project::save(const QDir &d)
-{
-	return true;
-}
-
-bool Project::load(const QDir &d)
-{
-	return true;
 }
 
 bool Project::importFile(const QString &import_path, const QString &filename)
@@ -223,13 +172,9 @@ bool Project::start(const QString &launcher)
 	return true;
 }
 
-void Project::setDir(const QDir &d)
+bool Project::doLoad(void)
 {
-	if (d == m_dir)
-		return;
-
-	m_dir = d;
-	dirChanged(m_dir);
+	return true;
 }
 
 void Project::setState(State st)

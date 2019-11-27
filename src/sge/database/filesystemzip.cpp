@@ -193,6 +193,8 @@ bool FileSystemZip::init(const QString &filename)
 		}
 	}
 
+	m_path = filename;
+
 	return true;
 }
 
@@ -237,11 +239,7 @@ QStringList FileSystemZip::readDir(const QString &dirname)
 
 bool FileSystemZip::isFile(const QString &path)
 {
-	int index = m_fileList.value(path, -1);
-	if (index < 0)
-		return false;
-
-	return mz_zip_reader_is_file_a_directory(&m_zip, index);
+	return (m_fileList.value(path, -1) >= 0);
 }
 
 FilePtr FileSystemZip::openFile(const QString &filename, QIODevice::OpenMode mode)

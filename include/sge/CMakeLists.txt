@@ -8,12 +8,14 @@ sge_subdirectories(
 	)
 
 sge_sources(
-	client.hpp
+	asset.hpp
 	common.hpp
 	config.hpp.in
 	database.hpp
 	editor.hpp
+	game.hpp
 	launcher.hpp
+	level.hpp
 	renderer.hpp
 	scene.hpp
 	server.hpp

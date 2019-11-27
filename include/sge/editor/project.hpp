@@ -11,51 +11,18 @@
 #include <QString>
 #include <QEvent>
 #include <QList>
-#include <QDir>
 #include <QHash>
 #include <QProcess>
 #include <QAbstractItemModel>
 
 #include <sge/database.hpp>
+#include <sge/game.hpp>
 #include <sge/editor/common.hpp>
-#include <sge/editor/game.hpp>
 
 SGE_EDITOR_BEGIN
 
 class Project: public QAbstractItemModel {
 	Q_OBJECT
-
-public:
-	class Item {
-	public:
-		enum Type {
-			TypeUnknown = 0,
-			TypeAssets,
-			TypeAsset,
-			TypeScenes,
-			TypeScene,
-			TypeLevels,
-			TypeLevel,
-		};
-
-	public:
-		Item(const QDomNode &node, int row, Item *parent = nullptr, Type type = TypeUnknown);
-		~Item();
-
-	public:
-		Item *child(int i);
-		Item *parent(void);
-		QDomNode node(void) const;
-		int row(void) const;
-		Type type(void) const;
-
-	private:
-		QDomNode m_domNode;
-		QHash<int, Item *> m_childItems;
-		Item *m_parentItem;
-		int m_rowNumber;
-		Type m_type;
-	};
 
 public:
 	enum State {
@@ -76,7 +43,6 @@ public:
 	virtual ~Project(void);
 
 signals:
-	void dirChanged(const QDir &d);
 	void stateChanged(State state);
 	void buildOutput(const QString &text);
 	void launcherError(const QString &text);
@@ -93,27 +59,23 @@ public:
 	bool hasChildren(const QModelIndex &parent) const override;
 	bool insertRows(int row, int count, const QModelIndex &parent) override;
 	bool removeRows(int row, int count, const QModelIndex &parent) override;
-	Item &item(const QModelIndex &index);
 
 public:
-	void reset(void);
+	bool create(const QString &path);
+	bool load(const QString &path);
+	bool save(void);
 	State state(void) const;
-	bool create(const QDir &dir);
 	void update(float elapsed);
 	void draw(Renderer::View *view);
-	bool save(const QDir &d);
-	bool load(const QDir &d);
 	bool importFile(const QString &import_path, const QString &filename);
 	bool exportFile(const QString &export_path, const QString &filename);
 	bool build(void);
 	void clean(void);
 	bool start(const QString &launcher);
-	const QDir &dir(void) const;
-	const QDir &outDir(void) const;
-	const QDir &assetDir(void) const;
+	const QString &path(void) const;
 
 protected:
-	void setDir(const QDir &d);
+	bool doLoad(void);
 	void setState(State st);
 
 protected slots:
@@ -126,55 +88,20 @@ protected slots:
 
 private:
 	State m_state;
-	QDir m_dir;
-	Database::Connection m_db;
 	Database::FileSystemNative m_dbfs;
 	Assimp::Importer m_importer;
 	Game m_game;
 	QProcess m_gameLauncher;
 };
 
-inline Project::Item::Item(const QDomNode &node, int row, Item *parent, Type type)
-    : m_domNode(node)
-	, m_parentItem(parent)
-	, m_rowNumber(row)
-	, m_type(type)
-{
-}
-
-inline Project::Item::~Item(void)
-{
-    qDeleteAll(m_childItems);
-}
-
-inline Project::Item *Project::Item::parent(void)
-{
-    return m_parentItem;
-}
-
-inline int Project::Item::row(void) const
-{
-    return m_rowNumber;
-}
-
-inline QDomNode Project::Item::node(void) const
-{
-    return m_domNode;
-}
-
-inline Project::Item::Type Project::Item::type(void) const
-{
-	return m_type;
-}
-
 inline Project::State Project::state(void) const
 {
 	return m_state;
 }
 
-inline const QDir &Project::dir(void) const
+inline const QString &Project::path(void) const
 {
-	return m_dir;
+	return m_dbfs.path();
 }
 
 SGE_EDITOR_END

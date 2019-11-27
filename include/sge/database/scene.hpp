@@ -1,7 +1,7 @@
 //
 //
-#ifndef SGE_DATABASE_ASSET_HPP
-#define SGE_DATABASE_ASSET_HPP
+#ifndef SGE_DATABASE_SCENE_HPP
+#define SGE_DATABASE_SCENE_HPP
 
 #include <QString>
 #include <QDomElement>
@@ -11,45 +11,43 @@
 
 SGE_DATABASE_BEGIN
 
-class Asset {
+class Scene {
 public:
 	static const QString tag;
 	static const QString attrName;
 
 public:
-	Asset(void);
-	Asset(const Asset &that);
-	Asset(FileSystem *fs, const QDomElement &element);
+	Scene(void);
+	Scene(const Scene &that);
+	Scene(FileSystem *fs, const QDomElement &element);
 
 public:
 	bool isNull(void) const;
 	QString name(void) const;
-	Asset next(void) const;
-	FilePtr open(QIODevice::OpenMode mode = QIODevice::ReadOnly);
-	QString archiveId(void) const;
+	Scene next(void) const;
 
 public:
-	Asset &operator=(const Asset &that);
-	bool operator==(const Asset &that) const;
-	bool operator!=(const Asset &that) const;
+	Scene &operator=(const Scene &that);
+	bool operator==(const Scene &that) const;
+	bool operator!=(const Scene &that) const;
 
 private:
 	FileSystem *m_fs;
 	QDomElement m_element;
 };
 
-inline Asset::Asset(void)
+inline Scene::Scene(void)
 	: m_fs(Q_NULLPTR)
 {
 }
 
-inline Asset::Asset(const Asset &that)
+inline Scene::Scene(const Scene &that)
 	: m_fs(that.m_fs)
 	, m_element(that.m_element)
 {
 }
 
-inline Asset::Asset(FileSystem *fs, const QDomElement &element)
+inline Scene::Scene(FileSystem *fs, const QDomElement &element)
 	: m_fs(fs)
 	, m_element(element)
 {
@@ -59,17 +57,17 @@ inline Asset::Asset(FileSystem *fs, const QDomElement &element)
 	Q_ASSERT(!m_element.text().isEmpty());
 }
 
-inline bool Asset::isNull(void) const
+inline bool Scene::isNull(void) const
 {
 	return m_element.isNull();
 }
 
-inline QString Asset::name(void) const
+inline QString Scene::name(void) const
 {
 	return m_element.tagName();
 }
 
-inline Asset &Asset::operator=(const Asset &that)
+inline Scene &Scene::operator=(const Scene &that)
 {
 	if (this != &that) {
 		m_fs = that.m_fs;
@@ -78,21 +76,21 @@ inline Asset &Asset::operator=(const Asset &that)
 	return (*this);
 }
 
-inline bool Asset::operator==(const Asset &that) const
+inline bool Scene::operator==(const Scene &that) const
 {
 	return ((m_fs == m_fs) && (m_element == that.m_element));
 }
 
-inline bool Asset::operator!=(const Asset &that) const
+inline bool Scene::operator!=(const Scene &that) const
 {
 	return !((*this) == that);
 }
 
-inline QString Asset::archiveId(void) const
+inline QString Scene::archiveId(void) const
 {
 	return m_element.nodeValue();
 }
 
 SGE_DATABASE_END
 
-#endif // SGE_DATABASE_ASSET_HPP
+#endif // SGE_DATABASE_SCENE_HPP

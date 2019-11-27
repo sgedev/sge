@@ -6,6 +6,7 @@
 #include <QObject>
 
 #include <sge/common.hpp>
+#include <sge/database.hpp>
 #include <sge/renderer.hpp>
 
 SGE_BEGIN
@@ -22,6 +23,9 @@ public:
 	void shutdown(void);
 	void update(float elapsed);
 	void draw(Renderer::Context *rc);
+
+private:
+	Database::Group m_group;
 };
 
 SGE_END

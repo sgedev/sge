@@ -1,5 +1,6 @@
 //
 //
+#include <QChar>
 #include <QUuid>
 #include <QByteArray>
 #include <QFileInfo>
@@ -36,7 +37,7 @@ FilePtr FileSystem::openManifest(QIODevice::OpenMode mode)
 QString FileSystem::createArchive(void)
 {
 	if (isReadonly())
-		return false;
+		return QString();
 
 	createArchivePath();
 
@@ -46,9 +47,10 @@ QString FileSystem::createArchive(void)
 
 	QString id = uuid.toString(QUuid::WithoutBraces);
 	QString path = archivePath + "/" + id;
+
 	FilePtr file = openFile(path, QIODevice::NewOnly);
 	if (!file)
-		return false;
+		return QString();
 
 	return id;
 }
@@ -61,6 +63,14 @@ bool FileSystem::removeArchive(const QString id)
 	createArchivePath();
 
 	return removeFile(archivePath + "/" + id);
+}
+
+bool FileSystem::isArchiveExists(const QString id)
+{
+	if (id.isNull() || id.isEmpty())
+		return false;
+
+	return isFile(archivePath + "/" + id);
 }
 
 FilePtr FileSystem::openArchive(const QString id, QIODevice::OpenMode mode)
@@ -88,19 +98,6 @@ QStringList FileSystem::archiveList(void)
 	}
 
 	return list;
-}
-
-bool FileSystem::checkPath(const QString &path)
-{
-	if (path.isEmpty())
-		return false;
-
-	if (path.at(0) != '/')
-		return false;
-
-	// TODO
-
-	return true;
 }
 
 bool FileSystem::createArchivePath(void)

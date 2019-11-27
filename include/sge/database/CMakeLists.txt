@@ -2,11 +2,12 @@
 sge_sources(
 	asset.hpp
 	common.hpp
-	connection.hpp
 	filesystem.hpp
 	filesystemnative.hpp
-	filesystemtransfer.hpp
 	filesystemzip.hpp
 	group.hpp
+	level.hpp
+	scene.hpp
+	session.hpp
 	value.hpp
 	)

@@ -17,50 +17,50 @@ FileSystemNative::~FileSystemNative(void)
 {
 }
 
-bool FileSystemNative::init(const QString &root)
+bool FileSystemNative::init(const QString &path)
 {
-	QFileInfo fi(root);
+	QFileInfo fi(path);
 	if (!fi.isDir())
 		return false;
 
-	m_root = root;
+	m_path = path;
 
 	return true;
 }
 
 bool FileSystemNative::isDir(const QString &path)
 {
-	QFileInfo fi(m_root + path);
+	QFileInfo fi(m_path + path);
 	return fi.isDir();
 }
 
 bool FileSystemNative::createDir(const QString &dirname)
 {
-	QDir dir(m_root);
+	QDir dir(m_path);
 	return dir.mkpath(QString(dirname.data() + 1));
 }
 
 bool FileSystemNative::removeDir(const QString &dirname)
 {
-	QDir dir(m_root);
+	QDir dir(m_path);
 	return dir.rmdir(QString(dirname.data() + 1));
 }
 
 QStringList FileSystemNative::readDir(const QString &dirname)
 {
-	QDir dir(m_root + dirname);
+	QDir dir(m_path + dirname);
 	return dir.entryList();
 }
 
 bool FileSystemNative::isFile(const QString &path)
 {
-	QFileInfo fi(m_root + path);
+	QFileInfo fi(m_path + path);
 	return fi.isFile();
 }
 
 FilePtr FileSystemNative::openFile(const QString &filename, QIODevice::OpenMode mode)
 {
-	FilePtr file(new QFile(m_root + filename));
+	FilePtr file(new QFile(m_path + filename));
 	if (!file || !file->open(mode))
 		return FilePtr();
 	return file;
@@ -68,7 +68,7 @@ FilePtr FileSystemNative::openFile(const QString &filename, QIODevice::OpenMode 
 
 bool FileSystemNative::removeFile(const QString &filename)
 {
-	QFile file(m_root + filename);
+	QFile file(m_path + filename);
 	return file.remove();
 }
 

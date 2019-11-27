@@ -7,8 +7,8 @@
 #include <QOpenGLWindow>
 
 #include <sge/database.hpp>
+#include <sge/game.hpp>
 #include <sge/launcher/common.hpp>
-#include <sge/launcher/game.hpp>
 
 SGE_LAUNCHER_BEGIN
 
@@ -30,7 +30,6 @@ protected:
 
 private:
 	int m_frameTimer;
-	Database::Connection m_db;
 	Database::FileSystemZip m_dbfs;
 	Game m_game;
 	Renderer::Context m_rc;

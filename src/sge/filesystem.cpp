@@ -7,12 +7,12 @@
 #include <QDir>
 #include <QFile>
 
-#include <sge/database/filesystem.hpp>
+#include <sge/filesystem.hpp>
 
-SGE_DATABASE_BEGIN
+SGE_BEGIN
 
 const QString FileSystem::archivePath("/archive");
-const QString FileSystem::manifestPath("/manifest.xml");
+const QString FileSystem::manifestPath("/manifest");
 
 FileSystem::FileSystem(void)
 	: m_readonly(true)
@@ -108,4 +108,4 @@ bool FileSystem::createArchivePath(void)
 	return createDir(archivePath);
 }
 
-SGE_DATABASE_END
+SGE_END

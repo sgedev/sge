@@ -30,7 +30,7 @@ bool SceneView::event(QEvent *evt)
 
 void SceneView::initializeGL(void)
 {
-	m_rc.init(QOpenGLContext::currentContext());
+	m_context.init(QOpenGLContext::currentContext());
 }
 
 void SceneView::paintGL(void)
@@ -41,8 +41,8 @@ void SceneView::paintGL(void)
 	m_view.clear();
 	m_project->draw(&m_view);
 
-	m_rc.clear();
-	m_rc.render(&m_view);
+	m_context.clear();
+	m_context.render(&m_view);
 }
 
 void SceneView::resizeGL(int w, int h)

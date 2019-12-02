@@ -4,12 +4,17 @@
 #define SGE_HPP
 
 #include <sge/common.hpp>
-#include <sge/client.hpp>
+
+#include <sge/filesystem.hpp>
+#include <sge/filesystemnative.hpp>
+#include <sge/filesystemzip.hpp>
+
+#include <sge/scene.hpp>
+#include <sge/renderer.hpp>
+#include <sge/game.hpp>
+
 #include <sge/editor.hpp>
 #include <sge/launcher.hpp>
-#include <sge/scene.hpp>
 #include <sge/server.hpp>
-#include <sge/renderer.hpp>
 
 #endif // SGE_HPP
-

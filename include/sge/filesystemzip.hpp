@@ -1,17 +1,17 @@
 //
 //
-#ifndef SGE_DATABASE_FILESYSTEMZIP_HPP
-#define SGE_DATABASE_FILESYSTEMZIP_HPP
+#ifndef SGE_FILESYSTEMZIP_HPP
+#define SGE_FILESYSTEMZIP_HPP
 
 #include <QMap>
 #include <QString>
 
 #include <miniz.h>
 
-#include <sge/database/common.hpp>
-#include <sge/database/filesystem.hpp>
+#include <sge/common.hpp>
+#include <sge/filesystem.hpp>
 
-SGE_DATABASE_BEGIN
+SGE_BEGIN
 
 class FileSystemZip: public FileSystem {
 public:
@@ -44,6 +44,6 @@ inline const QString &FileSystemZip::path(void) const
 	return m_path;
 }
 
-SGE_DATABASE_END
+SGE_END
 
-#endif // SGE_DATABASE_FILESYSTEMZIP_HPP
+#endif // SGE_FILESYSTEMZIP_HPP

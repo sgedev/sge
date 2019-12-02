@@ -29,23 +29,6 @@ Project::~Project(void)
 
 QVariant Project::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid())
-        return QVariant();
-
-    if (role != Qt::DisplayRole)
-        return QVariant();
-
-    const Item *item = static_cast<Item *>(index.internalPointer());
-
-    const QDomNode node = item->node();
-
-    switch (index.column()) {
-    case 0:
-        return node.nodeName();
-	case 1:
-		return node.nodeValue();
-    }
-
     return QVariant();
 }
 
@@ -110,12 +93,10 @@ bool Project::removeRows(int row, int count, const QModelIndex &parent)
 
 bool Project::create(const QString &path)
 {
-	if (!m_dbfs.init(path))
+	if (!m_fs.init(path))
 		return false;
 
-	m_game.shutdown();
-
-	if (!m_game.init(&m_dbfs))
+	if (!m_game.init(&m_fs))
 		return false;
 
 	return true;
@@ -123,7 +104,7 @@ bool Project::create(const QString &path)
 
 bool Project::load(const QString &path)
 {
-
+	return true;
 }
 
 bool Project::save(void)

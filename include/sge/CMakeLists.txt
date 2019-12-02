@@ -1,6 +1,5 @@
 
 sge_subdirectories(
-	database
 	editor
 	launcher
 	renderer
@@ -11,8 +10,10 @@ sge_sources(
 	asset.hpp
 	common.hpp
 	config.hpp.in
-	database.hpp
 	editor.hpp
+	filesystem.hpp
+	filesystemnative.hpp
+	filesystemzip.hpp
 	game.hpp
 	launcher.hpp
 	level.hpp

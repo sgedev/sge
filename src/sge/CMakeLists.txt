@@ -1,6 +1,5 @@
 
 sge_subdirectories(
-	database
 	editor
 	launcher
 	renderer
@@ -9,6 +8,9 @@ sge_subdirectories(
 
 sge_sources(
 	asset.cpp
+	filesystem.cpp
+	filesystemnative.cpp
+	filesystemzip.cpp
 	game.cpp
 	level.cpp
 	scene.cpp

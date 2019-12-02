@@ -15,7 +15,7 @@
 #include <QProcess>
 #include <QAbstractItemModel>
 
-#include <sge/database.hpp>
+#include <sge/filesystemnative.hpp>
 #include <sge/game.hpp>
 #include <sge/editor/common.hpp>
 
@@ -88,7 +88,7 @@ protected slots:
 
 private:
 	State m_state;
-	Database::FileSystemNative m_dbfs;
+	FileSystemNative m_fs;
 	Assimp::Importer m_importer;
 	Game m_game;
 	QProcess m_gameLauncher;
@@ -101,7 +101,7 @@ inline Project::State Project::state(void) const
 
 inline const QString &Project::path(void) const
 {
-	return m_dbfs.path();
+	return m_fs.path();
 }
 
 SGE_EDITOR_END

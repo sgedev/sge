@@ -48,8 +48,8 @@ void ProjectView::setProject(Project *project)
 
 	setModel(m_project);
 
-	connect(m_project, &Project::dirChanged, this, &ProjectView::dirChanged);
-	dirChanged(m_project->dir());
+	//connect(m_project, &Project::dirChanged, this, &ProjectView::dirChanged);
+	//dirChanged(m_project->dir());
 }
 
 void ProjectView::dirChanged(const QDir &dir)

@@ -35,7 +35,7 @@ protected:
 private:
 	QTabWidget m_tab;
 	Project *m_project;
-	Renderer::Context m_rc;
+	Renderer::Context m_context;
 	Renderer::View m_view;
 };
 

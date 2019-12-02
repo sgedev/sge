@@ -4,9 +4,9 @@
 #include <QDir>
 #include <QFile>
 
-#include <sge/database/filesystemnative.hpp>
+#include <sge/filesystemnative.hpp>
 
-SGE_DATABASE_BEGIN
+SGE_BEGIN
 
 FileSystemNative::FileSystemNative(void)
 {
@@ -72,4 +72,4 @@ bool FileSystemNative::removeFile(const QString &filename)
 	return file.remove();
 }
 
-SGE_DATABASE_END
+SGE_END

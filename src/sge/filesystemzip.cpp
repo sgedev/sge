@@ -3,13 +3,13 @@
 #include <QByteArray>
 #include <QFileInfo>
 
-#include <sge/database/filesystemzip.hpp>
+#include <sge/filesystemzip.hpp>
 
-SGE_DATABASE_BEGIN
+SGE_BEGIN
 
 // ZipFile
 
-class ZipFile: public QIODevice {
+class ZipFile : public QFileDevice {
 public:
 	ZipFile(mz_zip_archive *zip, int index);
 	virtual ~ZipFile(void);
@@ -40,7 +40,7 @@ ZipFile::ZipFile(mz_zip_archive *zip, int index)
 	, m_pos(-1)
 {
 	Q_ASSERT(m_zip != Q_NULLPTR);
-	Q_ASSERT(index >= 0);
+	Q_ASSERT(m_index >= 0);
 }
 
 ZipFile::~ZipFile(void)
@@ -68,6 +68,9 @@ bool ZipFile::isSequential(void) const
 bool ZipFile::open(QIODevice::OpenMode mode)
 {
 	if (mode & QIODEVICE_WRITE_MODES)
+		return false;
+
+	if (m_index < 0)
 		return false;
 
 	if (m_pos >= 0)
@@ -132,10 +135,15 @@ bool ZipFile::seek(qint64 pos)
 
 qint64 ZipFile::size(void) const
 {
-	if (m_pos < 0)
+	if (m_index < 0)
 		return -1;
 
-	return m_data.size();
+	mz_zip_archive_file_stat st;
+	mz_bool ret = mz_zip_reader_file_stat(m_zip, m_index, &st);
+	if (!ret)
+		return -1;
+
+	return st.m_uncomp_size;
 }
 
 qint64 ZipFile::readData(char *data, qint64 maxSize)
@@ -155,7 +163,6 @@ qint64 ZipFile::readData(char *data, qint64 maxSize)
 
 qint64 ZipFile::writeData(const char *data, qint64 maxSize)
 {
-	setErrorString("Write operation is not supported.");
 	return -1;
 }
 
@@ -200,6 +207,12 @@ bool FileSystemZip::init(const QString &filename)
 
 bool FileSystemZip::isDir(const QString &path)
 {
+	if (path.isNull() || path.isEmpty())
+		return false;
+
+	if (path.at(0) != '/')
+		return false;
+
 	QString tmp(path);
 	if (!tmp.endsWith('/'))
 		tmp += '/';
@@ -251,6 +264,9 @@ FilePtr FileSystemZip::openFile(const QString &filename, QIODevice::OpenMode mod
 	if (index < 0)
 		return FilePtr();
 
+	if (mz_zip_reader_is_file_a_directory(&m_zip, index))
+		return FilePtr();
+
 	FilePtr file(new ZipFile(&m_zip, index));
 	if (!file || !file->open(mode))
 		return FilePtr();
@@ -263,4 +279,4 @@ bool FileSystemZip::removeFile(const QString &filename)
 	return false;
 }
 
-SGE_DATABASE_END
+SGE_END

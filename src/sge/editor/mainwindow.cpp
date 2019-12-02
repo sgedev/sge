@@ -72,7 +72,7 @@ void MainWindow::fileNewProject(void)
 	NewProjectDialog dlg(this);
 
 	if (dlg.exec() == QDialog::Accepted)
-		setupProject(dlg.path());
+		newProject(dlg.path());
 }
 
 void MainWindow::fileNewFolder(void)
@@ -100,7 +100,7 @@ void MainWindow::fileOpen(void)
 {
 	QString path = QFileDialog::getExistingDirectory(this, "Open Project Directory");
 	if (!path.isEmpty())
-		setupProject(path);
+		openProject(path);
 }
 
 void MainWindow::fileClose(void)
@@ -152,7 +152,7 @@ void MainWindow::helpAboutQt(void)
 	QMessageBox::aboutQt(this);
 }
 
-bool MainWindow::setupProject(const QString &path)
+bool MainWindow::newProject(const QString &path)
 {
 	QDir dir(path);
 
@@ -173,7 +173,47 @@ bool MainWindow::setupProject(const QString &path)
 		return false;
 	}
 
-	if (!project->create(dir)) {
+	if (!project->create(path)) {
+		QMessageBox::critical(this, "Error", "Failed to initialize project.");
+		return false;
+	}
+
+	m_projectPath = path;
+	m_project = project;
+
+	m_projectView.setProject(m_project.data());
+
+	m_fileNewFolder->setEnabled(true);
+	m_fileNewScene->setEnabled(true);
+	m_fileNewScript->setEnabled(true);
+	m_fileImport->setEnabled(true);
+	m_fileExport->setEnabled(true);
+
+	return true;
+}
+
+bool MainWindow::openProject(const QString &path)
+{
+	QDir dir(path);
+
+	m_fileNewFolder->setDisabled(true);
+	m_fileNewScene->setDisabled(true);
+	m_fileNewScript->setDisabled(true);
+
+	m_projectView.setProject(NULL);
+
+	if (!dir.exists()) {
+		QMessageBox::critical(this, "Error", "Project directory: " + path);
+		return false;
+	}
+
+	ProjectPtr project(new Project());
+	if (!project) {
+		QMessageBox::critical(this, "Error", "Cannot create project.");
+		return false;
+	}
+
+	if (!project->create(path)) {
 		QMessageBox::critical(this, "Error", "Failed to initialize project.");
 		return false;
 	}

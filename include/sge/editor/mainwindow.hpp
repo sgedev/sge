@@ -52,7 +52,8 @@ protected:
 	void gameRun(void);
 	void helpAbout(void);
 	void helpAboutQt(void);
-	bool setupProject(const QString &path);
+	bool newProject(const QString &path);
+	bool openProject(const QString &path);
 
 private:
 	void initMainMenu(void);

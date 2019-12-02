@@ -1,18 +1,24 @@
 //
 //
-#ifndef SGE_DATABASE_FILESYSTEM_HPP
-#define SGE_DATABASE_FILESYSTEM_HPP
+#ifndef SGE_FILESYSTEM_HPP
+#define SGE_FILESYSTEM_HPP
 
-#include <QMap>
 #include <QString>
 #include <QStringList>
-#include <QObject>
+#include <QSharedPointer>
+#include <QIODevice>
+#include <QFileDevice>
 
 #include <miniz.h>
 
-#include <sge/database/common.hpp>
+#include <sge/common.hpp>
 
-SGE_DATABASE_BEGIN
+SGE_BEGIN
+
+typedef QSharedPointer<QIODevice> FilePtr;
+
+#define QIODEVICE_WRITE_MODES \
+	(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Truncate | QIODevice::NewOnly)
 
 class FileSystem {
 public:
@@ -59,6 +65,6 @@ inline void FileSystem::setReadonly(bool v)
 	m_readonly = v;
 }
 
-SGE_DATABASE_END
+SGE_END
 
-#endif // SGE_DATABASE_FILESYSTEM_HPP
+#endif // SGE_FILESYSTEM_HPP

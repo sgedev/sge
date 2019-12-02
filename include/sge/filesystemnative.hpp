@@ -1,12 +1,12 @@
 //
 //
-#ifndef SGE_DATABASE_FILESYSTEMNATIVE_HPP
-#define SGE_DATABASE_FILESYSTEMNATIVE_HPP
+#ifndef SGE_FILESYSTEMNATIVE_HPP
+#define SGE_FILESYSTEMNATIVE_HPP
 
-#include <sge/database/common.hpp>
-#include <sge/database/filesystem.hpp>
+#include <sge/common.hpp>
+#include <sge/filesystem.hpp>
 
-SGE_DATABASE_BEGIN
+SGE_BEGIN
 
 class FileSystemNative : public FileSystem {
 public:
@@ -35,6 +35,6 @@ inline const QString &FileSystemNative::path(void) const
 	return m_path;
 }
 
-SGE_DATABASE_END
+SGE_END
 
-#endif // SGE_DATABASE_FILESYSTEMNATIVE_HPP
+#endif // SGE_FILESYSTEMNATIVE_HPP

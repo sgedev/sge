@@ -19,20 +19,6 @@ if(MSVC)
 	add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 endif()
 
-# qt5
-
-set(CMAKE_AUTOMOC ON)
-
-find_package(Qt5Core)
-find_package(Qt5Gui)
-find_package(Qt5Widgets)
-
-link_libraries(
-	Qt5::Core
-	Qt5::Gui
-	Qt5::Widgets
-	)
-
 # sge macros
 
 macro(sge_subdirectories)
@@ -66,6 +52,33 @@ endmacro()
 set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
 
 add_executable(sge)
+
+# SDL2
+include(FindSDL2)
+if(SDL2_FOUND)
+	sge_include_directories(${SDL2_INCLUDE_DIR})
+	sge_link_libraries(${SDL2_LIBRARY})
+else()
+	message(FATAL_ERROR "SDL2 not found.")
+endif()
+
+# OpenGL
+include(FindOpenGL)
+if(OPENGL_FOUND)
+	sge_include_directories(${OPENGL_INCLUDE_DIR})
+	sge_link_libraries(${OPENGL_LIBRARIES})
+else()
+	message(FATAL_ERROR "OpenGL not found.")
+endif()
+
+# libuv
+include(FindUV)
+if(UV_FOUND)
+	sge_include_directories(${UV_INCLUDE_DIRS})
+	sge_link_libraries(${UV_LIBRARIES})
+else()
+	message(FATAL_ERROR "Libuv not found.")
+endif()
 
 sge_include_directories(
 	${CMAKE_SOURCE_DIR}/include

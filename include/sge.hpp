@@ -4,17 +4,16 @@
 #define SGE_HPP
 
 #include <sge/common.hpp>
-
-#include <sge/filesystem.hpp>
-#include <sge/filesystemnative.hpp>
-#include <sge/filesystemzip.hpp>
-
-#include <sge/scene.hpp>
 #include <sge/renderer.hpp>
-#include <sge/game.hpp>
 
-#include <sge/editor.hpp>
-#include <sge/launcher.hpp>
-#include <sge/server.hpp>
+SGE_BEGIN
+
+bool init(void);
+void shutdown(void);
+const char *lastError(void);
+bool handleEvent(const SDL_Event &evt);
+void update(float elapsed);
+
+SGE_END
 
 #endif // SGE_HPP

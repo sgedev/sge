@@ -1,29 +1,22 @@
 
 sge_subdirectories(
-	editor
-	launcher
 	renderer
-	server
 	)
 
 sge_sources(
-	asset.hpp
 	common.hpp
 	config.hpp.in
-	editor.hpp
-	filesystem.hpp
-	filesystemnative.hpp
-	filesystemzip.hpp
+	game.h
 	game.hpp
-	launcher.hpp
-	level.hpp
 	renderer.hpp
-	scene.hpp
-	server.hpp
 	)
 
 configure_file(
 	config.hpp.in
 	config.hpp
+	)
+
+sge_compile_definitions(
+	LUA_USER_H=\"${CMAKE_CURRENT_SOURCE_DIR}/game.h\"
 	)
 

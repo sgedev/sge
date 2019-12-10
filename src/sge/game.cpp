@@ -1,159 +1,114 @@
 //
 //
-#include <uv.h>
-#include <lua.hpp>
-
 #include <sge/game.hpp>
 
-SGE_GAME_BEGIN
+SGE_BEGIN
 
-enum LuaInitResult {
-	LuaInitNull = 0,
-	LuaInitOk,
-	LuaInitError
-};
+Game::Game(void)
+	: m_state(StateIdle)
+{
+}
 
-static SDL_Thread *luaThread;
-static SDL_mutex *luaMutex;
-static SDL_cond *luaCond;
-static LuaInitResult luaInitResult;
-static uv_async_t luaAsync;
+Game::~Game(void)
+{
+}
 
-namespace LuaThread {
-	static lua_State *lua;
-	static uv_loop_t loop;
-	static bool running;
-
-	static void asyncHandler(uv_async_t *p)
-	{
-	}
-
-	static void schedule(lua_State *L)
-	{
-	}
-
-	static int pmain(lua_State *L)
-	{
-		luaL_openlibs(L);
-
-		uv_loop_init(&loop);
-
-		uv_async_init(&loop, &luaAsync, asyncHandler);
-
-		running = true;
-		luaInitResult = LuaInitOk;
-		SDL_CondSignal(luaCond);
-
-		while (running) {
-			schedule(L);
-			uv_run(&loop, UV_RUN_DEFAULT);
-		}
-
-		uv_loop_close(&loop);
-	}
-
-	static int tmain(void *p)
-	{
-		SDL_LockMutex(luaMutex);
-
-		lua = luaL_newstate();
-		if (lua == NULL) {
-			luaInitResult = LuaInitError;
-			SDL_CondSignal(luaCond);
-			goto unlock;
-		}
-
-		lua_pushcfunction(lua, &pmain);
-		lua_pcall(lua, 0, 0, 0);
-		lua_close(lua);
-		lua = NULL;
-
-	unlock:
-		SDL_UnlockMutex(luaMutex);
-		return 0;
+void Game::update(float elapsed)
+{
+	switch (m_state) {
+	case StateIdle:
+		break;
 	}
 }
 
-bool init(void)
+void Game::draw(Renderer::View *view)
 {
-	SGE_ASSERT(luaThread == NULL);
-	SGE_ASSERT(luaMutex == NULL);
-	SGE_ASSERT(luaCond == NULL);
+	Q_ASSERT(view != Q_NULLPTR);
 
-	luaMutex = SDL_CreateMutex();
-	if (luaMutex == NULL)
-		goto bad0;
-
-	luaCond = SDL_CreateCond();
-	if (luaCond == NULL)
-		goto bad1;
-
-	SDL_LockMutex(luaMutex);
-
-	luaInitResult = LuaInitNull;
-
-	luaThread = SDL_CreateThread(&LuaThread::tmain, "SGE::Game", NULL);
-	if (luaThread == NULL)
-		goto bad2;
-
-	while (luaInitResult == LuaInitNull)
-		SDL_CondWait(luaCond, luaMutex);
-
-	SDL_UnlockMutex(luaMutex);
-
-	return true;
-
-bad2:
-	SDL_UnlockMutex(luaMutex);
-
-bad1:
-	SDL_DestroyMutex(luaMutex);
-	luaMutex = NULL;
-
-bad0:
-	return false;
+	switch (m_state) {
+	case StateIdle:
+		break;
+	}
 }
 
-void shutdown(void)
+JSValue Game::jsFps(JSContext *ctx, JSValueConst thisVal, int argc, JSValueConst *argv)
 {
-	SGE_ASSERT(luaThread != NULL);
+	Game *game = (Game *)JS_GetContextOpaque(ctx);
+	Q_ASSERT(game != Q_NULLPTR);
 
-	LuaThread::running = false;
-	uv_async_send(&luaAsync);
-
-	SDL_WaitThread(luaThread, NULL);
-	luaThread = NULL;
-
-	SDL_DestroyCond(luaCond);
-	luaCond = NULL;
-
-	SDL_DestroyMutex(luaMutex);
-	luaMutex = NULL;
+	return JS_NewInt32(ctx, game->trapFps());
 }
 
-SGE_GAME_END
-
-extern "C" void sge_Game_luaOpen(lua_State *L)
+JSValue Game::jsMaxFps(JSContext *ctx, JSValueConst thisVal, int argc, JSValueConst *argv)
 {
+	Game *game = (Game *)JS_GetContextOpaque(ctx);
+	Q_ASSERT(game != Q_NULLPTR);
+
+	return JS_NewInt32(ctx, game->trapMaxFps());
 }
 
-extern "C" void sge_Game_luaClose(lua_State *L)
+JSValue Game::jsSetMaxFps(JSContext *ctx, JSValueConst thisVal, int argc, JSValueConst *argv)
 {
+	int n;
+
+    if (JS_ToInt32(ctx, &n, argv[0]))
+        return JS_EXCEPTION;
+
+	Game *game = (Game *)JS_GetContextOpaque(ctx);
+	Q_ASSERT(game != Q_NULLPTR);
+
+	return JS_NewInt32(ctx, game->trapSetMaxFps(n));
 }
 
-extern "C" void sge_Game_luaThread(lua_State *L, lua_State *L1)
+int Game::initExports(JSContext *ctx, JSModuleDef *m)
 {
+    JSValue jsFpsFunc = JS_NewCFunction(ctx, &Game::jsFps, "fps", 0);
+	JS_SetModuleExport(ctx, m, "fps", jsFpsFunc);
+
+	JSValue jsMaxFpsFunc = JS_NewCFunction(ctx, &Game::jsMaxFps, "maxFps", 0);
+	JS_SetModuleExport(ctx, m, "maxFps", jsMaxFpsFunc);
+
+	JSValue jsSetMaxFpsFunc = JS_NewCFunction(ctx, &Game::jsSetMaxFps, "setMaxFps", 1);
+	JS_SetModuleExport(ctx, m, "setFpsMax", jsSetMaxFpsFunc);
+
+    return 0;
 }
 
-extern "C" void sge_Game_luaFree(lua_State *L, lua_State *L1)
+void Game::run(void)
 {
+	JSRuntime *runtime;
+	JSContext *context;
+	JSModuleDef *module;
+
+	runtime = JS_NewRuntime();
+	if (runtime == NULL)
+		goto end0;
+
+	context = JS_NewContext(runtime);
+	if (context == NULL)
+		goto end1;
+
+	JS_SetContextOpaque(context, this);
+
+	module = JS_NewCModule(context, "sge", &Game::initExports);
+    if (module == NULL)
+        goto end2;
+
+    JS_AddModuleExport(context, module, "sge");
+
+	QThread::run();
+
+end2:
+	JS_FreeContext(context);
+	context = NULL;
+
+end1:
+	JS_FreeRuntime(runtime);
+	runtime = NULL;
+
+end0:
+	return;
 }
 
-extern "C" void sge_Game_luaResume(lua_State *L, int n)
-{
-}
-
-extern "C" void sge_Game_luaYield(lua_State *L, int n)
-{
-}
+SGE_END
 

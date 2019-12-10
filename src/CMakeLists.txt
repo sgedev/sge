@@ -1,14 +1,11 @@
 
 sge_subdirectories(
-	GL
-	imgui
-	lua
+	cx
 	miniz
-	physfs
+	quickjs
 	sge
 	)
 
 sge_sources(
 	main.cpp
 	)
-

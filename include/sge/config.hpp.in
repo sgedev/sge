@@ -1,7 +1,8 @@
-//
-//
-#ifndef SGE_CONFIG_HPP
-#define SGE_CONFIG_HPP
+/*
+ *
+ */
+#ifndef SGE_CONFIG_H
+#define SGE_CONFIG_H
 
 #define SGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR}
 #define SGE_VERSION_MINOR ${PROJECT_VERSION_MINOR}
@@ -9,5 +10,7 @@
 
 #cmakedefine SGE_DEBUG
 
-#endif // SGE_CONFIG_HPP
+#cmakedefine SGE_EDITOR
+
+#endif /* SGE_CONFIG_H */
 

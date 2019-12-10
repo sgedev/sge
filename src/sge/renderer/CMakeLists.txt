@@ -1,5 +1,7 @@
 
 sge_sources(
-	core.cpp
+	context.cpp
+	state.cpp
+	view.cpp
 	)
 

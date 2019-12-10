@@ -1,10 +1,14 @@
 
 sge_subdirectories(
+	editor
+	launcher
 	renderer
+	server
 	)
 
 sge_sources(
-	core.cpp
 	game.cpp
+	level.cpp
+	scene.cpp
 	)
 

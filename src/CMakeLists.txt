@@ -1,8 +1,8 @@
 
 sge_subdirectories(
 	cx
+	lua
 	miniz
-	quickjs
 	sge
 	)
 

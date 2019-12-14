@@ -83,5 +83,3 @@ source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SGE_SOURCES})
 add_subdirectory(docs docs)
 add_subdirectory(test test)
 add_subdirectory(tools tools)
-
-

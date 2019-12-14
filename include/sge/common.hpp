@@ -5,8 +5,6 @@
 
 #include <QtGlobal>
 
-#include <quickjs.h>
-
 #include <sge/config.hpp>
 
 #ifdef SGE_DEBUG

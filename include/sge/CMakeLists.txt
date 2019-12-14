@@ -13,6 +13,7 @@ sge_sources(
 	game.hpp
 	launcher.hpp
 	level.hpp
+	lua.h
 	renderer.hpp
 	scene.hpp
 	server.hpp
@@ -23,3 +24,6 @@ configure_file(
 	config.hpp
 	)
 
+sge_compile_definitions(
+	LUA_USER_H=\"${CMAKE_CURRENT_SOURCE_DIR}/lua.h\"
+	)

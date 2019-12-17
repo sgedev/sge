@@ -9,32 +9,12 @@
 
 SGE_BEGIN
 
-template <typename FN>
-int Game::luaVersion(lua_State *L)
-{
-	QString errorMsg;
-	int rc = gameFromLua(L)->luaVersionTrap(L, errorMsg);
-	if (rc < 0)
-		luaL_error(L, errorMsg.toStdString().c_str());
-}
-
 Game::Game(void)
 {
 }
 
 Game::~Game(void)
 {
-}
-
-bool Game::setDir(const QString &dirname)
-{
-	QFileInfo fi(dirname);
-	if (!fi.isDir())
-		return false;
-
-	m_dir = dirname;
-
-	return true;
 }
 
 void Game::update(float elapsed)
@@ -46,19 +26,19 @@ void Game::draw(Renderer::View *view)
 	Q_ASSERT(view != Q_NULLPTR);
 }
 
-void Game::luaInit(lua_State *L)
+void Game::luaInitHook(lua_State *L)
 {
 }
 
-void Game::luaShutdown(lua_State *L)
+void Game::luaShutdownHook(lua_State *L)
 {
 
 }
 
-void Game::luaAddTask(lua_State *L, lua_State *L1)
+void Game::luaAddTaskHook(lua_State *L, lua_State *L1)
 {
 	Game *game = gameFromLua(L);
-	Info *info = infoFromLua(L1);
+	Context *ctx = contextFromLua(L1);
 
 	Task *task = new Task; // TODO use a task pool?
 	if (task == Q_NULLPTR)
@@ -66,60 +46,60 @@ void Game::luaAddTask(lua_State *L, lua_State *L1)
 
 	task->L = L1;
 
-	connect(&task->sleepTimer, &QTimer::timeout, [&game, &task](void) { game->onTaskReady(task); });
+	connect(&task->sleepTimer, &QTimer::timeout, [=]() { game->onTaskReady(task); });
 
-	info->game = (void *)game;
-	info->task = (void *)task;
+	ctx->game = (void *)game;
+	ctx->task = (void *)task;
 
-	cxResetListNode(&info->node);
-	cxAddListTail(&game->m_readyTaskList, &info->node);
+	cxResetListNode(&ctx->node);
+	cxAddListTail(&game->m_readyTaskList, &ctx->node);
 }
 
-void Game::luaRemoveTask(lua_State *L, lua_State *L1)
+void Game::luaRemoveTaskHook(lua_State *L, lua_State *L1)
 {
 	Game *game = gameFromLua(L);
-	Info *info = infoFromLua(L1);
+	Context *ctx = contextFromLua(L1);
 
-	info->task = Q_NULLPTR;
-	info->game = Q_NULLPTR;
-
-	Task *task = taskFromInfo(info);
+	Task *task = taskFromContext(ctx);
 	delete task;
 
-	cxUnlinkListNode(&info->node);
+	ctx->task = Q_NULLPTR;
+	ctx->game = Q_NULLPTR;
+
+	cxUnlinkListNode(&ctx->node);
 }
 
-void Game::luaResumeTask(lua_State *L, int n)
+void Game::luaResumeTaskHook(lua_State *L, int n)
 {
 }
 
-void Game::luaYieldTask(lua_State *L, int n)
+void Game::luaYieldTaskHook(lua_State *L, int n)
 {
-	Info *info = infoFromLua(L);
-	Game *game = gameFromInfo(info);
+	Context *ctx = contextFromLua(L);
+	Game *game = gameFromContext(ctx);
 
-	cxUnlinkListNode(&info->node);
-	cxAddListTail(&game->m_sleepTaskList, &info->node);
+	cxUnlinkListNode(&ctx->node);
+	cxAddListTail(&game->m_sleepTaskList, &ctx->node);
 }
 
 void Game::run(void)
 {
 	QFileInfo fi(m_dir);
 	if (!fi.isDir()) {
-		//trapFatal("Invalid game dir '" + m_dir + "'.\n");
+		trapLog(LogError, "Invalid game dir '" + m_dir + "'.\n");
 		return;
 	}
 
 	lua_State *L = luaL_newstate();
 	if (L == Q_NULLPTR) {
-		//trapFatal("Failed to initializing lua.\n");
+		trapLog(LogError, "Failed to initializing lua.\n");
 		return;
 	}
 
-	Info *info = infoFromLua(L);
-	cxResetListNode(&info->node);
-	info->game = (void *)this;
-	info->task = Q_NULLPTR;
+	Context *ctx = contextFromLua(L);
+	cxResetListNode(&ctx->node);
+	ctx->game = (void *)this;
+	ctx->task = Q_NULLPTR;
 
 	lua_pushlightuserdata(L, this);
 	lua_pushcfunction(L, &Game::luaMain);
@@ -136,15 +116,21 @@ int Game::luaMain(lua_State *L)
 	Game *game = (Game *)lua_touserdata(L, 1);
 	Q_ASSERT(game != Q_NULLPTR);
 
-	return game->gameMain(L);
+	game->main(L);
+
+	return 0;
 }
 
-int Game::gameMain(lua_State *L)
+void Game::main(lua_State *L)
 {
 	initExports(L);
-	initMainTask(L);
 
-	trapInfo("Game is running...\n");
+	if (!initMainTask(L)) {
+		trapLog(LogError, "Failed to init main task...\n");
+		return;
+	}
+
+	trapLog(LogInfo, "Game is running...\n");
 
 	m_running = true;
 
@@ -153,9 +139,7 @@ int Game::gameMain(lua_State *L)
 		exec();
 	}
 
-	trapInfo("Game exited.\n");
-
-	return 1;
+	trapLog(LogInfo, "Game exited.\n");
 }
 
 void Game::initExports(lua_State *L)
@@ -198,29 +182,46 @@ void Game::initExports(lua_State *L)
 	lua_setglobal(L, "sge");
 }
 
-void Game::initMainTask(lua_State *L)
+bool Game::initMainTask(lua_State *L)
 {
+	QString path(m_dir + "/main.lua");
+
+	lua_State *mainTask = lua_newthread(L);
+	if (mainTask == NULL) {
+		trapLog(LogError, "Faile to create game main task.\n");
+		return false;
+	}
+
+	int ret = luaL_loadfile(mainTask, path.toStdString().c_str());
+	if (ret) {
+		trapLog(LogError, "Failed to load game main task from '" + path + "'.\n");
+		return false;
+	}
+
+	m_mainTask = taskFromLua(mainTask);
+
+	return true;
 }
 
 void Game::sched(lua_State *L)
 {
 	CXListNode *node;
-	Info *info;
+	Context *ctx;
 	Task *task;
 
 	for (;;) {
 		node = cxDeleteListHead(&m_readyTaskList);
 		if (node == cxGetListKnot(&m_readyTaskList))
 			break;
-		info = CX_MEMBEROF(node, Info, node);
-		task = taskFromInfo(info);
+		ctx = CX_MEMBEROF(node, Context, node);
+		task = taskFromContext(ctx);
 		int ret = lua_resume(task->L, L, 0);
 		if (ret != LUA_YIELD && ret != LUA_OK)
 			luaL_error(L, "LUA_ERROR: %s\n", luaL_checkstring(L, -1));
 	}
 }
 
-int Game::luaVersionTrap(lua_State *L, QString &errorMsg)
+int Game::luaVersion(lua_State *L)
 {
 	lua_newtable(L);
 
@@ -236,26 +237,21 @@ int Game::luaVersionTrap(lua_State *L, QString &errorMsg)
 	return 1;
 }
 
-int Game::luaVersion(lua_State *L)
-{
-	QString errorMsg;
-	int rc = gameFromLua(L)->luaVersionTrap(L, errorMsg);
-	if (rc < 0)
-		luaL_error(L, errorMsg.toStdString().c_str());
-}
-
 int Game::luaInfo(lua_State *L)
 {
+	gameFromLua(L)->trapLog(LogInfo, luaL_checkstring(L, 1));
 	return 0;
 }
 
 int Game::luaWarning(lua_State *L)
 {
+	gameFromLua(L)->trapLog(LogWarning, luaL_checkstring(L, 1));
 	return 0;
 }
 
 int Game::luaError(lua_State *L)
 {
+	gameFromLua(L)->trapLog(LogError, luaL_checkstring(L, 1));
 	return 0;
 }
 
@@ -324,43 +320,43 @@ int Game::luaSetName(lua_State *L)
 
 void Game::onTaskReady(Task *task)
 {
-	Info *info = infoFromLua(task->L);
-	Game *game = gameFromInfo(info);
+	Context *ctx= contextFromLua(task->L);
+	Game *game = gameFromContext(ctx);
 
-	cxUnlinkListNode(&info->node);
-	cxAddListTail(&game->m_readyTaskList, &info->node);
+	cxUnlinkListNode(&ctx->node);
+	cxAddListTail(&game->m_readyTaskList, &ctx->node);
 
-	exit(0);
+	QThread::exit(0);
 }
 
 SGE_END
 
-extern "C" void SGEGameLuaInit(lua_State *L)
+extern "C" void SGEGameLuaInitHook(lua_State *L)
 {
-	SGE::Game::luaInit(L);
+	SGE::Game::luaInitHook(L);
 }
 
-extern "C" void SGEGameLuaShutdown(lua_State *L)
+extern "C" void SGEGameLuaShutdownHook(lua_State *L)
 {
-	SGE::Game::luaShutdown(L);
+	SGE::Game::luaShutdownHook(L);
 }
 
-extern "C" void SGEGameLuaAddTask(lua_State *L, lua_State *L1)
+extern "C" void SGEGameLuaAddTaskHook(lua_State *L, lua_State *L1)
 {
-	SGE::Game::luaAddTask(L, L1);
+	SGE::Game::luaAddTaskHook(L, L1);
 }
 
-extern "C" void SGEGameLuaRemoveTask(lua_State *L, lua_State *L1)
+extern "C" void SGEGameLuaRemoveTaskHook(lua_State *L, lua_State *L1)
 {
-	SGE::Game::luaRemoveTask(L, L1);
+	SGE::Game::luaRemoveTaskHook(L, L1);
 }
 
-extern "C" void SGEGameLuaResumeTask(lua_State *L, int n)
+extern "C" void SGEGameLuaResumeTaskHook(lua_State *L, int n)
 {
-	SGE::Game::luaResumeTask(L, n);
+	SGE::Game::luaResumeTaskHook(L, n);
 }
 
-extern "C" void SGEGameLuaYieldTask(lua_State *L, int n)
+extern "C" void SGEGameLuaYieldTaskHook(lua_State *L, int n)
 {
-	SGE::Game::luaYieldTask(L, n);
+	SGE::Game::luaYieldTaskHook(L, n);
 }

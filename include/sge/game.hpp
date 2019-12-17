@@ -22,41 +22,43 @@ public:
 	Game(void);
 	virtual ~Game(void);
 
-signals:
-	void trapInfo(const QString &text);
-	void trapError(const QString &text);
-	void trapWarning(const QString &text);
-	int trapFps(void);
-	int trapMaxFps(void);
-	int trapSetMaxFps(int v);
-	//Mode trapMode(void);
+public:
+	enum LogType {
+		LogInfo,
+		LogWarning,
+		LogError
+	};
 
 public:
 	const QString &dir(void) const;
+	void setDir(const QString &dirname);
 	const QString &name(void) const;
-	bool setDir(const QString &dirname);
 	void update(float elapsed);
 	void draw(Renderer::View *view);
 
 public: // for lua internal
-	static void luaInit(lua_State *L);
-	static void luaShutdown(lua_State *L);
-	static void luaAddTask(lua_State *L, lua_State *L1);
-	static void luaRemoveTask(lua_State *L, lua_State *L1);
-	static void luaResumeTask(lua_State *L, int n);
-	static void luaYieldTask(lua_State *L, int n);
+	static void luaInitHook(lua_State *L);
+	static void luaShutdownHook(lua_State *L);
+	static void luaAddTaskHook(lua_State *L, lua_State *L1);
+	static void luaRemoveTaskHook(lua_State *L, lua_State *L1);
+	static void luaResumeTaskHook(lua_State *L, int n);
+	static void luaYieldTaskHook(lua_State *L, int n);
+
+signals:
+	void trapLog(LogType type, const QString &text);
+	int trapFps(void);
+	int trapMaxFps(void);
+	int trapSetMaxFps(int v);
 
 protected:
     void run(void) Q_DECL_OVERRIDE;
 	static int luaMain(lua_State *L);
-	int gameMain(lua_State *L);
+	void main(lua_State *L);
 	void initExports(lua_State *L);
-	void initMainTask(lua_State *L);
+	bool initMainTask(lua_State *L);
 	void sched(lua_State *L);
 
 protected:
-	int Game::luaVersionTrap(lua_State *L, QString &errorMsg);
-	static int luaVersion(lua_State *L);
 	static int luaVersion(lua_State *L);
 	static int luaInfo(lua_State *L);
 	static int luaWarning(lua_State *L);
@@ -70,21 +72,19 @@ protected:
 	static int luaName(lua_State *L);
 	static int luaSetName(lua_State *L);
 
-protected slots:
-
-private:
-	typedef SGEGameInfo Info;
+protected:
+	typedef SGEGameContext Context;
 
 	struct Task {
 		lua_State *L;
 		QTimer sleepTimer;
 	};
 
-	static Info *infoFromLua(lua_State *L);
-	static lua_State *infoToLua(Info *info);
-	static Game *gameFromInfo(Info *info);
+	static Context *contextFromLua(lua_State *L);
+	static lua_State *contextToLua(Context *ctx);
+	static Game *gameFromContext(Context *ctx);
 	static Game *gameFromLua(lua_State *L);
-	static Task *taskFromInfo(Info *info);
+	static Task *taskFromContext(Context *ctx);
 	static Task *taskFromLua(lua_State *L);
 
 protected slots:
@@ -96,49 +96,62 @@ private:
 	QString m_name;
 	CXList m_readyTaskList;
 	CXList m_sleepTaskList;
+	Task *m_mainTask;
 	bool m_running;
 };
+
+inline const QString &Game::dir(void) const
+{
+	return m_dir;
+}
+
+inline void Game::setDir(const QString &dirname)
+{
+	Q_ASSERT(!isRunning());
+	m_dir = dirname;
+}
 
 inline const QString &Game::name(void) const
 {
 	return m_name;
 }
 
-inline Game::Info *Game::infoFromLua(lua_State *L)
+inline Game::Context *Game::contextFromLua(lua_State *L)
 {
-	return (Info *)lua_getextraspace(L);
+	Q_ASSERT(L != Q_NULLPTR);
+	return (Context *)lua_getextraspace(L);
 }
 
-inline lua_State *Game::infoToLua(Info *info)
+inline lua_State *Game::contextToLua(Context *ctx)
 {
-	return (lua_State *)(qintptr(info) + LUA_EXTRASPACE);
+	Q_ASSERT(ctx != Q_NULLPTR);
+	return (lua_State *)(qintptr(ctx) + LUA_EXTRASPACE);
 }
 
-inline Game *Game::gameFromInfo(Info *info)
+inline Game *Game::gameFromContext(Context *ctx)
 {
-	Game *game = (Game *)(info->game);
+	Game *game = (Game *)(ctx->game);
 	Q_ASSERT(game != Q_NULLPTR);
 	return game;
 }
 
-inline Game::Task *Game::taskFromInfo(Info *info)
+inline Game *Game::gameFromLua(lua_State *L)
 {
-	Task *task = (Task *)(info->task);
+	return gameFromContext(contextFromLua(L));
+}
+
+inline Game::Task *Game::taskFromContext(Context *ctx)
+{
+	Task *task = (Task *)(ctx->task);
 	Q_ASSERT(task != Q_NULLPTR);
 	return task;
 }
 
-inline Game *Game::gameFromLua(lua_State *L)
-{
-	return gameFromInfo(infoFromLua(L));
-}
-
 inline Game::Task *Game::taskFromLua(lua_State *L)
 {
-	return taskFromInfo(infoFromLua(L));
+	return taskFromContext(contextFromLua(L));
 }
 
 SGE_END
 
 #endif // SGE_GAME_HPP
-

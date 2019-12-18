@@ -17,6 +17,7 @@ sge_sources(
 	renderer.hpp
 	scene.hpp
 	server.hpp
+	vm.hpp
 	)
 
 configure_file(

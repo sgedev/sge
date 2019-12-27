@@ -13,22 +13,22 @@
 CX_BEGIN
 
 template <typename... Args>
-class Signal: public Noncopyable {
+class signal: public noncopyable {
 public:
-	Signal(void)
+	signal(void)
 		: m_current_id(0)
 	{
 	}
 
 public:
 	template <typename T>
-	int connectMember(T *inst, void (T::*func)(Args...))
+	int connect(T *inst, void (T::*func)(Args...))
 	{
 		return connect([=](Args... args) { (inst->*func)(args...); });
 	}
 
 	template <typename T>
-	int connectMember(T *inst, void (T::*func)(Args...) const)
+	int connect(T *inst, void (T::*func)(Args...) const)
 	{
 		return connect([=](Args... args) { (inst->*func)(args...); });
 	}
@@ -44,7 +44,7 @@ public:
 		m_slots.erase(id);
 	}
 
-	void disconnectAll() const
+	void disconnect_all(void) const
 	{
 		m_slots.clear();
 	}

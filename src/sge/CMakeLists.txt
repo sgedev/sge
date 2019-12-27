@@ -10,6 +10,5 @@ sge_sources(
 	game.cpp
 	level.cpp
 	scene.cpp
-	vm.cpp
 	)
 

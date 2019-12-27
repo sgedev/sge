@@ -5,7 +5,7 @@
 
 #include <cx/common.h>
 
-#define CX_BEGIN namespace CX {
+#define CX_BEGIN namespace cx {
 #define CX_END }
 
 #endif // CX_COMMON_HPP

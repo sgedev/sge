@@ -3,10 +3,10 @@
  */
 #include <cx/list.h>
 
-CX_API int cxGetListLength(CXList *list)
+CX_API int cx_list_length(cx_list_t *list)
 {
 	int length = 0;
-	CXListNode *node;
+	cx_list_node_t *node;
 
 	CX_ASSERT(list != NULL);
 
@@ -17,9 +17,9 @@ CX_API int cxGetListLength(CXList *list)
 	return length;
 }
 
-CX_API int cxIsListContains(CXList *list, CXListNode *node)
+CX_API int cx_list_is_contains(cx_list_t *list, cx_list_node_t *node)
 {
-	CXListNode *temp;
+	cx_list_node_t *temp;
 
 	CX_ASSERT(list != NULL);
 	CX_ASSERT(node != NULL);

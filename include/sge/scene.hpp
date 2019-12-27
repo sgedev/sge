@@ -16,7 +16,7 @@ public:
 public:
 	bool init(void);
 	void update(float elapsed);
-	void draw(Renderer::Context *rc);
+	void draw(Renderer::View *view);
 };
 
 SGE_END

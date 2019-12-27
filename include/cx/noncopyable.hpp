@@ -7,14 +7,14 @@
 
 CX_BEGIN
 
-class Noncopyable {
+class noncopyable {
 public:
-	Noncopyable(void) { }
-	~Noncopyable(void) { }
+	noncopyable(void) { }
+	~noncopyable(void) { }
 
 private:
-	Noncopyable(const Noncopyable &);
-	Noncopyable &operator=(const Noncopyable &);
+	noncopyable(const Noncopyable &);
+	noncopyable &operator=(const Noncopyable &);
 };
 
 CX_END

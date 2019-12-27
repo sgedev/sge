@@ -8,12 +8,12 @@
 
 CX_BEGIN_DECLS
 
-typedef struct CXListNodeStruct {
-	struct CXListNodeStruct *prev;
-	struct CXListNodeStruct *next;
-} CXListNode;
+typedef struct cx_list_node_struct {
+	struct cx_list_node_struct *prev;
+	struct cx_list_node_struct *next;
+} cx_list_node_t;
 
-static inline void cxResetListNode(CXListNode *node)
+static inline void cx_list_node_reset(cx_list_node_t *node)
 {
 	CX_ASSERT(node != NULL);
 
@@ -21,8 +21,8 @@ static inline void cxResetListNode(CXListNode *node)
 	node->next = node;
 }
 
-static inline void cxLinkListNode(
-	CXListNode *node, CXListNode *prev, CXListNode *next)
+static inline void cx_list_node_link(
+	cx_list_node_t *node, cx_list_node_t *prev, cx_list_node_t *next)
 {
 	CX_ASSERT(node != NULL);
 	CX_ASSERT(prev != NULL);
@@ -34,7 +34,7 @@ static inline void cxLinkListNode(
 	next->prev = node;
 }
 
-static inline void cxUnlinkListNode(CXListNode *node)
+static inline void cx_list_node_unlink(cx_list_node_t *node)
 {
 	CX_ASSERT(node != NULL);
 	CX_ASSERT(node->prev != NULL);
@@ -43,17 +43,17 @@ static inline void cxUnlinkListNode(CXListNode *node)
 	node->prev->next = node->next;
 	node->next->prev = node->prev;
 
-	cxResetListNode(node);
+	cx_list_node_reset(node);
 }
 
-static inline int cxIsListNodeLinked(const CXListNode *node)
+static inline int cx_list_node_is_linked(const cx_list_node_t *node)
 {
 	CX_ASSERT(node != NULL);
 
 	return (node != node->next);
 }
 
-static inline CXListNode *cxGetPrevListNode(CXListNode *node)
+static inline cx_list_node_t *cx_list_node_prev(cx_list_node_t *node)
 {
 	CX_ASSERT(node != NULL);
 	CX_ASSERT(node->prev != NULL);
@@ -61,7 +61,7 @@ static inline CXListNode *cxGetPrevListNode(CXListNode *node)
 	return node->prev;
 }
 
-static inline CXListNode *cxGetNextListNode(CXListNode *node)
+static inline cx_list_node_t *cx_list_node_next(cx_list_node_t *node)
 {
 	CX_ASSERT(node != NULL);
 	CX_ASSERT(node->next != NULL);
@@ -70,112 +70,112 @@ static inline CXListNode *cxGetNextListNode(CXListNode *node)
 }
 
 typedef struct {
-	CXListNode knot;
-} CXList;
+	cx_list_node_t knot;
+} cx_list_t;
 
-CX_API int cxGetListLength(CXList *list);
-CX_API int cxIsListContains(CXList *list, CXListNode *node);
+CX_API int cx_list_length(cx_list_t *list);
+CX_API int cx_list_is_contains(cx_list_t *list, cx_list_node_t *node);
 
-static inline void CXResetList(CXList *list)
+static inline void cx_list_reset(cx_list_t *list)
 {
 	CX_ASSERT(list != NULL);
 
-	cxResetListNode(&list->knot);
+	cx_list_node_reset(&list->knot);
 }
 
-static inline int cxIsListEmpty(const CXList *list)
+static inline int cx_list_is_empty(const cx_list_t *list)
 {
 	CX_ASSERT(list != NULL);
 
-	return !cxIsListNodeLinked(&list->knot);
+	return !cx_list_node_is_linked(&list->knot);
 }
 
-static inline CXListNode *cxGetListKnot(CXList *list)
+static inline cx_list_node_t *cx_list_knot(cx_list_t *list)
 {
 	CX_ASSERT(list != NULL);
 
 	return &list->knot;
 }
 
-static inline CXListNode *cxGetListHead(CXList *list)
+static inline cx_list_node_t *cx_list_head(cx_list_t *list)
 {
 	CX_ASSERT(list != NULL);
 
-	return cxGetNextListNode(&list->knot);
+	return cx_list_node_next(&list->knot);
 }
 
-static inline CXListNode *cxGetListTail(CXList *list)
+static inline cx_list_node_t *cx_list_tail(cx_list_t *list)
 {
 	CX_ASSERT(list != NULL);
 
-	return cxGetPrevListNode(&list->knot);
+	return cx_list_node_prev(&list->knot);
 }
 
-static inline CXListNode *cxDeleteListHead(CXList *list)
+static inline cx_list_node_t *cx_list_del_head(cx_list_t *list)
 {
-	CXListNode *node;
+	cx_list_node_t *node;
 
 	CX_ASSERT(list != NULL);
 
-	node = cxGetListHead(list);
-	cxUnlinkListNode(node);
+	node = cx_list_head(list);
+	cx_list_node_unlink(node);
 
 	return node;
 }
 
-static inline CXListNode *cxDeleteListTail(CXList *list)
+static inline cx_list_node_t *cx_list_del_tail(cx_list_t *list)
 {
-	CXListNode *node;
+	cx_list_node_t *node;
 
 	CX_ASSERT(list != NULL);
 
-	node = cxGetListTail(list);
-	cxUnlinkListNode(node);
+	node = cx_list_tail(list);
+	cx_list_node_unlink(node);
 
 	return node;
 }
 
-static inline void cxDeleteListNode(CXList *list, CXListNode *node)
+static inline void cx_list_del_node(cx_list_t *list, cx_list_node_t *node)
 {
 	CX_ASSERT(list != NULL);
 	CX_ASSERT(node != NULL);
-	CX_ASSERT(cxIsListContains(list, node));
+	CX_ASSERT(cx_list_is_contains(list, node));
 
-	cxUnlinkListNode(node);
+	cx_list_node_unlink(node);
 }
 
-static inline void cxClearList(CXList *list)
+static inline void cx_list_clear(cx_list_t *list)
 {
 	CX_ASSERT(list != NULL);
 
-	while (!cxIsListEmpty(list))
-		cxDeleteListHead(list);
+	while (!cx_list_is_empty(list))
+		cx_list_del_head(list);
 }
 
-static inline void cxAddListHead(CXList *list, CXListNode *node)
-{
-	CX_ASSERT(list != NULL);
-	CX_ASSERT(node != NULL);
-
-	cxUnlinkListNode(node);
-	cxLinkListNode(node, cxGetListKnot(list), cxGetListHead(list));	
-}
-
-static inline void cxAddListTail(CXList *list, CXListNode *node)
+static inline void cx_list_add_head(cx_list_t *list, cx_list_node_t *node)
 {
 	CX_ASSERT(list != NULL);
 	CX_ASSERT(node != NULL);
 
-	cxUnlinkListNode(node);
-	cxLinkListNode(node, cxGetListTail(list), cxGetListKnot(list));	
+	cx_list_node_unlink(node);
+	cx_list_node_link(node, cx_list_knot(list), cx_list_head(list));	
+}
+
+static inline void cx_list_add_tail(cx_list_t *list, cx_list_node_t *node)
+{
+	CX_ASSERT(list != NULL);
+	CX_ASSERT(node != NULL);
+
+	cx_list_node_unlink(node);
+	cx_list_node_link(node, cx_list_tail(list), cx_list_knot(list));	
 }
 
 CX_END_DECLS
 
 #define CX_LIST_FOREACH(pnode, plist) \
-	for ((pnode)  = cxGetListHead(plist); \
-		 (pnode) != cxGetListKnot(plist); \
-		 (pnode)  = cxGetNextListNode(pnode))
+	for ((pnode)  = cx_list_head(plist); \
+		 (pnode) != cx_list_knot(plist); \
+		 (pnode)  = cx_list_node_next(pnode))
 
 #endif /* CX_LIST_H */
 

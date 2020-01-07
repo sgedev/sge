@@ -10,7 +10,7 @@
 SGE_LAUNCHER_BEGIN
 
 static int argc = 1;
-static char argv[] = "sge launch";
+static char *argv = "sge launch";
 
 Application::Application(void)
 	: QGuiApplication(argc, (char **)&argv)

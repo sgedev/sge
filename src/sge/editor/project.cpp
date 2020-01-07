@@ -108,12 +108,6 @@ bool Project::save(void)
 
 void Project::update(float elapsed)
 {
-	m_game.update(elapsed);
-}
-
-void Project::draw(Renderer::View *view)
-{
-	m_game.draw(view);
 }
 
 bool Project::importFile(const QString &import_path, const QString &filename)

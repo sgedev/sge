@@ -12,17 +12,19 @@ Scene::~Scene(void)
 {
 }
 
-bool Scene::init(void)
-{
-	return true;
-}
-
 void Scene::update(float elapsed)
 {
+	updateNode(&m_rootNode, elapsed);
 }
 
-void Scene::draw(Renderer::Context *rc)
+void Scene::updateNode(Node *node, float elapsed)
 {
+	const QObjectList &children = node->children();
+	for (auto it(children.begin()); it != children.end(); ++it) {
+		Node *child = qobject_cast<Node *>(*it);
+		child->update(elapsed);
+		updateNode(child, elapsed);
+	}
 }
 
 SGE_END

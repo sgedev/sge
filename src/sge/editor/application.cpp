@@ -8,7 +8,7 @@
 SGE_EDITOR_BEGIN
 
 static int argc = 1;
-static char argv[] = "sge edit";
+static char *argv = "sge edit";
 
 Application::Application(void)
 	: QApplication(argc, (char **)&argv)

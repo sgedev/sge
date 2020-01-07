@@ -65,7 +65,6 @@ public:
 	bool save(void);
 	State state(void) const;
 	void update(float elapsed);
-	void draw(Renderer::View *view);
 	bool importFile(const QString &import_path, const QString &filename);
 	bool exportFile(const QString &export_path, const QString &filename);
 	bool build(void);

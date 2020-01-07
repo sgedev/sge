@@ -3,8 +3,12 @@
 #ifndef SGE_SCENE_HPP
 #define SGE_SCENE_HPP
 
+#include <QList>
+#include <QObject>
+
 #include <sge/common.hpp>
-#include <sge/renderer.hpp>
+#include <sge/node.hpp>
+#include <sge/camera.hpp>
 
 SGE_BEGIN
 
@@ -16,8 +20,19 @@ public:
 public:
 	bool init(void);
 	void update(float elapsed);
-	void draw(Renderer::View *view);
+	Node *rootNode(void);
+
+protected:
+	void updateNode(Node *node, float elapsed);
+
+private:
+	Node m_rootNode;
 };
+
+inline Node *Scene::rootNode(void)
+{
+	return &m_rootNode;
+}
 
 SGE_END
 

@@ -2,21 +2,22 @@
 sge_subdirectories(
 	editor
 	launcher
-	renderer
 	server
 	)
 
 sge_sources(
+	camera.hpp
 	common.hpp
 	config.hpp.in
 	editor.hpp
-	game.h
 	game.hpp
 	launcher.hpp
 	level.hpp
+	node.hpp
 	renderer.hpp
 	scene.hpp
 	server.hpp
+	view.hpp
 	)
 
 configure_file(
@@ -24,6 +25,3 @@ configure_file(
 	config.hpp
 	)
 
-sge_compile_definitions(
-	LUA_USER_H=\"${CMAKE_CURRENT_SOURCE_DIR}/game.h\"
-	)

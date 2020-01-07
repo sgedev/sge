@@ -7,6 +7,7 @@
 #include <QOpenGLWindow>
 
 #include <sge/game.hpp>
+#include <sge/renderer.hpp>
 #include <sge/launcher/common.hpp>
 
 SGE_LAUNCHER_BEGIN
@@ -30,8 +31,7 @@ protected:
 private:
 	int m_frameTimer;
 	Game m_game;
-	Renderer::Context m_context;
-	Renderer::View m_view;
+	Renderer m_renderer;
 };
 
 SGE_LAUNCHER_END

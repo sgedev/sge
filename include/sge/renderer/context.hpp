@@ -24,7 +24,7 @@ public:
 	virtual ~Context(void);
 
 public:
-	bool init(QOpenGLContext *context = Q_NULLPTR);
+	bool init(void);
 	void clear(void);
 	void render(View *view);
 

@@ -14,6 +14,7 @@ Game::~Game(void)
 
 void Game::update(float elapsed)
 {
+	m_scene.update(elapsed);
 }
 
 SGE_END

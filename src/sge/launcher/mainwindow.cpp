@@ -29,28 +29,22 @@ bool MainWindow::init(const QString &filename)
 void MainWindow::timerEvent(QTimerEvent *event)
 {
 	if (event->timerId() == m_frameTimer) {
-		m_game.update(16.6f);
+		//m_game.update(16.6f);
 		update();
 	}
 }
 
 void MainWindow::initializeGL(void)
 {
-	m_context.init();
+
 }
 
 void MainWindow::paintGL(void)
 {
-	m_view.clear();
-	m_game.draw(&m_view);
-
-	m_context.clear();
-	m_context.render(&m_view);
 }
 
 void MainWindow::resizeGL(int w, int h)
 {
-	m_view.setViewport(0, 0, w, h);
 }
 
 SGE_LAUNCHER_END

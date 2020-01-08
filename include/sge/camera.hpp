@@ -6,7 +6,6 @@
 #include <QMatrix4x4>
 
 #include <sge/common.hpp>
-#include <sge/view.hpp>
 #include <sge/node.hpp>
 
 SGE_BEGIN
@@ -19,18 +18,17 @@ public:
 	virtual ~Camera(void);
 
 public:
-	void update(float elapsed) override;
 	QMatrix4x4 viewMatrix(void) const;
 	const QMatrix4x4 &projectMatrix(void) const;
 	void setProjectMatrix(const QMatrix4x4 &v);
-	const View &view(void) const;
+	View &view(void);
+	bool canSee(const Node *target) const;
 
 protected:
-	void drawNode(Node *node, float elapsed);
+	void drawNode(View &view) const override;
 
-public:
-	Node *m_rootNode;
-	View m_view;
+private:
+	QMatrix4x4 m_projectMatrix;
 };
 
 inline QMatrix4x4 Camera::viewMatrix(void) const
@@ -40,17 +38,12 @@ inline QMatrix4x4 Camera::viewMatrix(void) const
 
 inline const QMatrix4x4 &Camera::projectMatrix(void) const
 {
-	return m_view.projectMatrix();
+	return m_projectMatrix;
 }
 
 inline void Camera::setProjectMatrix(const QMatrix4x4 &v)
 {
-	m_view.setProjectMatrix(v);
-}
-
-inline const View &Camera::view(void) const
-{
-	return m_view;
+	m_projectMatrix = v;
 }
 
 SGE_END

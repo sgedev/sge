@@ -3,19 +3,27 @@
 #ifndef SGE_NODE_HPP
 #define SGE_NODE_HPP
 
-#include <QObject>
+#include <QVector>
 #include <QMatrix4x4>
+#include <QObject>
 
 #include <sge/common.hpp>
+#include <sge/view.hpp>
 
 SGE_BEGIN
 
 class Node: public QObject {
 	Q_OBJECT
+	Q_PROPERTY(QMatrix4x4 transform READ transform WRITE setTransform NOTIFY transformChanged)
 
 public:
-	Node(Node *parent = Q_NULLPTR);
+	Node(QObject *parent = Q_NULLPTR);
 	virtual ~Node(void);
+
+signals:
+	void transformChanged(void);
+	void childAdded(Node *child);
+	void childRemoved(Node *child);
 
 public:
 	void enable(void);
@@ -27,9 +35,18 @@ public:
 	const QMatrix4x4 &transform(void) const;
 	QMatrix4x4 globalTransform(void) const;
 	void setTransform(const QMatrix4x4 &v);
-	virtual void update(float elapsed);
+	void update(float elapsed);
+	void draw(View &view) const;
+
+protected:
+	virtual void childEvent(QChildEvent *event) override;
+	virtual void updateNode(float elapsed);
+	virtual void drawNode(View &view) const;
 
 private:
+	typedef QVector<Node *> NodeVector;
+
+	NodeVector m_childrenCache;
 	bool m_enabled;
 	bool m_visibled;
 	QMatrix4x4 m_transform;
@@ -72,7 +89,22 @@ inline const QMatrix4x4 &Node::transform(void) const
 
 inline void Node::setTransform(const QMatrix4x4 &v)
 {
-	m_transform = v;
+	if (m_transform != v) {
+		m_transform = v;
+		transformChanged();
+	}
+}
+
+inline void Node::update(float elapsed)
+{
+	if (m_enabled)
+		updateNode(elapsed);
+}
+
+inline void Node::draw(View &view) const
+{
+	if (m_enabled && m_visibled)
+		drawNode(view);
 }
 
 SGE_END

@@ -7,33 +7,22 @@ SGE_BEGIN
 Camera::Camera(Node *parent)
 	: Node(parent)
 {
-	m_rootNode = parent;
-
-	if (m_rootNode != Q_NULLPTR) {
-		while (m_rootNode->parent() != Q_NULLPTR)
-			m_rootNode = qobject_cast<Node *>(m_rootNode->parent());
-	}
 }
 
 Camera::~Camera(void)
 {
 }
 
-void Camera::update(float elapsed)
+bool Camera::canSee(const Node *target) const
 {
-	if (m_rootNode == Q_NULLPTR)
-		return;
+	Q_ASSERT(target != Q_NULLPTR);
 
-	m_view.reset();
-	m_view.setViewMatrix(-globalTransform());
-
-	drawNode(m_rootNode, elapsed);
+	return true;
 }
 
-void Camera::drawNode(Node *node, float elapsed)
+void Camera::drawNode(View &view) const
 {
-	if (static_cast<Node *>(this) == node)
-		return;
+	// draw a camera icon into view.
 }
 
 SGE_END

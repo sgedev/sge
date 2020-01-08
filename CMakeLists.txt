@@ -33,6 +33,16 @@ link_libraries(
 	Qt5::Widgets
 	)
 
+# bullet physics
+
+include(FindBullet)
+if(BULLET_FOUND)
+	include_directories(${BULLET_INCLUDE_DIRS})
+	link_libraries(${BULLET_LIBRARIES})
+else()
+	message(FATAL_ERROR "BulletPhysics not foun.d")
+endif()
+
 # sge macros
 
 macro(sge_subdirectories)

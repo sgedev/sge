@@ -1,21 +1,21 @@
 
+# bullet libuv
+
+include(FindUV)
+if(UV_FOUND)
+	sge_include_directories(${UV_INCLUDE_DIRS})
+	sge_link_libraries(${UV_LIBRARIES})
+else()
+	message(FATAL_ERROR "Libuv not foun.d")
+endif()
+
 sge_subdirectories(
-	editor
 	game
-	launcher
-	server
+	scene
+	renderer
 	)
 
 sge_sources(
-	camera
-	entity.cpp
-	level.cpp
-	game.cpp
-	node.cpp
-	physics.cpp
-	renderer.cpp
-	scene.cpp
-	view.cpp
-	world.cpp
+	core.cpp
+	object.cpp
 	)
-

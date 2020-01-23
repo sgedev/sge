@@ -1,160 +1,110 @@
 //
 //
-#include <QCoreApplication>
-#include <QStringList>
-#include <QSurfaceFormat>
+#include <cstdlib>
+#include <iostream>
+
+#include <physfs.h>
+
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
 
 #include <sge.hpp>
 
-static void setupApp(void)
-{
-	QApplication::setOrganizationName("SGE");
+static bool running;
 
-	QApplication::setApplicationVersion(
-		QString("%1.%2.%3").arg(SGE_VERSION_MAJOR).arg(SGE_VERSION_MINOR).arg(SGE_VERSION_PATCH));
+static void SDLCALL writeLog(void *userdata, int category, SDL_LogPriority priority, const char *message)
+{
+	if (category == SDL_LOG_CATEGORY_ERROR)
+		std::cerr << "<SGE> " << message << std::endl;
+	else
+		std::cout << "<SGE> " << message << std::endl;
 }
 
-static void setupGuiApp(void)
+static inline void pollEvents(void)
 {
-	setupApp();
+	SDL_Event event;
 
-	// TODO move to renderer.
-	QSurfaceFormat format;
-	format.setDepthBufferSize(24);
-	format.setStencilBufferSize(8);
-	format.setVersion(4, 0);
-	format.setProfile(QSurfaceFormat::CoreProfile);
-	format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
-	QSurfaceFormat::setDefaultFormat(format);
+	while (SDL_PollEvent(&event)) {
+		switch (event.type) {
+		case SDL_QUIT:
+			running = false;
+			break;
+		default:
+			SGE::handleEvent(event);
+			break;
+		}
+	}
 }
 
-static QCoreApplication *createLauncherApplication(const QStringList &args)
+static inline void update(void)
 {
-	auto app = new SGE::Launcher::Application();
-	if (app == Q_NULLPTR)
-		return Q_NULLPTR;
+	pollEvents();
 
-	setupGuiApp();
+	static Uint32 last = SDL_GetTicks();
+	Uint32 pass = SDL_GetTicks() - last;
 
-	if (!app->init(args)) {
-		delete app;
-		return Q_NULLPTR;
+	if (pass < 16) {
+		SDL_Delay(1);
+		return;
 	}
 
-	return app;
-}
-
-#ifdef SGE_EDITOR
-static QCoreApplication *createEditorApplication(const QStringList &args)
-{
-	auto app = new SGE::Editor::Application();
-	if (app == Q_NULLPTR)
-		return Q_NULLPTR;
-
-	setupGuiApp();
-
-	if (!app->init(args)) {
-		delete app;
-		return Q_NULLPTR;
-	}
-
-	return app;
-}
-#endif
-
-#ifdef SGE_SERVER
-static QCoreApplication *createServerApplication(const QStringList &args)
-{
-	return Q_NULLPTR;
-}
-#endif
-
-#ifdef SGE_COMPILER
-static QCoreApplication *createCompilerApplication(const QStringList &args)
-{
-	return Q_NULLPTR;
-}
-#endif
-
-static void printHelp(void)
-{
-	qInfo("Usage:");
-	qInfo("  sge [subcommand]\n");
-
-	qInfo("Subcommands:");
-
-	qInfo("  launch");
-	qInfo("    Launch a game, use 'sge launch --help' for details.\n");
-
-#ifdef SGE_EDITOR
-	qInfo("  edit");
-	qInfo("    Edit a game, use 'sge edit --help' for details.\n");
-#endif
-
-#ifdef SGE_SERVER
-	qInfo("  serve");
-	qInfo("    Start a server for game, use 'sge serve --help' for details.\n");
-#endif
-
-#ifdef SGE_COMPILER
-	qInfo("  compile");
-	qInfo("    Compile a game resource, use 'sge compile --help' for details.\n");
-#endif
-
-	qInfo("  help");
-	qInfo("    Show this message.\n");
-	qInfo("  version");
-	qInfo("    Show version message.");
-}
-
-static void printVersion(void)
-{
-	qInfo("%d.%d.%d",
-		SGE_VERSION_MAJOR,
-		SGE_VERSION_MINOR,
-		SGE_VERSION_PATCH);
+	SGE::frame(float(pass) / 1000.0f);
+	last = SDL_GetTicks();
 }
 
 int main(int argc, char *argv[])
 {
-	if (argc < 2) {
-		printHelp();
-		return EXIT_FAILURE;
+	bool bRet;
+	int iRet;
+	int exitCode = EXIT_FAILURE;
+
+#ifdef SGE_DEBUG
+	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
+#endif
+	SDL_LogSetOutputFunction(writeLog, NULL);
+
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Simple Game Engine %d.%d.%d",
+		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH);
+
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Copyright(C) 2019 sgedev@gmail.com\n");
+
+	SDL_version ver;
+	SDL_GetVersion(&ver);
+	SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "SDL version: %d.%d.%d", ver.major, ver.minor, ver.patch);
+
+	iRet = SDL_Init(SDL_INIT_EVERYTHING);
+	if (iRet < 0) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL [%d].\n", iRet);
+		goto end0;
 	}
 
-	QStringList args;
-	for (int i = 2; i < argc; ++i)
-		args << argv[i];
+	iRet = PHYSFS_init(argv[0]);
+	if (!iRet) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize PhysFS.\n");
+		goto end1;
+	}
 
-	QString subcmd = argv[1];
-	QCoreApplication *app = Q_NULLPTR;
+	bRet = SGE::init();
+	if (!bRet) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialzie SGE.\n");
+		goto end2;
+	}
 
-	if (subcmd == "launch")
-		app = createLauncherApplication(QStringList() << "sge launch" << args);
-#ifdef SGE_EDITOR
-	else if (subcmd == "edit")
-		app = createEditorApplication(QStringList() << "sge edit" << args);
-#endif
-#ifdef SGE_SERVER
-	else if (subcmd == "serve")
-		app = createServerApplication(QStringList() << "sge serve" << args);
-#endif
-#ifdef SGE_COMPILER
-	else if (subcmd == "compile")
-		app = createCompilerApplication(QStringList() << "sge compile" << args);
-#endif
-	else if (subcmd == "help")
-		printHelp();
-	else if (subcmd == "version")
-		printVersion();
-	else
-		printHelp();
+	running = true;
 
-	if (app == Q_NULLPTR)
-		return EXIT_FAILURE;
+	while (running)
+		update();
 
-	int ret = app->exec();
-	delete app;
+	exitCode = EXIT_SUCCESS;
 
-	return ret;
+	SGE::shutdown();
+
+end2:
+	PHYSFS_deinit();
+
+end1:
+	SDL_Quit();
+
+end0:
+	return exitCode;
 }

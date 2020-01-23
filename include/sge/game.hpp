@@ -3,41 +3,22 @@
 #ifndef SGE_GAME_HPP
 #define SGE_GAME_HPP
 
-#include <QString>
-#include <QList>
-#include <QSharedPointer>
-#include <QThread>
-#include <QMutex>
-#include <QWaitCondition>
-#include <QTimer>
-
 #include <sge/common.hpp>
-#include <sge/scene.hpp>
-#include <sge/camera.hpp>
 
-SGE_BEGIN
+#define SGE_GAME_BEGIN SGE_BEGIN namespace Game {
+#define SGE_GAME_END } SGE_END
 
-class Game: public QThread {
-	Q_OBJECT
+SGE_GAME_BEGIN
 
-public:
-	Game(void);
-	virtual ~Game(void);
-
-public:
-	Scene &scene(void);
-	void update(float elapsed);
-
-private:
-	Scene m_scene;
+struct TrapHandler {
+	int (*fps)(void);
 };
 
-inline Scene &Game::scene(void)
-{
-	return m_scene;
-}
+bool init(void);
+void shutdown(void);
+bool handleEvent(const SDL_Event &event);
+void update(float elapsed, const TrapHandler *th);
 
-SGE_END
+SGE_GAME_END
 
 #endif // SGE_GAME_HPP
-

@@ -3,51 +3,19 @@
 #ifndef SGE_RENDERER_HPP
 #define SGE_RENDERER_HPP
 
-#include <QList>
-#include <QObject>
-#include <QOpenGLContext>
-#include <QOpenGLFunctions_3_3_Core>
-
 #include <sge/common.hpp>
-#include <sge/scene.hpp>
-#include <sge/camera.hpp>
-#include <sge/view.hpp>
 
-SGE_BEGIN
+#define SGE_RENDERER_BEGIN SGE_BEGIN namespace Renderer {
+#define SGE_RENDERER_END } SGE_END
 
-typedef QList<Camera *> CameraList;
+SGE_RENDERER_BEGIN
 
-class Renderer: public QObject {
-	Q_OBJECT
+bool init(void);
+void shutdown(void);
+bool handleEvent(const SDL_Event &event);
+bool beginFrame(void);
+void endFrame(void);
 
-public:
-	typedef QOpenGLFunctions_3_3_Core OpenGLFunctions;
-
-public:
-	Renderer(QObject *parent = Q_NULLPTR);
-	virtual ~Renderer(void);
-
-public:
-	bool init(Scene *scene);
-	void reset(void);
-	void draw(void);
-
-protected:
-	void renderView(View &view);
-
-protected slots:
-	void nodeAdded(Node *node);
-	void nodeRemoved(Node *node);
-
-private:
-	Scene *m_scene;
-	QOpenGLContext *m_context;
-	OpenGLFunctions *m_gl;
-	CameraList m_cameraList;
-	View m_view;
-};
-
-SGE_END
+SGE_RENDERER_END
 
 #endif // SGE_RENDERER_HPP
-

@@ -5,12 +5,13 @@
 
 #include <sge/common.hpp>
 
-#include <sge/scene.hpp>
-#include <sge/renderer.hpp>
-#include <sge/game.hpp>
+SGE_BEGIN
 
-#include <sge/editor.hpp>
-#include <sge/launcher.hpp>
-#include <sge/server.hpp>
+bool init(void);
+void shutdown(void);
+bool handleEvent(const SDL_Event &event);
+void frame(float elapsed);
+
+SGE_END
 
 #endif // SGE_HPP

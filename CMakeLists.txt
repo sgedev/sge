@@ -19,20 +19,6 @@ if(MSVC)
 	add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 endif()
 
-# qt5
-
-set(CMAKE_AUTOMOC ON)
-
-find_package(Qt5Core)
-find_package(Qt5Gui)
-find_package(Qt5Widgets)
-
-link_libraries(
-	Qt5::Core
-	Qt5::Gui
-	Qt5::Widgets
-	)
-
 # sge macros
 
 macro(sge_subdirectories)

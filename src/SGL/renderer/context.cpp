@@ -12,4 +12,9 @@ Context::~Context(void)
 {
 }
 
+bool Context::init(void)
+{
+	return true;
+}
+
 SGL_RENDERER_END

@@ -8,7 +8,6 @@ sge_sources(
 	config.hpp.in
 	renderer.hpp
 	scene.hpp
-	window.hpp
 	)
 
 configure_file(

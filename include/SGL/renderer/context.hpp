@@ -11,6 +11,9 @@ class Context {
 public:
 	Context(void);
 	virtual ~Context(void);
+
+public:
+	bool init(void);
 };
 
 SGL_RENDERER_END

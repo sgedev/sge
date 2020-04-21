@@ -1,18 +1,22 @@
 
 sge_subdirectories(
+	cx
 	GL
-	glm
-	KHR
-	SGL
+	sge
 	)
 
 sge_sources(
-	argh.h
-	imconfig.h
-	imgui.h
-	imgui_impl_opengl3.h
-	imgui_impl_sdl.h
-	imstb_rectpack.h
-	imstb_textedit.h
-	imstb_truetype.h
+	fontstash.h
+	HandmadeMath.h
+	lauxlib.h
+	lua.h
+	lua.hpp
+	luaconf.h
+	lualib.h
+	nanovg.h
+	nanovg_gl.h
+	nanovg_gl_utils.h
+	stb_image.h
+	stb_truetype.h
 	)
+

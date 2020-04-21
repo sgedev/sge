@@ -1,4 +1,0 @@
-
-sge_subdirectories(
-	renderer
-	)

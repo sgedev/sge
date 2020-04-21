@@ -6,6 +6,7 @@
 
 #include <cx/common.h>
 #include <HandmadeMath.h>
+#include <GL/glew.h>
 #include <GL/glex.h>
 #include <nanovg.h>
 #include <SDL.h>

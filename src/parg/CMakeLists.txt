@@ -1,5 +1,4 @@
 
 sge_sources(
-	duktape.c
+	parg.c
 	)
-

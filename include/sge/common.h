@@ -15,7 +15,11 @@
 
 #include <SDL.h>
 
-#include <duktape.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
+#include <physfs.h>
 
 #include <sge/config.h>
 

@@ -136,7 +136,6 @@ static void sge_window_gl_debug_output(GLenum source, GLenum type, GLuint id,
 
 int sge_window_init(void)
 {
-	int ret;
 	int flags;
 
 	CX_ASSERT(sge_window == NULL);
@@ -152,8 +151,10 @@ int sge_window_init(void)
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+#ifdef SGE_DEBUG
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_FLAGS, &flags);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, flags | SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
 
 	sge_window_width = 800;
 	sge_window_height = 600;
@@ -173,6 +174,7 @@ int sge_window_init(void)
 
 	SDL_GL_MakeCurrent(sge_window, sge_window_gl);
 
+	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
 		goto bad2;
 	
@@ -281,14 +283,7 @@ void sge_window_update(float elapsed, const sge_window_drawer_t *drawer)
 
 	/* draw 2d */
 
-	nvgBeginFrame(sge_window_nvg, sge_window_width, sge_window_height, 1.0f);
-
-#if 0
-	nvgBeginPath(sge_window_nvg);
-	nvgRect(sge_window_nvg, 100,100, 120,30);
-	nvgFillColor(sge_window_nvg, nvgRGBA(255,192,0,255));
-	nvgFill(sge_window_nvg);
-#endif
+	nvgBeginFrame(sge_window_nvg, (float)sge_window_width, (float)sge_window_height, 1.0f);
 
 	if (drawer != NULL && drawer->draw_2d != NULL)
 		drawer->draw_2d(sge_window_nvg);

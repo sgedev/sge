@@ -9,6 +9,7 @@ typedef struct {
 
 int sge_input_init(void)
 {
+    return 0;
 }
 
 void sge_input_shutdown(void)

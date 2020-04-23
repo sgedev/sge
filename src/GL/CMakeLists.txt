@@ -7,6 +7,8 @@ else()
 	message(FATAL_ERROR "OpenGL not found.")
 endif()
 
+sge_compile_definitions(GLEW_STATIC)
+
 sge_sources(
 	glew.c
 	glex.c

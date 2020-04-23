@@ -16,6 +16,8 @@ sge_sources(
 	nanovg.h
 	nanovg_gl.h
 	nanovg_gl_utils.h
+	parg.h
+	physfs.h
 	stb_image.h
 	stb_truetype.h
 	)

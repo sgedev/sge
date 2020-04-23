@@ -121,7 +121,7 @@ static void sge_vm_trap_sleep_done(uv_timer_t *p)
 
 static int sge_vm_trap_sleep(lua_State *L)
 {
-	int ms = luaL_checkinteger(L, 1);
+	int ms = (int)luaL_checkinteger(L, 1);
 	if (ms > 0) {
 		sge_vm_task_t *T = SGE_VM_TASK_FROM_LUA(L);
 		uv_timer_start(&T->sleep_timer, sge_vm_trap_sleep_done, ms, 0);
@@ -175,7 +175,7 @@ static int sge_vm_trap_set_fps_max_be(lua_State *L, const sge_vm_traps_t *traps)
 	if (traps->set_fps_max == NULL)
 		return sge_vm_trap_error(L, "not impl.");
 
-	traps->set_fps_max(lua_tointeger(L, 1));
+	traps->set_fps_max((int)lua_tointeger(L, 1));
 	return 0;
 }
 
@@ -212,7 +212,7 @@ static int sge_vm_load_main_task(lua_State *L)
 	return 0;
 }
 
-static void sge_vm_quit_cb(uv_async_t* handle)
+static void sge_vm_quit_cb(uv_async_t *handle)
 {
 	sge_vm_state = SGE_VM_STATE_EXITING;
 	uv_stop(&sge_vm_loop);
@@ -255,6 +255,7 @@ static int sge_vm_pmain(lua_State *L)
 
 	while (sge_vm_state == SGE_VM_STATE_RUNNING) {
 		sge_vm_schedule(L);
+
 		SDL_UnlockMutex(sge_vm_mutex);
 		uv_run(&sge_vm_loop, UV_RUN_ONCE);
 		SDL_LockMutex(sge_vm_mutex);
@@ -289,7 +290,7 @@ static int sge_vm_tmain(void *p)
 	}
 
 	lua_pushcfunction(L, sge_vm_pmain);
-	lua_pcall(L, 1, 0, 0);
+	lua_pcall(L, 0, 0, 0);
 	lua_close(L);
 
 	sge_vm_state = SGE_VM_STATE_NONE;
@@ -360,13 +361,15 @@ int sge_vm_init(void)
 	if (sge_vm_thread == NULL)
 		goto bad2;
 
-	while (sge_vm_state != SGE_VM_STATE_INITIALIZING)
+	while (sge_vm_state == SGE_VM_STATE_INITIALIZING)
 		ret = SDL_CondWait(sge_vm_cond, sge_vm_mutex);
 
 	if (sge_vm_state != SGE_VM_STATE_RUNNING) {
 		SDL_WaitThread(sge_vm_thread, NULL);
 		goto bad2;
 	}
+
+	SDL_UnlockMutex(sge_vm_mutex);
 
 	return 0;
 
@@ -393,8 +396,6 @@ void sge_vm_shutdown(void)
 
 void sge_vm_update(float elapsed, const sge_vm_traps_t *traps)
 {
-	int ret;
-
 	CX_ASSERT(traps != NULL);
 
 	if (sge_vm_trap.type == SGE_VM_TRAP_TYPE_NONE)

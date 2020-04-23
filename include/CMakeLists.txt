@@ -9,9 +9,9 @@ sge_sources(
 	fontstash.h
 	HandmadeMath.h
 	lauxlib.h
+	luaconf.h
 	lua.h
 	lua.hpp
-	luaconf.h
 	lualib.h
 	nanovg.h
 	nanovg_gl.h

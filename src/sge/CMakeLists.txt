@@ -7,12 +7,21 @@ else()
 	message(FATAL_ERROR "SDL2 not found.")
 endif()
 
+include(FindUV)
+if(UV_FOUND)
+	sge_include_directories(${UV_INCLUDE_DIRS})
+	sge_link_libraries(${UV_LIBRARIES})
+else()
+	message(FATAL_ERROR "libuv not found.")
+endif()
+
 sge_sources(
 	camera.c
 	common.c
-	game.c
 	input.c
 	main.c
+	scene.c
+	vm.c
 	window.c
 	)
 

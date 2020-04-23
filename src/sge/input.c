@@ -5,34 +5,29 @@
 
 typedef struct {
 	int pressed;
-	
-} SGE_KeyState;
+} sge_input_key_state_t;
 
-int SGE_InitInput(void)
+int sge_input_init(void)
 {
 }
 
-void SGE_ShutdownInput(void)
+void sge_input_shutdown(void)
 {
 }
 
-int SGE_HandleMouseMoveEvent(const SDL_MouseMotionEvent *event)
+void sge_input_handle_mouse_move_event(const SDL_MouseMotionEvent *event)
 {
-	return -1;
 }
 
-int SGE_HandleMouseButtonEvent(const SDL_MouseButtonEvent *event)
+void sge_input_handle_mouse_button_event(const SDL_MouseButtonEvent *event)
 {
-	return -1;
 }
 
-int SGE_HandleKeyEvent(const SDL_KeyboardEvent *event)
+void sge_input_handle_key_event(const SDL_KeyboardEvent *event)
 {
-	return -1;
 }
 
-void SGE_UpdateInput(float elapsed)
+void sge_input_update(float elapsed)
 {
-
 }
 

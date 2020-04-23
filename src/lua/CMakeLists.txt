@@ -1,9 +1,5 @@
 
-if(UNIX)
-	sge_link_libraries(m dl)
-endif()
-
-sge_sources(
+sge_sources(	
 	lapi.c
 	lapi.h
 	lauxlib.c

@@ -410,10 +410,12 @@ static void glexRenderForward(void)
     for (i = 0; i < glex->frame.meshCount; ++i) {
         frameMesh = &glex->frame.meshArray[i];
 		mesh = frameMesh->mesh;
-        glUniformMatrix4fv(glex->modelMatrixLoc, 1, GL_FALSE, (const GLfloat *)(frameMesh->transform.Elements));
+        glUniformMatrix4fv(glex->modelMatrixLoc, 1, GL_FALSE,
+			(const GLfloat *)(frameMesh->transform.Elements));
         glexBindMaterial(frameMesh->material);
         glBindVertexArray(mesh->vao);
-        glDrawElements(GL_TRIANGLES, mesh->vertexIndexCount, GL_UNSIGNED_SHORT, (const void *)(mesh->vertexIndexBuffer.offset));
+        glDrawElements(GL_TRIANGLES, mesh->vertexIndexCount, GL_UNSIGNED_SHORT,
+			(const void *)(GLsizeiptr)(mesh->vertexIndexBuffer.offset));
         glBindVertexArray(0);
     }
 }
@@ -599,7 +601,8 @@ GLEX_API void glexDeleteMaterial(GLEXMaterial *material)
 
 }
 
-GLEX_API GLEXMesh *glexCreateMesh(GLEXMeshType type, GLEXMeshMode mode, int vertexCount, int vertexIndexCount)
+GLEX_API GLEXMesh *glexCreateMesh(GLEXMeshType type, GLEXMeshMode mode,
+	int vertexCount, int vertexIndexCount)
 {
     GLEXMesh *mesh;
     int ret;
@@ -652,17 +655,14 @@ GLEX_API GLEXMesh *glexCreateMesh(GLEXMeshType type, GLEXMeshMode mode, int vert
 
     glBindVertexArray(mesh->vao);
 
-    printf("vb %d\n", mesh->vertexBuffer.heap->id);
-    printf("ib %d\n", mesh->vertexIndexBuffer.heap->id);
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vertexBuffer.heap->id);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vertexIndexBuffer.heap->id);
 
 	int pos = mesh->vertexBuffer.offset + CX_OFFSETOF(GLEXVertex, pos);
-	printf("pos %d\n", pos);
 	//int normal = (void *)(mesh->vertexBuffer.offset + CX_OFFSETOF(GLEXVertex, normal));
 	//int texCoord = (void *)(mesh->vertexBuffer.offset + CX_OFFSETOF(GLEXVertex, texCoord));
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLEXVertex), (const void *)pos);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLEXVertex), (const void *)(GLsizeiptr)pos);
     //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLEXVertex), (const void *)normal);
     //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLEXVertex), (const void *)texCoord);
 

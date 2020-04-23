@@ -1,8 +1,8 @@
 
 sge_subdirectories(
 	cx
+	duktape
 	GL
-	lua
 	nanovg
 	sge
 	)

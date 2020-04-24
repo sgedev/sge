@@ -15,3 +15,8 @@ void sge_scene_shutdown(void)
 void sge_scene_update(float elapsed)
 {
 }
+
+void sge_scene_draw(void)
+{
+}
+

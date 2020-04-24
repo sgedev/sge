@@ -103,6 +103,10 @@ static int sge_vm_trap_get_version(lua_State *L)
 
 static int sge_vm_trap_task(lua_State *L)
 {
+	lua_newthread(L);
+
+	/* TODO */
+	
 	return 1;
 }
 
@@ -143,10 +147,13 @@ static int sge_vm_trap_get_fps(lua_State *L)
 
 static int sge_vm_trap_get_fps_be(lua_State *L, const sge_vm_traps_t *traps)
 {
+	CX_ASSERT(traps != NULL);
+
 	if (traps->get_fps == NULL)
 		return sge_vm_trap_error(L, "not impl.");
 
 	lua_pushinteger(L, traps->get_fps());
+
 	return 1;
 }
 
@@ -157,25 +164,33 @@ static int sge_vm_trap_get_fps_max(lua_State *L)
 
 static int sge_vm_trap_get_fps_max_be(lua_State *L, const sge_vm_traps_t *traps)
 {
+	CX_ASSERT(traps != NULL);
+
 	if (traps->get_fps_max == NULL)
 		return sge_vm_trap_error(L, "not impl.");
 
 	lua_pushinteger(L, traps->get_fps_max());
+
 	return 1;
 }
 
 static int sge_vm_trap_set_fps_max(lua_State *L)
 {
-	luaL_checkinteger(L, 1);
+	int v = luaL_checkinteger(L, 1);
+	luaL_argcheck(L, v > 0, 1, "fps max must great than 0.");
+
 	return sge_vm_do_trap(L, SGE_VM_TRAP_TYPE_SET_FPS_MAX);
 }
 
 static int sge_vm_trap_set_fps_max_be(lua_State *L, const sge_vm_traps_t *traps)
 {
+	CX_ASSERT(traps != NULL);
+
 	if (traps->set_fps_max == NULL)
 		return sge_vm_trap_error(L, "not impl.");
 
 	traps->set_fps_max((int)lua_tointeger(L, 1));
+
 	return 0;
 }
 

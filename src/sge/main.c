@@ -12,12 +12,14 @@
 #include <sge/window.h>
 #include <sge/input.h>
 #include <sge/scene.h>
+#include <sge/gui.h>
 #include <sge/vm.h>
 
 static int sge_run;
 static int sge_fps;
 static int sge_fps_count;
 static Uint32 sge_fps_last;
+static bool sge_show_fps;
 static Uint32 sge_elapsed_min;
 static Uint32 sge_last;
 
@@ -38,17 +40,23 @@ static void sge_set_fps_max(int v)
 	sge_elapsed_min = 1000 / v;
 }
 
+static void sge_toggle_show_fps(void)
+{
+	sge_show_fps = !sge_show_fps;
+}
+
 static void sge_draw_3d(void)
 {
-
+	sge_scene_draw();
 }
 
 static void sge_draw_2d(NVGcontext *nvg)
 {
-	nvgBeginPath(nvg);
-	nvgRect(nvg, 100, 100, 120, 30);
-	nvgFillColor(nvg, nvgRGBA(255, 192, 0, 255));
-	nvgFill(nvg);
+	//sge_gui_draw(nvg);
+
+	if (sge_show_fps) {
+		/* TODO */
+	}
 }
 
 static void sge_poll_events(void)
@@ -81,7 +89,8 @@ static void sge_frame(float elapsed)
 	static const sge_vm_traps_t traps = {
 		.get_fps = sge_get_fps,
 		.get_fps_max = sge_get_fps_max,
-		.set_fps_max = sge_set_fps_max
+		.set_fps_max = sge_set_fps_max,
+		.toggle_show_fps = sge_toggle_show_fps
 	};
 
 	static const sge_window_drawer_t drawer = {
@@ -92,6 +101,8 @@ static void sge_frame(float elapsed)
 	sge_input_update(elapsed);
 	sge_vm_update(elapsed, &traps);
 	sge_scene_update(elapsed);
+	//sge_gui_update(elapsed);
+
 	sge_window_update(elapsed, &drawer);
 }
 
@@ -172,13 +183,20 @@ static int sge_init(int argc, char *argv[])
 	if (ret < 0)
 		goto bad4;
 
+	//ret = sge_gui_init();
+	//if (ret < 0)
+	//	goto bad5;
+
 	ret = sge_vm_init();
 	if (ret < 0)
-		goto bad5;
+		goto bad6;
 
 	return 0;
 
-bad5:
+bad6:
+	//sge_gui_shutdown();
+
+//bad5:
 	sge_scene_shutdown();
 
 bad4:
@@ -200,6 +218,8 @@ bad0:
 static void sge_shutdown(void)
 {
 	sge_vm_shutdown();
+
+	//sge_gui_shutdown();
 
 	sge_scene_shutdown();
 

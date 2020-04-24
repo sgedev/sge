@@ -10,6 +10,7 @@ typedef struct {
 	int (*get_fps)(void);
 	int (*get_fps_max)(void);
 	void (*set_fps_max)(int v);
+	void (*toggle_show_fps)(void);
 } sge_vm_traps_t;
 
 int sge_vm_init(void);

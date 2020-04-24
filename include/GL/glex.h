@@ -10,6 +10,15 @@
 #	define GLEX_API
 #endif
 
+#ifndef GLEX_LOG_DISABLE
+#	define GLEX_LOG
+#	include <stdarg.h>
+#endif
+
+#ifndef GLEX_DEBUG_DISABLE
+#	define GLEX_DEBUG
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -55,6 +64,10 @@ GLEX_API GLEXContext *glexCreateContext(void);
 GLEX_API GLEXContext *glexCurrentContext(void);
 GLEX_API void glexDeleteContext(GLEXContext *context);
 GLEX_API void glexMakeCurrent(GLEXContext *context);
+
+#ifdef GLEX_LOG
+GLEX_API void glexLogMask(GLuint mask);
+#endif
 
 GLEX_API void glexRenderMode(GLEXRenderMode mode);
 

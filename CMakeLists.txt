@@ -49,9 +49,18 @@ endmacro()
 
 # sge
 
-set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
-
 add_executable(sge)
+
+set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
+set(SGE_LOG ON CACHE BOOL "Enable log functions.")
+
+if(NOT SGE_DEBUG)
+	sge_compile_definitions(GLEX_DEBUG_DISABLE)
+endif()
+
+if(NOT SGE_LOG)
+	sge_compile_definitions(GLEX_LOG_DISABLE)
+endif()
 
 sge_include_directories(
 	${CMAKE_SOURCE_DIR}/include
@@ -63,6 +72,7 @@ sge_subdirectories(
 	src
 	)
 
+set_property(TARGET sge PROPERTY C_STANDARD 99)
 get_target_property(SGE_SOURCES sge SOURCES)
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SGE_SOURCES})
 

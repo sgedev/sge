@@ -18,7 +18,7 @@ static SDL_GLContext sge_window_gl;
 static GLEXContext *sge_window_glex;
 static NVGcontext *sge_window_nvg;
 
-#ifdef SGE_DEBUG
+#if defined SGE_DEBUG && defined SGE_LOG
 
 static const char *sge_window_gl_debug_source(GLenum source)
 {
@@ -120,19 +120,19 @@ static void sge_window_gl_debug_output(GLenum source, GLenum type, GLuint id,
 	GLenum severity, GLsizei length, const GLchar *message, const void *data)
 {
 	if (type == GL_DEBUG_TYPE_ERROR) {
-		SDL_LogError(SDL_LOG_CATEGORY_ERROR, "GL%d %s %s/%s: %s\n", id,
+		SGE_LOGE("GL-%s-%s-%s: %s\n",
 			sge_window_gl_debug_serverity(severity),
 			sge_window_gl_debug_source(source),
 			sge_window_gl_debug_type(type), message);
 	} else {
-		SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "GL%d %s %s/%s: %s\n", id,
+		SGE_LOGD("GL-%s-%s-%s: %s\n",
 			sge_window_gl_debug_serverity(severity),
 			sge_window_gl_debug_source(source),
 			sge_window_gl_debug_type(type), message);
 	}
 }
 
-#endif /* SGE_DEBUG */
+#endif /* SGE_DEBUG && SGE_LOG */
 
 int sge_window_init(void)
 {
@@ -152,6 +152,7 @@ int sge_window_init(void)
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 #ifdef SGE_DEBUG
+	SGE_LOGI("OpenGL debug enabled.");
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_FLAGS, &flags);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, flags | SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
@@ -160,41 +161,61 @@ int sge_window_init(void)
 	sge_window_height = 600;
 	sge_window_flags = SGE_WINDOW_VISIBLE | SGE_WINDOW_FOCUS;
 
+	SGE_LOGD("Creating main window...");
+
 	sge_window = SDL_CreateWindow("SGE",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		sge_window_width, sge_window_height, SDL_WINDOW_OPENGL);
-	if (sge_window == NULL)
+		sge_window_width, sge_window_height,
+		SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+	if (sge_window == NULL) {
+		SGE_LOGE("Failed to create main window.");
 		goto bad0;
+	}
 	
 	sge_window_id = SDL_GetWindowID(sge_window);
 
+	SGE_LOGD("Create OpenGL context...");
 	sge_window_gl = SDL_GL_CreateContext(sge_window);
-	if (sge_window_gl == NULL)
+	if (sge_window_gl == NULL) {
+		SGE_LOGE("Failed to create OpenGL context.");
 		goto bad1;
+	}
 
 	SDL_GL_MakeCurrent(sge_window, sge_window_gl);
 
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
 		goto bad2;
+
+	SGE_LOGI("GLEW: %s", glewGetString(GLEW_VERSION));
+	SGE_LOGI("OpenGL: %s", glGetString(GL_VERSION));
 	
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-#ifdef SGE_DEBUG
+#if defined SGE_DEBUG && defined SGE_LOG
 	if (GL_KHR_debug)
 		glDebugMessageCallback(sge_window_gl_debug_output, NULL);
 #endif
 
+	SGE_LOGD("Creating GLEX context...");
 	sge_window_glex = glexCreateContext();
-	if (sge_window_glex == NULL)
+	if (sge_window_glex == NULL) {
+		SGE_LOGE("Failed to create GLEX context.");
 		goto bad2;
+	}
 	
 	glexMakeCurrent(sge_window_glex);
-	glexRenderMode(GLEX_RENDER_MODE_FORWARD);
 
+	SGE_LOGD("%s(%d)", __func__, __LINE__);
+	glexRenderMode(GLEX_RENDER_MODE_FORWARD);
+	SGE_LOGD("%s(%d)", __func__, __LINE__);
+
+	SGE_LOGD("Creating nanovg context...");
 	sge_window_nvg = nvgCreateGL3(0);
-	if (sge_window_nvg == NULL)
+	if (sge_window_nvg == NULL) {
+		SGE_LOGE("Failed to create nanovg context.");
 		goto bad3;
+	}
 
 	return 0;
 
@@ -221,15 +242,19 @@ void sge_window_shutdown(void)
 	CX_ASSERT(sge_window_glex != NULL);
 	CX_ASSERT(sge_window_nvg != NULL);
 
+	SGE_LOGD("Releasing nanovg context...");
 	nvgDeleteGL3(sge_window_nvg);
 	sge_window_nvg = NULL;
 
+	SGE_LOGD("Releasing GLEX context...");
 	glexDeleteContext(sge_window_glex);
 	sge_window_glex = NULL;
 
+	SGE_LOGD("Releasing OpenGL context...");
 	SDL_GL_DeleteContext(sge_window_gl);
 	sge_window_gl = NULL;
 
+	SGE_LOGD("Releasing main window...");
 	SDL_DestroyWindow(sge_window);
 	sge_window = NULL;
 }
@@ -267,7 +292,8 @@ void sge_window_update(float elapsed, const sge_window_drawer_t *drawer)
 	if (sge_window_width < 1 || sge_window_height < 1)
 		return;
 
-	SDL_GL_MakeCurrent(sge_window, sge_window_gl);
+	if (SDL_GL_MakeCurrent(sge_window, sge_window_gl) < 0)
+		return;
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	glViewport(0, 0, sge_window_width, sge_window_height);

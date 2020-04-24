@@ -14,6 +14,15 @@
 #define GLEX_HEAP_SIZE_ORDER 26
 #define GLEX_HEAP_SIZE (1 << GLEX_HEAP_SIZE_ORDER)
 
+#ifdef GLEX_LOG
+typedef enum {
+	GLEX_LOG_ERROR = 0x1,
+	GLEX_LOG_WARNING = 0x2,
+	GLEX_LOG_INFO = 0x4,
+	GLEX_LOG_DEBUG = 0x8
+} GELXLogType;
+#endif
+
 typedef enum {
     GLEX_HEAP_TYPE_STATIC_VERTEX = 0,
     GLEX_HEAP_TYPE_STATIC_VERTEX_INDEX,
@@ -74,6 +83,10 @@ struct GLEXMesh_ {
 typedef void (*GLEXRenderFunc)(void);
 
 struct GLEXContext_ {
+#ifdef GLEX_LOG
+	GLuint logMask;
+#endif
+
 	GLEXRenderMode renderMode;
 	GLEXRenderFunc renderFunc;
 
@@ -122,6 +135,61 @@ const char *glexFragmentShaderSource =
 static GLEXContext *glex = NULL;
 
 static void glexFreeBuffer(GLEXBuffer *buffer);
+
+#ifdef GLEX_LOG
+
+static void glexLog(GLuint type, const char *fmt, ...)
+{
+	va_list args;
+	int len;
+	char buf[256];
+	GLenum glType = GL_DEBUG_TYPE_OTHER;
+
+	if (!GL_KHR_debug)
+		return;
+
+	if (glex != NULL && !(glex->logMask & type))
+		return;
+
+	switch (type) {
+	case GLEX_LOG_ERROR:
+		glType = GL_DEBUG_TYPE_ERROR;
+		strcpy(buf, "GLEX-E: ");
+		break;
+	case GLEX_LOG_WARNING:
+		strcpy(buf, "GLEX-W: ");
+		break;
+	case GLEX_LOG_INFO:
+		strcpy(buf, "GLEX-I: ");
+		break;
+	case GLEX_LOG_DEBUG:
+		strcpy(buf, "GLEX-D: ");
+		break;
+	default:
+		strcpy(buf, "GLEX-?: ");
+		break;
+	}
+
+	va_start(args, fmt);
+	len = 8 + vsnprintf(buf + 8, sizeof(buf), fmt, args);
+	va_end(args);
+
+	glDebugMessageInsert(GL_DEBUG_SOURCE_THIRD_PARTY, glType, 0, GL_DEBUG_SEVERITY_NOTIFICATION, len, buf);
+}
+
+#define GLEX_LOGE(fmt, ...) glexLog(GLEX_LOG_ERROR, fmt, ##__VA_ARGS__)
+#define GLEX_LOGW(fmt, ...) glexLog(GLEX_LOG_WARNING, fmt, ##__VA_ARGS__)
+#define GLEX_LOGI(fmt, ...) glexLog(GLEX_LOG_INFO, fmt, ##__VA_ARGS__)
+#define GLEX_LOGD(fmt, ...) glexLog(GLEX_LOG_DEBUG, fmt, ##__VA_ARGS__)
+
+#else
+
+#define GLEX_LOGE(fmt, ...) do { } while (0)
+#define GLEX_LOGW(fmt, ...) do { } while (0)
+#define GLEX_LOGI(fmt, ...) do { } while (0)
+#define GLEX_LOGD(fmt, ...) do { } while (0)
+
+#endif
 
 static GLEXHeapType glexGetHeapType(GLenum target, GLenum usage)
 {
@@ -321,17 +389,15 @@ static int glexInitProgram(GLEXContext *context)
 
     CX_ASSERT(context != NULL);
 
-	printf("creating vs...\n");
+	GLEX_LOGD("Creating vertex shader...");
     vs = glexCreateShader(GL_VERTEX_SHADER, glexVertexShaderSource);
     if (vs == 0)
         goto bad0;
 
-	printf("creating fs...\n");
     fs = glexCreateShader(GL_FRAGMENT_SHADER, glexFragmentShaderSource);
     if (fs == 0)
         goto bad1;
 
-	printf("creating prog...\n");
     context->program = glCreateProgram();
     if (context->program == 0)
         goto bad2;
@@ -444,6 +510,13 @@ GLEX_API GLEXContext *glexCreateContext(void)
 
     memset(context, 0, sizeof(GLEXContext));
 
+#ifdef GLEX_LOG
+	context->logMask = GLEX_LOG_ERROR | GLEX_LOG_WARNING | GLEX_LOG_INFO;
+#ifdef GLEX_DEBUG
+	context->logMask |= GLEX_LOG_DEBUG;
+#endif
+#endif
+
     ret = glexInitProgram(context);
     if (ret < 0)
         goto bad1;
@@ -507,6 +580,15 @@ GLEX_API void glexMakeCurrent(GLEXContext *context)
     glex = context;
 }
 
+#ifdef GLEX_LOG
+GLEX_API void glexLogMask(GLuint mask)
+{
+	CX_ASSERT(glex != NULL);
+
+	glex->logMask = mask;
+}
+#endif
+
 GLEX_API void glexRenderMode(GLEXRenderMode mode)
 {
 	CX_ASSERT(glex != NULL);
@@ -514,21 +596,27 @@ GLEX_API void glexRenderMode(GLEXRenderMode mode)
 	switch (mode) {
 	case GLEX_RENDER_MODE_NONE:
 		glex->renderFunc = glexRenderNone;
+		GLEX_LOGD("Render mode: None");
 		break;
 	case GLEX_RENDER_MODE_FORWARD:
 		glex->renderFunc = glexRenderForward;
+		GLEX_LOGD("Render mode: Forward");
 		break;
 	case GLEX_RENDER_MODE_FORWARD_PLUS:
 		glex->renderFunc = glexRenderForwardPlus;
+		GLEX_LOGD("Render mode: ForwardPlus");
 		break;
 	case GLEX_RENDER_MODE_DEFERRED:
 		glex->renderFunc = glexRenderDeferred;
+		GLEX_LOGD("Render mode: Deferred");
 		break;
 	default:
+		GLEX_LOGD("Render mode: Unknown");
 		return;
 	}
 
 	glex->renderMode = mode;
+
 }
 
 GLEX_API void glexBeginFrame(void)

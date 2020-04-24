@@ -16,22 +16,26 @@
 
 static int sge_run;
 static int sge_fps;
+static int sge_fps_count;
+static Uint32 sge_fps_last;
 static Uint32 sge_elapsed_min;
 static Uint32 sge_last;
-static const char *sge_root;
 
 static int sge_get_fps(void)
 {
-	return 123;
+	return sge_fps;
 }
 
 static int sge_get_fps_max(void)
 {
-	return 234;
+	CX_ASSERT(sge_elapsed_min > 0);
+	return 1000 / sge_elapsed_min;
 }
 
 static void sge_set_fps_max(int v)
 {
+	CX_ASSERT(v > 0);
+	sge_elapsed_min = 1000 / v;
 }
 
 static void sge_draw_3d(void)
@@ -72,139 +76,199 @@ static void sge_poll_events(void)
 	}
 }
 
-static int sge_parse_cmdline(int argc, char *argv[])
+static void sge_frame(float elapsed)
+{
+	static const sge_vm_traps_t traps = {
+		.get_fps = sge_get_fps,
+		.get_fps_max = sge_get_fps_max,
+		.set_fps_max = sge_set_fps_max
+	};
+
+	static const sge_window_drawer_t drawer = {
+		.draw_3d = sge_draw_3d,
+		.draw_2d = sge_draw_2d
+	};
+
+	sge_input_update(elapsed);
+	sge_vm_update(elapsed, &traps);
+	sge_scene_update(elapsed);
+	sge_window_update(elapsed, &drawer);
+}
+
+static void sge_log_output(void *data, int category, SDL_LogPriority priority, const char *message)
+{
+	if (priority == SDL_LOG_PRIORITY_ERROR || priority == SDL_LOG_PRIORITY_CRITICAL)
+		fprintf(stderr, "SGE: %s\n", message);
+	else
+		fprintf(stdout, "SGE: %s\n", message);
+}
+
+static void sge_print_help(void)
+{
+	SGE_LOGI("Usage:");
+	SGE_LOGI("  sge [options] <root>");
+	SGE_LOGI("Options:");
+	SGE_LOGI("  -h Show this message.");
+	SGE_LOGI("  -v Show version message.");
+}
+
+static void sge_print_version(void)
+{
+	SGE_LOGI("%d.%d.%d",
+		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH);
+}
+
+static int sge_init(int argc, char *argv[])
 {
 	struct parg_state ps;
-	char c;
+	char opt;
+	const char *root = NULL;
+	int ret;
 
 	parg_init(&ps);
 
-	while ((c = parg_getopt(&ps, argc, argv, "hv")) != -1) {
-		switch (c) {
+	while ((opt = parg_getopt(&ps, argc, argv, "hv")) != -1) {
+		switch (opt) {
 		case 1:
-			sge_root = ps.optarg;
+			root = ps.optarg;
 			break;
 		case 'h':
-			printf("Usage: ...\n");
-			break;
+			sge_print_help();
+			return -1;
 		case 'v':
-			printf("%d.%d.%d\n", SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH);
-			break;
-		case '?':
-			if (ps.optopt == 'r') {
-				printf("option -r requires an argument\n");
-			} else {
-				printf("unknown option -%c\n", ps.optopt);
-			}
+			sge_print_version();
 			return -1;
 		default:
-			printf("error: unhandled option -%c\n", c);
+			SGE_LOGE("Unknown option -%c\n", opt);
 			return -1;
 		}
 	}
 
+	if (root == NULL) {
+		SGE_LOGE("Root is not set.");
+		return EXIT_FAILURE;
+	}
+
+	ret = SDL_Init(SDL_INIT_EVERYTHING);
+	if (ret < 0)
+		goto bad0;
+
+	ret = PHYSFS_init(argv[0]);
+	if (!ret)
+		goto bad1;
+
+	SGE_LOGI("Root: %s", root);
+	PHYSFS_mount(root, "/", 1);
+
+	ret = sge_window_init();
+	if (ret < 0)
+		goto bad2;
+
+	ret = sge_input_init();
+	if (ret < 0)
+		goto bad3;
+
+	ret = sge_scene_init();
+	if (ret < 0)
+		goto bad4;
+
+	ret = sge_vm_init();
+	if (ret < 0)
+		goto bad5;
+
 	return 0;
+
+bad5:
+	sge_scene_shutdown();
+
+bad4:
+	sge_input_shutdown();
+
+bad3:
+	sge_window_shutdown();
+
+bad2:
+	PHYSFS_deinit();
+
+bad1:
+	SDL_Quit();
+
+bad0:
+	return -1;
 }
 
-static const sge_vm_traps_t sge_traps = {
-	.get_fps = sge_get_fps,
-	.get_fps_max = sge_get_fps_max,
-	.set_fps_max = sge_set_fps_max
-};
+static void sge_shutdown(void)
+{
+	sge_vm_shutdown();
 
-static const sge_window_drawer_t sge_drawer = {
-	.draw_3d = sge_draw_3d,
-	.draw_2d = sge_draw_2d
-};
+	sge_scene_shutdown();
+
+	sge_input_shutdown();
+
+	sge_window_shutdown();
+
+	PHYSFS_deinit();
+
+	SDL_Quit();
+}
 
 int main(int argc, char *argv[])
 {
 	int ret;
-	int exit_code = EXIT_FAILURE;
+	Uint32 curr;
 	Uint32 pass;
 	Uint32 delay;
-	float elapsed;
 
+	SDL_LogSetOutputFunction(sge_log_output, NULL);
 #ifdef SGE_DEBUG
 	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
-	ret = sge_parse_cmdline(argc, argv);
+	SGE_LOGI("Simple Game Engine - %d.%d.%d",
+		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH);
+
+	ret = sge_init(argc, argv);
 	if (ret < 0)
-		goto end0;
-
-	if (sge_root == NULL)
-		goto end0;
-
-	ret = SDL_Init(SDL_INIT_EVERYTHING);
-	if (ret < 0)
-		goto end0;
-
-	ret = PHYSFS_init(argv[0]);
-	if (!ret)
-		goto end1;
-
-	PHYSFS_mount(sge_root, "/", 1);
-
-	ret = sge_window_init();
-	if (ret < 0)
-		goto end2;
-
-	ret = sge_input_init();
-	if (ret < 0)
-		goto end3;
-
-	ret = sge_scene_init();
-	if (ret < 0)
-		goto end4;
-
-	ret = sge_vm_init();
-	if (ret < 0)
-		goto end5;
+		return EXIT_FAILURE;
 
 	sge_last = SDL_GetTicks();
-	sge_elapsed_min = 1000 / 60;
+	sge_fps_last = sge_last;
 	sge_fps = 0;
+	sge_fps_count = 0;
+	sge_elapsed_min = 1000 / 60;
 	sge_run = 1;
 
 	while (sge_run) {
 		sge_poll_events();
 
-		pass = SDL_GetTicks() - sge_last;
-		if (pass < sge_elapsed_min) {
-			delay = sge_elapsed_min - pass;
-			SDL_Delay(SDL_min(delay, 50));
+		curr = SDL_GetTicks();
+		if (curr < sge_last) {
+			sge_last = curr;
 			continue;
 		}
 
-		elapsed = (float)pass;
+		pass = curr - sge_last;
+		if (pass < sge_elapsed_min) {
+			delay = sge_elapsed_min - pass;
+			SDL_Delay(SDL_min(delay, 100));
+			continue;
+		}
 
-		sge_input_update(elapsed);
-		sge_vm_update(elapsed, &sge_traps);
-		sge_scene_update(elapsed);
-		sge_window_update(elapsed, &sge_drawer);
+		sge_frame(((float)pass) / 1000.0f);
+
+		pass = curr - sge_fps_last;
+		if (pass >= 1000) {
+			sge_fps = sge_fps_count;
+			sge_fps_count = 0;
+			sge_fps_last = SDL_GetTicks();
+		} else
+			sge_fps_count += 1;
+
+		sge_last = curr;
 	}
 
-	exit_code = EXIT_SUCCESS;
+	sge_shutdown();
 
-	sge_vm_shutdown();
-
-end5:
-	sge_scene_shutdown();
-
-end4:
-	sge_input_shutdown();
-
-end3:
-	sge_window_shutdown();
-
-end2:
-	PHYSFS_deinit();
-
-end1:
-	SDL_Quit();
-
-end0:
-	return exit_code;
+	return 0;
 }
 

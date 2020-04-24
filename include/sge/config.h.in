@@ -10,5 +10,7 @@
 
 #cmakedefine SGE_DEBUG
 
+#cmakedefine SGE_LOG
+
 #endif /* SGE_CONFIG_H */
 

@@ -12,7 +12,6 @@
 #include <sge/window.h>
 #include <sge/input.h>
 #include <sge/scene.h>
-#include <sge/gui.h>
 #include <sge/vm.h>
 
 static int sge_run;
@@ -22,6 +21,11 @@ static Uint32 sge_fps_last;
 static bool sge_show_fps;
 static Uint32 sge_elapsed_min;
 static Uint32 sge_last;
+
+static void sge_exit(void)
+{
+	sge_run = 0;
+}
 
 static int sge_get_fps(void)
 {
@@ -45,17 +49,42 @@ static void sge_toggle_show_fps(void)
 	sge_show_fps = !sge_show_fps;
 }
 
+static bool sge_set_font(const char *filename, int size)
+{
+	return false;
+}
+
 static void sge_draw_3d(void)
 {
-	sge_scene_draw();
+	switch (sge_vm_get_state()) {
+	case SGE_VM_STATE_RUNNING:
+		sge_scene_draw();
+		break;
+	case SGE_VM_STATE_LOADING:
+		/* Nothing to do. */
+		break;
+	}
 }
 
 static void sge_draw_2d(NVGcontext *nvg)
 {
 	//sge_gui_draw(nvg);
 
+	switch (sge_vm_get_state()) {
+	case SGE_VM_STATE_RUNNING:
+		/* draw hud? */
+		break;
+	case SGE_VM_STATE_LOADING:
+		/* draw loading progress. */
+		break;
+	}
+
 	if (sge_show_fps) {
-		/* TODO */
+		char buf[16];
+		sprintf(buf, "fps: %d", sge_fps);
+		nvgFillColor(nvg, nvgRGBA(255, 255, 255, 255));
+		nvgTextAlign(nvg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+		nvgText(nvg, 0, 0, buf, NULL);
 	}
 }
 
@@ -87,10 +116,12 @@ static void sge_poll_events(void)
 static void sge_frame(float elapsed)
 {
 	static const sge_vm_traps_t traps = {
+		.exit = sge_exit,
 		.get_fps = sge_get_fps,
 		.get_fps_max = sge_get_fps_max,
 		.set_fps_max = sge_set_fps_max,
-		.toggle_show_fps = sge_toggle_show_fps
+		.toggle_show_fps = sge_toggle_show_fps,
+		.set_font = sge_set_font
 	};
 
 	static const sge_window_drawer_t drawer = {
@@ -101,17 +132,7 @@ static void sge_frame(float elapsed)
 	sge_input_update(elapsed);
 	sge_vm_update(elapsed, &traps);
 	sge_scene_update(elapsed);
-	//sge_gui_update(elapsed);
-
 	sge_window_update(elapsed, &drawer);
-}
-
-static void sge_log_output(void *data, int category, SDL_LogPriority priority, const char *message)
-{
-	if (priority == SDL_LOG_PRIORITY_ERROR || priority == SDL_LOG_PRIORITY_CRITICAL)
-		fprintf(stderr, "SGE: %s\n", message);
-	else
-		fprintf(stdout, "SGE: %s\n", message);
 }
 
 static void sge_print_help(void)
@@ -145,19 +166,19 @@ static int sge_init(int argc, char *argv[])
 			break;
 		case 'h':
 			sge_print_help();
-			return -1;
+			goto bad0;
 		case 'v':
 			sge_print_version();
-			return -1;
+			goto bad0;
 		default:
 			SGE_LOGE("Unknown option -%c\n", opt);
-			return -1;
+			goto bad0;
 		}
 	}
 
 	if (root == NULL) {
 		SGE_LOGE("Root is not set.");
-		return EXIT_FAILURE;
+		goto bad0;
 	}
 
 	ret = SDL_Init(SDL_INIT_EVERYTHING);
@@ -183,20 +204,13 @@ static int sge_init(int argc, char *argv[])
 	if (ret < 0)
 		goto bad4;
 
-	//ret = sge_gui_init();
-	//if (ret < 0)
-	//	goto bad5;
-
 	ret = sge_vm_init();
 	if (ret < 0)
-		goto bad6;
+		goto bad5;
 
 	return 0;
 
-bad6:
-	//sge_gui_shutdown();
-
-//bad5:
+bad5:
 	sge_scene_shutdown();
 
 bad4:
@@ -219,8 +233,6 @@ static void sge_shutdown(void)
 {
 	sge_vm_shutdown();
 
-	//sge_gui_shutdown();
-
 	sge_scene_shutdown();
 
 	sge_input_shutdown();
@@ -230,6 +242,14 @@ static void sge_shutdown(void)
 	PHYSFS_deinit();
 
 	SDL_Quit();
+}
+
+static void sge_log_output(void *data, int category, SDL_LogPriority priority, const char *message)
+{
+	if (priority == SDL_LOG_PRIORITY_ERROR || priority == SDL_LOG_PRIORITY_CRITICAL)
+		fprintf(stderr, "SGE: %s\n", message);
+	else
+		fprintf(stdout, "SGE: %s\n", message);
 }
 
 int main(int argc, char *argv[])
@@ -244,7 +264,7 @@ int main(int argc, char *argv[])
 	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
-	SGE_LOGI("Simple Game Engine - %d.%d.%d",
+	SGE_LOGI("Simple Game Engine - %d.%d.%d\n",
 		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH);
 
 	ret = sge_init(argc, argv);
@@ -280,7 +300,7 @@ int main(int argc, char *argv[])
 		if (pass >= 1000) {
 			sge_fps = sge_fps_count;
 			sge_fps_count = 0;
-			sge_fps_last = SDL_GetTicks();
+			sge_fps_last = curr;
 		} else
 			sge_fps_count += 1;
 
@@ -291,4 +311,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-

@@ -1,6 +1,0 @@
-/*
- *
- */
-#include <sge/gui.h>
-
-

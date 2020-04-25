@@ -320,4 +320,40 @@ typedef unsigned long Instruction;
 	{ if (G(L)->gcrunning) { pre; luaC_fullgc(L, 0); pos; } }
 #endif
 
+/*
+** I/O hooks
+*/
+
+#if !defined(LUA_FILE)
+#   define LUA_FILE FILE
+#endif
+
+#if !defined(luai_fopen)
+#   define luai_fopen(fn, m) fopen(fn, m)
+#endif
+
+#if !defined(luai_freopen)
+#   define luai_freopen(fn, m, f) freopen(fn, m f)
+#endif
+
+#if !defined(luai_fclose)
+#   define luai_fclose(f) fclose(f)
+#endif
+
+#if !defined(luai_feof)
+#   define luai_feof(f) feof(f)
+#endif
+
+#if !defined(luai_fread)
+#   define luai_fread(b, n, s, f) fread(b, n, s, f)
+#endif
+
+#if !defined(luai_getc)
+#   define luai_getc(f) getc(f)
+#endif
+
+#if !defined(luai_ferror)
+#   define luai_ferror(f) ferror(f)
+#endif
+
 #endif

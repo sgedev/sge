@@ -21,4 +21,3 @@ sge_sources(
 	stb_image.h
 	stb_truetype.h
 	)
-

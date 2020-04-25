@@ -23,7 +23,7 @@
 #include "lualib.h"
 
 
-
+#ifndef LUA_PHYSFS
 
 /*
 ** Change this macro to accept other modes for 'fopen' besides
@@ -171,7 +171,7 @@ static int f_tostring (lua_State *L) {
 }
 
 
-static FILE *tofile (lua_State *L) {
+static LUA_FILE *tofile (lua_State *L) {
   LStream *p = tolstream(L);
   if (isclosed(p))
     luaL_error(L, "attempt to use a closed file");
@@ -232,7 +232,7 @@ static int f_gc (lua_State *L) {
 */
 static int io_fclose (lua_State *L) {
   LStream *p = tolstream(L);
-  int res = fclose(p->f);
+  int res = luai_fclose(p->f);
   return luaL_fileresult(L, (res == 0), NULL);
 }
 
@@ -247,7 +247,7 @@ static LStream *newfile (lua_State *L) {
 
 static void opencheck (lua_State *L, const char *fname, const char *mode) {
   LStream *p = newfile(L);
-  p->f = fopen(fname, mode);
+  p->f = luai_fopen(fname, mode);
   if (p->f == NULL)
     luaL_error(L, "cannot open file '%s' (%s)", fname, strerror(errno));
 }
@@ -259,7 +259,7 @@ static int io_open (lua_State *L) {
   LStream *p = newfile(L);
   const char *md = mode;  /* to traverse/check mode */
   luaL_argcheck(L, l_checkmode(md), 2, "invalid mode");
-  p->f = fopen(filename, mode);
+  p->f = luai_fopen(filename, mode);
   return (p->f == NULL) ? luaL_fileresult(L, 0, filename) : 1;
 }
 
@@ -774,3 +774,4 @@ LUAMOD_API int luaopen_io (lua_State *L) {
   return 1;
 }
 
+#endif /* LUA_PHYSFS */

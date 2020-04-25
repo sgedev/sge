@@ -7,4 +7,3 @@
 #include <sge/common.h>
 
 #endif /* SGE_CAMERA_H */
-

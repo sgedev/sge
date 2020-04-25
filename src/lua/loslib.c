@@ -387,14 +387,20 @@ static const luaL_Reg syslib[] = {
   {"clock",     os_clock},
   {"date",      os_date},
   {"difftime",  os_difftime},
+#ifndef LUA_PHYSFS
   {"execute",   os_execute},
+#endif
   {"exit",      os_exit},
   {"getenv",    os_getenv},
+#ifndef LUA_PHYSFS
   {"remove",    os_remove},
   {"rename",    os_rename},
+#endif
   {"setlocale", os_setlocale},
   {"time",      os_time},
+#ifndef LUA_PHYSFS
   {"tmpname",   os_tmpname},
+#endif
   {NULL, NULL}
 };
 

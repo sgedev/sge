@@ -25,6 +25,14 @@
 
 #include <sge/config.h>
 
+#ifdef SGE_DEBUG
+#   include <SDL_assert.h>
+#   define SDL_ASSERT_LEVEL 2
+#   define SGE_ASSERT(expr) SDL_assert(expr)
+#else
+#   define SGE_ASSERT(expr)
+#endif
+
 #ifdef SGE_LOG
 #	define SGE_LOG_CATEGORY SDL_LOG_CATEGORY_CUSTOM
 #	define SGE_LOGE(fmt, ...) SDL_LogError(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
@@ -39,4 +47,3 @@
 #endif
 
 #endif /* SGE_COMMON_H */
-

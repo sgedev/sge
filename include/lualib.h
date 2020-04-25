@@ -23,8 +23,10 @@ LUAMOD_API int (luaopen_coroutine) (lua_State *L);
 #define LUA_TABLIBNAME	"table"
 LUAMOD_API int (luaopen_table) (lua_State *L);
 
+#ifndef LUA_PHYSFS
 #define LUA_IOLIBNAME	"io"
 LUAMOD_API int (luaopen_io) (lua_State *L);
+#endif
 
 #define LUA_OSLIBNAME	"os"
 LUAMOD_API int (luaopen_os) (lua_State *L);

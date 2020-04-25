@@ -15,16 +15,12 @@ else()
 	message(FATAL_ERROR "libuv not found.")
 endif()
 
-sge_subdirectories(
-	gui
-	scene
-	)
-
 sge_sources(
 	camera.c
 	common.c
 	input.c
 	main.c
+	scene.c
 	vm.c
 	window.c
 	)

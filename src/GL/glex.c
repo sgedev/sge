@@ -616,7 +616,6 @@ GLEX_API void glexRenderMode(GLEXRenderMode mode)
 	}
 
 	glex->renderMode = mode;
-
 }
 
 GLEX_API void glexBeginFrame(void)

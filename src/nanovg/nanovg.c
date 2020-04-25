@@ -2289,12 +2289,20 @@ void nvgStroke(NVGcontext* ctx)
 // Add fonts
 int nvgCreateFont(NVGcontext* ctx, const char* name, const char* filename)
 {
+#ifdef NANOVG_PHYSFS
+	return fonsAddFontPhysFS(ctx->fs, name, filename, 0);
+#else
 	return fonsAddFont(ctx->fs, name, filename, 0);
+#endif
 }
 
 int nvgCreateFontAtIndex(NVGcontext* ctx, const char* name, const char* filename, const int fontIndex)
 {
+#ifdef NANOVG_PHYSFS
+	return fonsAddFontPhysFS(ctx->fs, name, filename, fontIndex);
+#else
 	return fonsAddFont(ctx->fs, name, filename, fontIndex);
+#endif
 }
 
 int nvgCreateFontMem(NVGcontext* ctx, const char* name, unsigned char* data, int ndata, int freeData)

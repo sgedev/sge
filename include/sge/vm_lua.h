@@ -4,6 +4,14 @@
 #ifndef SGE_VM_LUA_H
 #define SGE_VM_LUA_H
 
+#include <uv.h>
+#include <physfs.h>
+#include <cx/list.h>
+
+/*
+** Hooks
+*/
+
 #ifdef LUA_EXTRASPACE
 #   undef LUA_EXTRASPACE
 #endif
@@ -32,9 +40,6 @@
 #   undef luai_userstateyield
 #endif
 
-#include <uv.h>
-#include <cx/list.h>
-
 #ifdef _WIN32
 #   undef LoadString
 #endif
@@ -59,5 +64,53 @@ void sge_vm_task_yield(lua_State *L, int n);
 #define luai_userstatefree(L, L1) sge_vm_task_remove(L, L1)
 #define luai_userstateresume(L, n) sge_vm_task_resume(L, n)
 #define luai_userstateyield(L, n) sge_vm_task_yield(L, n)
+
+/*
+** I/O
+*/
+
+#define LUA_PHYSFS
+
+#ifdef LUA_FILE
+#   undef LUA_FILE
+#endif
+
+#ifdef luai_fopen
+#   undef luai_fopen
+#endif
+
+#ifdef luai_freopen
+#   undef luai_freopen
+#endif
+
+#ifdef luai_feof
+#   undef luai_feof
+#endif
+
+#ifdef luai_fread
+#   undef luai_fread
+#endif
+
+#ifdef luai_getc
+#   undef luai_getc
+#endif
+
+#define LUA_FILE PHYSFS_File
+
+LUA_FILE *sge_vm_io_fopen(const char *filename, const char *mode);
+LUA_FILE *sge_vm_io_freopen(const char *filename, const char *mode, LUA_FILE **fp);
+int sge_vm_io_fclose(LUA_FILE *fp);
+int sge_vm_io_feof(LUA_FILE *fp);
+size_t sge_vm_io_fread(void *buf, int n, int size, LUA_FILE *fp);
+int sge_vm_io_getc(LUA_FILE *fp);
+int sge_vm_io_ferror(LUA_FILE *fp);
+
+#define luai_fopen(fn, m) sge_vm_io_fopen(fn, m)
+#define luai_freopen(fn, m, f) sge_vm_io_freopen(fn, m, &(f))
+#define luai_fclose(f) sge_vm_io_fclose(f)
+#define luai_feof(f) sge_vm_io_feof(f)
+#define luai_fread(b, n, s, f) sge_vm_io_fread(b, n, s, f)
+#define luai_getc(f) sge_vm_io_getc(f)
+#define luai_ferror(f) sge_vm_io_ferror(f)
 
 #endif /* SGE_VM_LUA_H */

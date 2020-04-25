@@ -120,12 +120,12 @@ static void sge_window_gl_debug_output(GLenum source, GLenum type, GLuint id,
 	GLenum severity, GLsizei length, const GLchar *message, const void *data)
 {
 	if (type == GL_DEBUG_TYPE_ERROR) {
-		SGE_LOGE("GL-%s-%s-%s: %s\n",
+		SGE_LOGE("GL|%s|%s|%s: %s\n",
 			sge_window_gl_debug_serverity(severity),
 			sge_window_gl_debug_source(source),
 			sge_window_gl_debug_type(type), message);
 	} else {
-		SGE_LOGD("GL-%s-%s-%s: %s\n",
+		SGE_LOGD("GL|%s|%s|%s: %s\n",
 			sge_window_gl_debug_serverity(severity),
 			sge_window_gl_debug_source(source),
 			sge_window_gl_debug_type(type), message);
@@ -205,10 +205,7 @@ int sge_window_init(void)
 	}
 	
 	glexMakeCurrent(sge_window_glex);
-
-	SGE_LOGD("%s(%d)", __func__, __LINE__);
 	glexRenderMode(GLEX_RENDER_MODE_FORWARD);
-	SGE_LOGD("%s(%d)", __func__, __LINE__);
 
 	SGE_LOGD("Creating nanovg context...");
 	sge_window_nvg = nvgCreateGL3(0);
@@ -216,6 +213,9 @@ int sge_window_init(void)
 		SGE_LOGE("Failed to create nanovg context.");
 		goto bad3;
 	}
+
+	/* for test */
+	nvgCreateFont(sge_window_nvg, "default", "C:\\Users\\Shaomy\\Documents\\GitHub\\sge\\build\\Roboto-Light.ttf");
 
 	return 0;
 
@@ -311,6 +311,9 @@ void sge_window_update(float elapsed, const sge_window_drawer_t *drawer)
 
 	nvgBeginFrame(sge_window_nvg, (float)sge_window_width, (float)sge_window_height, 1.0f);
 
+	nvgFontFace(sge_window_nvg, "default");
+	nvgFontSize(sge_window_nvg, 20.0f);
+
 	if (drawer != NULL && drawer->draw_2d != NULL)
 		drawer->draw_2d(sge_window_nvg);
 
@@ -318,4 +321,3 @@ void sge_window_update(float elapsed, const sge_window_drawer_t *drawer)
 
 	SDL_GL_SwapWindow(sge_window);
 }
-

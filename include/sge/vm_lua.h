@@ -8,6 +8,10 @@
 #include <physfs.h>
 #include <cx/list.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
 ** Hooks
 */
@@ -112,5 +116,9 @@ int sge_vm_io_ferror(LUA_FILE *fp);
 #define luai_fread(b, n, s, f) sge_vm_io_fread(b, n, s, f)
 #define luai_getc(f) sge_vm_io_getc(f)
 #define luai_ferror(f) sge_vm_io_ferror(f)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* SGE_VM_LUA_H */

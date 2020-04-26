@@ -6,6 +6,7 @@
 #include <sge/vm.h>
 
 #define SGE_VM_MAIN_TASK_FILENAME "/main.lua"
+#define SGE_VM_OBJECT_TYPE "sge-object"
 
 typedef enum {
 	SGE_VM_TRAP_TYPE_NONE = 0,
@@ -14,7 +15,7 @@ typedef enum {
 	SGE_VM_TRAP_TYPE_SET_FPS_MAX,
 	SGE_VM_TRAP_TYPE_GET_FPS_MAX,
 	SGE_VM_TRAP_TYPE_TOGGLE_SHOW_FPS,
-	SGE_VM_TRAP_TYPE_SET_FONT
+	SGE_VM_TRAP_TYPE_CREATE_OBJECT
 } sge_vm_trap_type_t;
 
 typedef struct {
@@ -22,6 +23,12 @@ typedef struct {
 	lua_State *stack;
 	int result;
 } sge_vm_trap_t;
+
+typedef struct {
+	lua_State *L;
+	int ref;
+	sge_object_t *obj;
+} sge_vm_luaobj_t;
 
 static SDL_Thread *sge_vm_thread;
 static sge_vm_state_t sge_vm_state;
@@ -229,27 +236,36 @@ static int sge_vm_trap_toggle_show_fps_be(lua_State *L, const sge_vm_traps_t *tr
 	return 0;
 }
 
-static int sge_vm_trap_load(lua_State *L)
+static int sge_vm_trap_object(lua_State *L)
 {
-	return 0;
-}
+	int ret;
+	sge_vm_object_t *obj;
+	sge_vm_luaobj_t *luaobj;
+	sge_vm_luaobj_t *parent = NULL;
+	const char *name = luaL_checkstring(L, 1);
 
-static int sge_vm_trap_set_font(lua_State *L)
-{
-	luaL_checkstring(L, 1);
-	luaL_checkinteger(L, 2);
-
-	return sge_vm_do_trap(L, SGE_VM_TRAP_TYPE_SET_FONT);
-}
-
-static int sge_vm_trap_set_font_be(lua_State *L, const sge_vm_traps_t *traps)
-{
-	if (traps->set_font == NULL)
-		return sge_vm_trap_error(L, "not impl.");
-
-	lua_pushboolean(L, traps->set_font(lua_tostring(L, 1), lua_tointeger(L, 2)));
+	sge_vm_do_trap(L, SGE_VM_TRAP_TYPE_CREATE_OBJECT);
+	//void *obj = lua_toudata(L, -1);
+	lua_pop(L, 1);
+	if (obj != NULL) {
+		object = lua_newuserdata(L, sizeof(sge_vm_luaobj_t));
+		object->obj = obj;
+		object->L = L;
+		/* TODO ref? */
+	} else
+		lua_pushnil(L);
 
 	return 1;
+}
+
+static int sge_vm_trap_create_object_be(lua_State *L, const sge_vm_traps_t *traps)
+{
+	if (traps->create_object == NULL)
+		return sge_vm_trap_error(L, "not impl.");
+
+	traps->create_object(lua_touserdata(L, 1));
+
+	return 0;
 }
 
 static void sge_vm_init_traps(lua_State *L)
@@ -280,11 +296,8 @@ static void sge_vm_init_traps(lua_State *L)
 	lua_pushcfunction(L, &sge_vm_trap_toggle_show_fps);
 	lua_setfield(L, -2, "toggle_show_fps");
 
-	lua_pushcfunction(L, &sge_vm_trap_load);
-	lua_setfield(L, -2, "load");
-
-	lua_pushcfunction(L, &sge_vm_trap_set_font);
-	lua_setfield(L, -2, "set_font");
+	lua_pushcfunction(L, &sge_vm_trap_object);
+	lua_setfield(L, -2, "object");
 
 	lua_setglobal(L, "sge");
 }
@@ -348,6 +361,8 @@ static int sge_vm_pmain(lua_State *L)
 
 	luaL_openlibs(L);
 	sge_vm_init_traps(L);
+
+	luaL_newmetatable(L, SGE_VM_OBJECT_TYPE);
 
 	ret = sge_vm_load_main_task(L);
 	if (ret < 0)
@@ -585,9 +600,6 @@ void sge_vm_update(float elapsed, const sge_vm_traps_t *traps)
 		break;
 	case SGE_VM_TRAP_TYPE_TOGGLE_SHOW_FPS:
 		sge_vm_trap.result = sge_vm_trap_toggle_show_fps_be(sge_vm_trap.stack, traps);
-		break;
-	case SGE_VM_TRAP_TYPE_SET_FONT:
-		sge_vm_trap.result = sge_vm_trap_set_font_be(sge_vm_trap.stack, traps);
 		break;
 	case SGE_VM_TRAP_TYPE_NONE:
 	default:

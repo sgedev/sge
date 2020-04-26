@@ -25,6 +25,9 @@
 
 #include <sge/config.h>
 
+#define SGE_BEGIN_DECLS CX_BEGIN_DECLS
+#define SGE_END_DECLS CX_END_DECLS
+
 #ifdef SGE_DEBUG
 #   include <SDL_assert.h>
 #   define SDL_ASSERT_LEVEL 2

@@ -9,10 +9,20 @@
 #include <SDL.h>
 
 #include <sge/common.h>
+#include <sge/physics.h>
 #include <sge/window.h>
 #include <sge/input.h>
-#include <sge/scene.h>
+#include <sge/object.h>
 #include <sge/vm.h>
+
+typedef struct {
+	sge_vm_object_t vm;
+	char *name;
+	int flags;
+	hmm_vec3 pos;
+	hmm_vec3 scale;
+	hmm_quaternion rotation;
+} sge_object_t;
 
 static int sge_run;
 static int sge_fps;
@@ -21,6 +31,7 @@ static Uint32 sge_fps_last;
 static bool sge_show_fps;
 static Uint32 sge_elapsed_min;
 static Uint32 sge_last;
+static sge_object_t sge_root;
 
 static void sge_exit(void)
 {
@@ -54,11 +65,19 @@ static bool sge_set_font(const char *filename, int size)
 	return false;
 }
 
+static sge_object_t *sge_create_object(const char *name, sge_object_t *parent)
+{
+	
+}
+
+static void sge_destroy_object(sge_object_t *object)
+{
+}
+
 static void sge_draw_3d(void)
 {
 	switch (sge_vm_get_state()) {
 	case SGE_VM_STATE_RUNNING:
-		sge_scene_draw();
 		break;
 	case SGE_VM_STATE_LOADING:
 		/* Nothing to do. */
@@ -88,6 +107,29 @@ static void sge_draw_2d(NVGcontext *nvg)
 	}
 }
 
+static void sge_frame(float elapsed)
+{
+	static const sge_vm_traps_t traps = {
+		.exit = sge_exit,
+		.get_fps = sge_get_fps,
+		.get_fps_max = sge_get_fps_max,
+		.set_fps_max = sge_set_fps_max,
+		.toggle_show_fps = sge_toggle_show_fps,
+		.create_object = sge_create_object,
+		.destroy_object = sge_destroy_object
+	};
+
+	static const sge_window_drawer_t drawer = {
+		.draw_3d = sge_draw_3d,
+		.draw_2d = sge_draw_2d
+	};
+
+	sge_input_update(elapsed);
+	sge_vm_update(elapsed, &traps);
+	sge_physics_update(elapsed);
+	sge_window_update(elapsed, &drawer);
+}
+
 static void sge_poll_events(void)
 {
 	SDL_Event event;
@@ -113,28 +155,6 @@ static void sge_poll_events(void)
 	}
 }
 
-static void sge_frame(float elapsed)
-{
-	static const sge_vm_traps_t traps = {
-		.exit = sge_exit,
-		.get_fps = sge_get_fps,
-		.get_fps_max = sge_get_fps_max,
-		.set_fps_max = sge_set_fps_max,
-		.toggle_show_fps = sge_toggle_show_fps,
-		.set_font = sge_set_font
-	};
-
-	static const sge_window_drawer_t drawer = {
-		.draw_3d = sge_draw_3d,
-		.draw_2d = sge_draw_2d
-	};
-
-	sge_input_update(elapsed);
-	sge_vm_update(elapsed, &traps);
-	sge_scene_update(elapsed);
-	sge_window_update(elapsed, &drawer);
-}
-
 static void sge_print_help(void)
 {
 	SGE_LOGI("Usage:");
@@ -154,7 +174,7 @@ static int sge_init(int argc, char *argv[])
 {
 	struct parg_state ps;
 	char opt;
-	const char *root = NULL;
+	const char *vmroot = NULL;
 	int ret;
 
 	parg_init(&ps);
@@ -162,7 +182,7 @@ static int sge_init(int argc, char *argv[])
 	while ((opt = parg_getopt(&ps, argc, argv, "hv")) != -1) {
 		switch (opt) {
 		case 1:
-			root = ps.optarg;
+			vmroot = ps.optarg;
 			break;
 		case 'h':
 			sge_print_help();
@@ -176,8 +196,8 @@ static int sge_init(int argc, char *argv[])
 		}
 	}
 
-	if (root == NULL) {
-		SGE_LOGE("Root is not set.");
+	if (vmroot == NULL) {
+		SGE_LOGE("VM root is not set.");
 		goto bad0;
 	}
 
@@ -189,8 +209,8 @@ static int sge_init(int argc, char *argv[])
 	if (!ret)
 		goto bad1;
 
-	SGE_LOGI("Root: %s", root);
-	PHYSFS_mount(root, "/", 1);
+	SGE_LOGI("VM root: %s", vmroot);
+	PHYSFS_mount(vmroot, "/", 1);
 
 	ret = sge_window_init();
 	if (ret < 0)
@@ -200,7 +220,7 @@ static int sge_init(int argc, char *argv[])
 	if (ret < 0)
 		goto bad3;
 
-	ret = sge_scene_init();
+	ret = sge_physics_init();
 	if (ret < 0)
 		goto bad4;
 
@@ -208,10 +228,12 @@ static int sge_init(int argc, char *argv[])
 	if (ret < 0)
 		goto bad5;
 
+	sge_root = NULL;
+
 	return 0;
 
 bad5:
-	sge_scene_shutdown();
+	sge_physics_shutdown();
 
 bad4:
 	sge_input_shutdown();
@@ -233,7 +255,7 @@ static void sge_shutdown(void)
 {
 	sge_vm_shutdown();
 
-	sge_scene_shutdown();
+	sge_physics_shutdown();
 
 	sge_input_shutdown();
 

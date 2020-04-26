@@ -4,7 +4,8 @@ sge_sources(
 	common.h
 	config.h.in
 	input.h
-	scene.h
+	object.h
+	physics.h
 	vm.h
 	vm_lua.h
 	window.h

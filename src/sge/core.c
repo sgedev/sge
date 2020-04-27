@@ -15,6 +15,14 @@
 #include <sge/object.h>
 #include <sge/vm.h>
 
+struct sge_object {
+	char *name;
+	int flags;
+	hmm_vec3 pos;
+	hmm_vec3 scale;
+	hmm_quaternion rotation;
+};
+
 static int sge_run;
 static int sge_fps;
 static int sge_fps_count;
@@ -22,6 +30,7 @@ static Uint32 sge_fps_last;
 static bool sge_show_fps;
 static Uint32 sge_elapsed_min;
 static Uint32 sge_last;
+static sge_object_t sge_root;
 
 static void sge_exit(void)
 {
@@ -57,12 +66,12 @@ static bool sge_set_font(const char *filename, int size)
 
 static sge_object_t *sge_create_object(const char *name, sge_object_t *parent)
 {
-	return sge_object_new(name, parent);
+	static sge_object_t obj;
+	return &obj;
 }
 
 static void sge_destroy_object(sge_object_t *object)
 {
-	sge_object_
 }
 
 static void sge_draw_3d(void)

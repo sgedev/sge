@@ -6,7 +6,7 @@
 #include <sge/vm.h>
 
 #define SGE_VM_MAIN_TASK_FILENAME "/main.lua"
-#define SGE_VM_OBJECT_TYPE "sge.object"
+#define sge_object_tYPE "sge.object"
 
 typedef enum {
 	/* basic */
@@ -15,6 +15,24 @@ typedef enum {
 	SGE_VM_TRAP_SET_FPS_MAX,
 	SGE_VM_TRAP_GET_FPS_MAX,
 	SGE_VM_TRAP_TOGGLE_SHOW_FPS,
+	SGE_VM_TRAP_CREATE_OBJECT,
+
+	/* object */
+	SGE_VM_TRAP_OBJECT_DESTROY,
+	SGE_VM_TRAP_OBJECT_GET_NAME,
+	SGE_VM_TRAP_OBJECT_SET_NAME,
+	SGE_VM_TRAP_OBJECT_GET_ENABLE,
+	SGE_VM_TRAP_OBJECT_SET_ENABLE,
+	SGE_VM_TRAP_OBJECT_GET_VISIBLE,
+	SGE_VM_TRAP_OBJECT_SET_VISIBLE,
+	SGE_VM_TRAP_OBJECT_GET_MOVABLE,
+	SGE_VM_TRAP_OBJECT_SET_MOVABLE,
+	SGE_VM_TRAP_OBJECT_GET_POS,
+	SGE_VM_TRAP_OBJECT_SET_POS,
+	SGE_VM_TRAP_OBJECT_GET_SCALE,
+	SGE_VM_TRAP_OBJECT_SET_SCALE,
+	SGE_VM_TRAP_OBJECT_GET_ROTATION,
+	SGE_VM_TRAP_OBJECT_SET_ROTATION,
 
 	SGE_VM_TRAP_MAX,
 	SGE_VM_TRAP_NONE = 0,
@@ -27,6 +45,12 @@ typedef struct {
 	lua_State *stack;
 	int result;
 } sge_vm_trap_context_t;
+
+typedef struct {
+	lua_State *L;
+	int ref;
+	sge_object_t *obj;
+} sge_vm_object_t;
 
 static SDL_Thread *sge_vm_thread;
 static sge_vm_state_t sge_vm_state;

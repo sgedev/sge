@@ -28,6 +28,15 @@ enum {
 	GLEX_ERR_BAD_PARAM
 };
 
+#ifdef GLEX_LOG
+typedef enum {
+	GLEX_LOG_ERROR = 0x1,
+	GLEX_LOG_WARNING = 0x2,
+	GLEX_LOG_INFO = 0x4,
+	GLEX_LOG_DEBUG = 0x8
+} GELXLogType;
+#endif
+
 typedef enum {
 	GLEX_MESH_TYPE_STATIC = 0,
 	GLEX_MESH_TYPE_DYNAMIC,

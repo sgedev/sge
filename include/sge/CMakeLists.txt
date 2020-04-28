@@ -1,14 +1,10 @@
 
 sge_sources(
-	camera.h
 	common.h
 	config.h.in
-	input.h
-	object.h
-	physics.h
+	scene.h
 	vm.h
 	vm_lua.h
-	window.h
 	)
 
 configure_file(

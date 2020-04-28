@@ -1,6 +1,0 @@
-/*
- *
- */
-#include <sge/camera.h>
-
-

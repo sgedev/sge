@@ -24,12 +24,10 @@ else()
 endif()
 
 sge_sources(
-	camera.c
 	common.c
-	input.c
 	main.c
-	physics.cpp
+	res.c
+	scene.cpp
 	vm.c
-	window.c
 	)
 

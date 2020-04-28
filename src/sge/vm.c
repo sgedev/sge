@@ -2,11 +2,25 @@
  *
  */
 #include <stdarg.h>
+#include <physfs.h>
 
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
+#include <sge/scene.h>
 #include <sge/vm.h>
 
 #define SGE_VM_MAIN_TASK_FILENAME "/main.lua"
 #define SGE_VM_OBJECT_TYPE "sge.object"
+
+typedef enum {
+	SGE_VM_STATE_NONE = 0,
+	SGE_VM_STATE_INITIALIZING,
+	SGE_VM_STATE_RUNNING,
+	SGE_VM_STATE_EXITING,
+	SGE_VM_STATE_ERROR
+} sge_vm_state_t;
 
 typedef enum {
 	/* basic */
@@ -28,9 +42,13 @@ typedef struct {
 	int result;
 } sge_vm_trap_context_t;
 
+typedef struct {
+	sge_object_t *obj;
+	int ref;
+} sge_vm_object_t;
+
 static SDL_Thread *sge_vm_thread;
 static sge_vm_state_t sge_vm_state;
-static sge_vm_loading_state_t sge_vm_loading_state;
 static uv_loop_t sge_vm_loop;
 static uv_async_t sge_vm_quit;
 static cx_list_t sge_vm_task_ready_list;
@@ -240,10 +258,15 @@ static int sge_vm_trap_toggle_show_fps_handler(lua_State *L, const sge_vm_traps_
 	return 0;
 }
 
+static int sge_vm_trap_bind(lua_State *L)
+{
+	return 0;
+}
+
 static int sge_vm_trap_object_destroy(lua_State *L)
 {
-	luaL_checkudata(L, 1, sge_object_tYPE);
-	return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_DESTROY);
+	luaL_checkudata(L, 1, SGE_VM_OBJECT_TYPE);
+	return 0; // TODO
 }
 
 static int sge_vm_trap_object_destroy_handler(lua_State *L, const sge_vm_traps_t *traps)
@@ -266,43 +289,8 @@ static void sge_vm_lua_checkvec3(lua_State *L, int index)
 
 static int sge_vm_trap_object_newindex(lua_State *L)
 {
-	sge_vm_object_t *luaobj = luaL_checkudata(L, 1, sge_object_tYPE);
+	sge_vm_object_t *obj = luaL_checkudata(L, 1, SGE_VM_OBJECT_TYPE);
 	const char *key = luaL_checkstring(L, 2);
-
-	if (strcmp(key, "pos") == 0) {
-		sge_vm_lua_checkvec3(L, 3);
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_SET_POS);
-	}
-
-	if (strcmp(key, "scale") == 0) {
-		sge_vm_lua_checkvec3(L, 3);
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_SET_SCALE);
-	}
-
-	if (strcmp(key, "rotation") == 0) {
-		sge_vm_lua_checkvec3(L, 3);
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_SET_ROTATION);
-	}
-
-	if (strcmp(key, "enable") == 0) {
-		luaL_checktype(L, 3, LUA_TBOOLEAN);
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_SET_ENABLE);
-	}
-
-	if (strcmp(key, "visible") == 0) {
-		luaL_checktype(L, 3, LUA_TBOOLEAN);
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_SET_VISIBLE);
-	}
-
-	if (strcmp(key, "movable") == 0) {
-		luaL_checktype(L, 3, LUA_TBOOLEAN);
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_SET_MOVABLE);
-	}
-
-	if (strcmp(key, "name") == 0) {
-		luaL_checkstring(L, 3);
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_SET_NAME);
-	}
 
 	lua_pushnil(L);
 	return 1;
@@ -310,23 +298,9 @@ static int sge_vm_trap_object_newindex(lua_State *L)
 
 static int sge_vm_trap_object_index(lua_State *L)
 {
-	sge_vm_object_t *luaobj = luaL_checkudata(L, 1, sge_object_tYPE);
+	sge_vm_object_t *obj = luaL_checkudata(L, 1, SGE_VM_OBJECT_TYPE);
 	const char *key = luaL_checkstring(L, 2);
 
-	if (strcmp(key, "pos") == 0)
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_GET_POS);
-	if (strcmp(key, "scale") == 0)
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_GET_SCALE);
-	if (strcmp(key, "rotation") == 0)
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_GET_ROTATION);
-	if (strcmp(key, "enable") == 0)
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_GET_ENABLE);
-	if (strcmp(key, "visible") == 0)
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_GET_VISIBLE);
-	if (strcmp(key, "movable") == 0)
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_GET_MOVABLE);
-	if (strcmp(key, "name") == 0)
-		return sge_vm_do_trap(L, SGE_VM_TRAP_OBJECT_GET_NAME);
 
 	lua_pushnil(L);
 	return 1;
@@ -334,7 +308,7 @@ static int sge_vm_trap_object_index(lua_State *L)
 
 static void sge_vm_object_register(lua_State *L)
 {
-	luaL_newmetatable(L, sge_object_tYPE);
+	luaL_newmetatable(L, SGE_VM_OBJECT_TYPE);
 
 	lua_pushcfunction(L, &sge_vm_trap_object_destroy);
 	lua_setfield(L, -2, "__gc");
@@ -351,187 +325,24 @@ static void sge_vm_object_register(lua_State *L)
 static int sge_vm_trap_create_object(lua_State *L)
 {
 	int ret;
-	sge_object_t *newobj;
-	sge_vm_object_t *luaobj;
+	sge_vm_object_t *obj;
 	const char *name = luaL_checkstring(L, 1);
-	sge_vm_object_t *parent = NULL;
 
-	if (lua_gettop(L) > 1)
-		parent = luaL_checkudata(L, 2, sge_object_tYPE);
-
-	sge_vm_do_trap(L, SGE_VM_TRAP_CREATE_OBJECT);
-	newobj = lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	if (newobj != NULL) {
-		SGE_LOGI("%s(%d)", __func__, __LINE__);
-		luaobj = lua_newuserdata(L, sizeof(sge_vm_object_t));
-		luaL_getmetatable(L, sge_object_tYPE);
-		lua_setmetatable(L, -2);
-		luaobj->obj = newobj;
-		luaobj->L = L;
-		/* TODO ref? */
-	} else
+	obj = lua_newuserdata(L, sizeof(sge_vm_object_t));
+	luaL_getmetatable(L, SGE_VM_OBJECT_TYPE);
+	lua_setmetatable(L, -2);
+	obj->obj = sge_object_new(name);
+	if (obj->obj == NULL) {
+		lua_pop(L, 1);
 		lua_pushnil(L);
+	}
+
+	/* TODO */
 
 	return 1;
 }
 
-static int sge_vm_trap_create_object_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	if (traps->create_object == NULL)
-		return sge_vm_trap_error(L, "not impl.");
-
-	lua_pushlightuserdata(L,
-		traps->create_object(lua_tostring(L, 1), lua_touserdata(L, 2)));
-
-	return 0;
-}
-
-static int sge_vm_trap_object_get_name_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	lua_pushstring(L, traps->get_object_name(vm_obj->obj));
-	return 1;
-}
-
-static int sge_vm_trap_object_set_name_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	traps->set_object_name(vm_obj->obj, lua_tostring(L, 3));
-	return 0;
-}
-
-static int sge_vm_trap_object_get_pos_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	const hmm_vec3 *v = traps->get_object_pos(vm_obj->obj);
-	lua_newtable(L);
-	lua_pushnumber(L, v->X);
-	lua_rawseti(L, -2, 0);
-	lua_pushnumber(L, v->Y);
-	lua_rawseti(L, -2, 1);
-	lua_pushnumber(L, v->Z);
-	lua_rawseti(L, -2, 2);
-	return 1;
-}
-
-static int sge_vm_trap_object_set_pos_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	lua_rawgeti(L, 3, 0);
-	lua_rawgeti(L, 3, 1);
-	lua_rawgeti(L, 3, 2);
-	traps->set_object_pos(vm_obj->obj,
-		lua_tonumber(L, -1),
-		lua_tonumber(L, -2),
-		lua_tonumber(L, -3));
-	lua_pop(L, 3);
-	return 0;
-}
-
-static int sge_vm_trap_object_get_scale_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	const hmm_vec3 *v = traps->get_object_scale(vm_obj->obj);
-	lua_newtable(L);
-	lua_pushnumber(L, v->X);
-	lua_rawseti(L, -2, 0);
-	lua_pushnumber(L, v->Y);
-	lua_rawseti(L, -2, 1);
-	lua_pushnumber(L, v->Z);
-	lua_rawseti(L, -2, 2);
-	return 1;
-}
-
-static int sge_vm_trap_object_set_scale_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	lua_rawgeti(L, 3, 0);
-	lua_rawgeti(L, 3, 1);
-	lua_rawgeti(L, 3, 2);
-	traps->set_object_scale(vm_obj->obj,
-		lua_tonumber(L, -1),
-		lua_tonumber(L, -2),
-		lua_tonumber(L, -3));
-	lua_pop(L, 3);
-	return 0;
-}
-
-static int sge_vm_trap_object_get_rotation_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	const hmm_quaternion *v = traps->get_object_rotation(vm_obj->obj);
-	lua_newtable(L);
-	lua_pushnumber(L, v->X);
-	lua_rawseti(L, -2, 0);
-	lua_pushnumber(L, v->Y);
-	lua_rawseti(L, -2, 1);
-	lua_pushnumber(L, v->Z);
-	lua_rawseti(L, -2, 2);
-	lua_pushnumber(L, v->W);
-	lua_rawseti(L, -2, 3);
-	return 1;
-}
-
-static int sge_vm_trap_object_set_rotation_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	lua_rawgeti(L, 3, 0);
-	lua_rawgeti(L, 3, 1);
-	lua_rawgeti(L, 3, 2);
-	lua_rawgeti(L, 3, 3);
-	traps->set_object_rotation(vm_obj->obj,
-		lua_tonumber(L, -1),
-		lua_tonumber(L, -2),
-		lua_tonumber(L, -3),
-		lua_tonumber(L, -4));
-	lua_pop(L, 4);
-	return 0;
-}
-
-static int sge_vm_trap_object_get_enable_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	lua_pushboolean(L, traps->get_object_enable(vm_obj->obj));
-	return 1;
-}
-
-static int sge_vm_trap_object_set_enable_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	traps->set_object_enable(vm_obj->obj, lua_toboolean(L, 3));
-	return 0;
-}
-
-static int sge_vm_trap_object_get_visible_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	lua_pushboolean(L, traps->get_object_visible(vm_obj->obj));
-	return 1;
-}
-
-static int sge_vm_trap_object_set_visible_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	traps->set_object_visible(vm_obj->obj, lua_toboolean(L, 3));
-	return 0;
-}
-
-static int sge_vm_trap_object_get_movable_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	lua_pushboolean(L, traps->get_object_movable(vm_obj->obj));
-	return 1;
-}
-
-static int sge_vm_trap_object_set_movable_handler(lua_State *L, const sge_vm_traps_t *traps)
-{
-	sge_vm_object_t *vm_obj = lua_touserdata(L, 1);
-	traps->set_object_movable(vm_obj->obj, lua_toboolean(L, 3));
-	return 0;
-}
-
-static void sge_vm_init_traps(lua_State *L)
+static void sge_vm_init_exports(lua_State *L)
 {
 	lua_newtable(L);
 
@@ -558,6 +369,9 @@ static void sge_vm_init_traps(lua_State *L)
 
 	lua_pushcfunction(L, &sge_vm_trap_toggle_show_fps);
 	lua_setfield(L, -2, "toggle_show_fps");
+
+	lua_pushcfunction(L, &sge_vm_trap_bind);
+	lua_setfield(L, -2, "bind");
 
 	lua_pushcfunction(L, &sge_vm_trap_create_object);
 	lua_setfield(L, -2, "object");
@@ -624,7 +438,7 @@ static int sge_vm_pmain(lua_State *L)
 
 	luaL_openlibs(L);
 
-	sge_vm_init_traps(L);
+	sge_vm_init_exports(L);
 	sge_vm_object_register(L);
 
 	ret = sge_vm_load_main_task(L);
@@ -767,17 +581,24 @@ int sge_vm_io_ferror(LUA_FILE *fp)
 	return 0;
 }
 
-int sge_vm_init(void)
+bool sge_vm_init(const char *root)
 {
-	int ret;
+	if (!PHYSFS_init(NULL))
+		goto bad0;
+
+	SGE_LOGI("VM root: %s", root);
+	PHYSFS_mount(root, "/", 1);
+
+	if (!sge_scene_init())
+		goto bad1;
 
 	sge_vm_mutex = SDL_CreateMutex();
 	if (sge_vm_mutex == NULL)
-		goto bad0;
+		goto bad2;
 
 	sge_vm_cond = SDL_CreateCond();
 	if (sge_vm_cond == NULL)
-		goto bad1;
+		goto bad3;
 
 	cx_list_reset(&sge_vm_task_ready_list);
 	cx_list_reset(&sge_vm_task_sleep_list);
@@ -788,36 +609,39 @@ int sge_vm_init(void)
 
 	sge_vm_state = SGE_VM_STATE_INITIALIZING;
 
-	sge_vm_loading_state.message = NULL;
-	sge_vm_loading_state.percentage = 0;
-
 	SDL_LockMutex(sge_vm_mutex);
 
 	sge_vm_thread = SDL_CreateThread(sge_vm_tmain, "sge.vm", NULL);
 	if (sge_vm_thread == NULL)
-		goto bad2;
+		goto bad4;
 
 	while (sge_vm_state == SGE_VM_STATE_INITIALIZING)
-		ret = SDL_CondWait(sge_vm_cond, sge_vm_mutex);
+		SDL_CondWait(sge_vm_cond, sge_vm_mutex);
 
 	if (sge_vm_state != SGE_VM_STATE_RUNNING) {
 		SDL_WaitThread(sge_vm_thread, NULL);
-		goto bad2;
+		goto bad4;
 	}
 
 	SDL_UnlockMutex(sge_vm_mutex);
 
-	return 0;
+	return true;
 
-bad2:
+bad4:
 	SDL_UnlockMutex(sge_vm_mutex);
 	SDL_DestroyCond(sge_vm_cond);
 
-bad1:
+bad3:
 	SDL_DestroyMutex(sge_vm_mutex);
 
+bad2:
+	sge_scene_shutdown();
+
+bad1:
+	PHYSFS_deinit();
+
 bad0:
-	return -1;
+	return false;
 }
 
 void sge_vm_shutdown(void)
@@ -838,6 +662,17 @@ void sge_vm_shutdown(void)
 
 	SDL_DestroyCond(sge_vm_cond);
 	SDL_DestroyMutex(sge_vm_mutex);
+
+	sge_scene_shutdown();
+
+	PHYSFS_deinit();
+}
+
+void sge_vm_handle_event(const SDL_Event *event)
+{
+	SGE_ASSERT(event != NULL);
+
+	
 }
 
 void sge_vm_update(float elapsed, const sge_vm_traps_t *traps)
@@ -847,28 +682,14 @@ void sge_vm_update(float elapsed, const sge_vm_traps_t *traps)
 		[SGE_VM_TRAP_GET_FPS] = sge_vm_trap_get_fps_handler,
 		[SGE_VM_TRAP_SET_FPS_MAX] = sge_vm_trap_set_fps_max_handler,
 		[SGE_VM_TRAP_GET_FPS_MAX] = sge_vm_trap_get_fps_max_handler,
-		[SGE_VM_TRAP_TOGGLE_SHOW_FPS] = sge_vm_trap_toggle_show_fps_handler,
-		[SGE_VM_TRAP_CREATE_OBJECT] = sge_vm_trap_create_object_handler,
-		[SGE_VM_TRAP_OBJECT_DESTROY] = sge_vm_trap_object_destroy_handler,
-		[SGE_VM_TRAP_OBJECT_GET_NAME] = sge_vm_trap_object_get_name_handler,
-		[SGE_VM_TRAP_OBJECT_SET_NAME] = sge_vm_trap_object_set_name_handler,
-		[SGE_VM_TRAP_OBJECT_GET_ENABLE] = sge_vm_trap_object_get_enable_handler,
-		[SGE_VM_TRAP_OBJECT_SET_ENABLE] = sge_vm_trap_object_set_enable_handler,
-		[SGE_VM_TRAP_OBJECT_GET_VISIBLE] = sge_vm_trap_object_get_visible_handler,
-		[SGE_VM_TRAP_OBJECT_SET_VISIBLE] = sge_vm_trap_object_set_visible_handler,
-		[SGE_VM_TRAP_OBJECT_GET_MOVABLE] = sge_vm_trap_object_get_movable_handler,
-		[SGE_VM_TRAP_OBJECT_SET_MOVABLE] = sge_vm_trap_object_set_movable_handler,
-		[SGE_VM_TRAP_OBJECT_GET_POS] = sge_vm_trap_object_get_pos_handler,
-		[SGE_VM_TRAP_OBJECT_SET_POS] = sge_vm_trap_object_set_pos_handler,
-		[SGE_VM_TRAP_OBJECT_GET_SCALE] = sge_vm_trap_object_get_scale_handler,
-		[SGE_VM_TRAP_OBJECT_SET_SCALE] = sge_vm_trap_object_set_scale_handler,
-		[SGE_VM_TRAP_OBJECT_GET_ROTATION] = sge_vm_trap_object_get_rotation_handler,
-		[SGE_VM_TRAP_OBJECT_SET_ROTATION] = sge_vm_trap_object_set_rotation_handler
+		[SGE_VM_TRAP_TOGGLE_SHOW_FPS] = sge_vm_trap_toggle_show_fps_handler
 	};
 
 	const sge_vm_trap_handler_t *handler = NULL;
 
 	CX_ASSERT(traps != NULL);
+
+	sge_scene_update(elapsed);
 
 	if (sge_vm_trap_context.trap == SGE_VM_TRAP_NONE)
 		return;
@@ -887,13 +708,12 @@ void sge_vm_update(float elapsed, const sge_vm_traps_t *traps)
 	SDL_UnlockMutex(sge_vm_mutex);
 }
 
-sge_vm_state_t sge_vm_get_state(void)
+void sge_vm_draw_glex(void)
 {
-	return sge_vm_state;
+	sge_scene_draw_glex();
 }
 
-const sge_vm_loading_state_t *sge_vm_get_loading_state(void)
+void sge_vm_draw_nvg(NVGcontext *nvg)
 {
-	return &sge_vm_loading_state;
 }
 

@@ -1,11 +1,13 @@
 
 sge_subdirectories(
-	cx
 	GL
-	lua
 	nanovg
-	parg
-	physfs
-	sge
+	SGL
+	)
+
+sge_sources(
+	Main.cpp
+	MainWindow.cpp
+	MainWindow.hpp
 	)
 

@@ -1,23 +1,17 @@
 
 sge_subdirectories(
-	cx
 	GL
-	sge
+	glm
+	KHR
+	SGL
 	)
 
 sge_sources(
 	fontstash.h
-	HandmadeMath.h
-	lauxlib.h
-	luaconf.h
-	lua.h
-	lua.hpp
-	lualib.h
 	nanovg.h
 	nanovg_gl.h
 	nanovg_gl_utils.h
-	parg.h
-	physfs.h
 	stb_image.h
 	stb_truetype.h
 	)
+

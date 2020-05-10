@@ -14,6 +14,7 @@ Physics::~Physics(void)
 
 bool Physics::init(void)
 {
+	return true;
 }
 
 void Physics::objectAdded(ObjectPtr obj)
@@ -41,6 +42,3 @@ void Physics::draw(void)
 }
 
 SGL_END
-
-#endif // SGL_CAMERA_HPP
-

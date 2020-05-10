@@ -15,8 +15,6 @@ public:
 
 public:
 	bool init(void);
-
-protected:
 	void objectAdded(ObjectPtr obj) override;
 	void objectRemoved(ObjectPtr obj) override;
 	void cameraAdded(CameraPtr cam) override;

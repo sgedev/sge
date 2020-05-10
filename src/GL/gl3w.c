@@ -50,7 +50,7 @@ static int parse_version(void)
 
 static void load_procs(GL3WGetProcAddressProc proc);
 
-int gl3wInit2(union GL3WProcs *procs, GL3WGetProcAddressProc proc)
+int gl3wInit(union GL3WProcs *procs, GL3WGetProcAddressProc proc)
 {
 	gl3wProcs = procs;
 	load_procs(proc);
@@ -64,11 +64,6 @@ int gl3wIsSupported(int major, int minor)
 	if (version.major == major)
 		return version.minor >= minor;
 	return version.major >= major;
-}
-
-GL3WglProc gl3wGetProcAddress(const char *proc)
-{
-	return get_proc(proc);
 }
 
 static const char *proc_names[] = {
@@ -733,12 +728,12 @@ static const char *proc_names[] = {
 	"glWaitSync",
 };
 
-union GL3WProcs gl3wProcs;
+union GL3WProcs *gl3wProcs;
 
 static void load_procs(GL3WGetProcAddressProc proc)
 {
 	size_t i;
 
 	for (i = 0; i < ARRAY_SIZE(proc_names); i++)
-		gl3wProcs.ptr[i] = proc(proc_names[i]);
+		gl3wProcs->ptr[i] = proc(proc_names[i]);
 }

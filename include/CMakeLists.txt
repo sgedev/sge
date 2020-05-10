@@ -7,6 +7,7 @@ sge_subdirectories(
 	)
 
 sge_sources(
+	argh.h
 	fontstash.h
 	nanovg.h
 	nanovg_gl.h

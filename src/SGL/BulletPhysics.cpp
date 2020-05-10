@@ -1,46 +1,44 @@
 //
 //
-#include <SGL/Physics.hpp>
+#include <SGL/BulletPhysics.hpp>
 
 SGL_BEGIN
 
-Physics::Physics(void)
+BulletPhysics::BulletPhysics(void)
 {
 }
 
-Physics::~Physics(void)
+BulletPhysics::~BulletPhysics(void)
 {
 }
 
-bool Physics::init(void)
+bool BulletPhysics::init(void)
+{
+	return true;
+}
+
+void BulletPhysics::objectAdded(ObjectPtr obj)
 {
 }
 
-void Physics::objectAdded(ObjectPtr obj)
+void BulletPhysics::objectRemoved(ObjectPtr obj)
 {
 }
 
-void Physics::objectRemoved(ObjectPtr obj)
+void BulletPhysics::cameraAdded(CameraPtr cam)
 {
 }
 
-void Physics::cameraAdded(CameraPtr cam)
+void BulletPhysics::cameraRemoved(CameraPtr cam)
 {
 }
 
-void Physics::cameraRemoved(CameraPtr cam)
+void BulletPhysics::update(float elapsed)
 {
 }
 
-void Physics::update(float elapsed)
-{
-}
-
-void Physics::draw(void)
+void BulletPhysics::draw(void)
 {
 }
 
 SGL_END
-
-#endif // SGL_CAMERA_HPP
-

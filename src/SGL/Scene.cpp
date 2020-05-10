@@ -30,14 +30,18 @@ bool Scene::init(void)
 void Scene::clear(bool objs, bool cams, bool listeners)
 {
 	if (objs) {
-		for (auto it(m_objects.begin(); it != m_objects.end(); ++it)
-			p->objectRemoved(*it);
+		for (auto lit(m_listeners.begin()); lit != m_listeners.end(); ++lit) {
+			for (auto oit(m_objects.begin()); oit != m_objects.end(); ++oit)
+				(*lit)->objectRemoved(*oit);
+		}
 		m_objects.clear();
 	}
 
 	if (cams) {
-		for (auto it(m_cameras.begin(); it != m_cameras.end(); ++it)
-			p->cameraRemoved(*it);
+		for (auto lit(m_listeners.begin()); lit != m_listeners.end(); ++lit) {
+			for (auto cit(m_cameras.begin()); cit != m_cameras.end(); ++cit)
+				(*lit)->cameraRemoved(*cit);
+		}
 		m_cameras.clear();
 	}
 
@@ -50,10 +54,12 @@ void Scene::addListener(Listener *p)
 	SGL_ASSERT(p != NULL);
 
 	auto it(std::find(m_listeners.begin(), m_listeners.end(), p));
-	if (it == m_listeners.end())
-		m_listeners.push_back(p);
+	if (it != m_listeners.end())
+		return;
 
-	for (auto oit(m_objects.begin(); oit != m_objects.end(); ++oit) {
+	m_listeners.push_back(p);
+
+	for (auto oit(m_objects.begin()); oit != m_objects.end(); ++oit) {
 		for (auto lit(m_listeners.begin()); lit != m_listeners.end(); ++lit)
 			(*lit)->objectRemoved(*oit);
 	}
@@ -64,10 +70,12 @@ void Scene::removeListener(Listener *p)
 	SGL_ASSERT(p != NULL);
 
 	auto it(std::find(m_listeners.begin(), m_listeners.end(), p));
-	if (it != m_listeners.end())
-		m_listeners.erase(it);
+	if (it == m_listeners.end())
+		return;
 
-	for (auto it(m_objects.begin(); it != m_objects.end(); ++it)
+	m_listeners.erase(it);
+
+	for (auto it(m_objects.begin()); it != m_objects.end(); ++it)
 		p->objectRemoved(*it);
 }
 
@@ -76,8 +84,10 @@ void Scene::addObject(ObjectPtr obj)
 	SGL_ASSERT(obj);
 
 	auto it(std::find(m_objects.begin(), m_objects.end(), obj));
-	if (it == m_objects.end())
-		m_listeners.push_back(p);
+	if (it != m_objects.end())
+		return;
+
+	m_objects.push_back(obj);
 
 	for (auto it(m_listeners.begin()); it != m_listeners.end(); ++it)
 		(*it)->objectAdded(obj);
@@ -88,8 +98,10 @@ void Scene::removeObject(ObjectPtr obj)
 	SGL_ASSERT(obj);
 
 	auto it(std::find(m_objects.begin(), m_objects.end(), obj));
-	if (it != m_objects.end())
-		m_listeners.earse(it);
+	if (it == m_objects.end())
+		return;
+
+	m_objects.erase(it);
 
 	for (auto it(m_listeners.begin()); it != m_listeners.end(); ++it)
 		(*it)->objectRemoved(obj);
@@ -99,21 +111,25 @@ void Scene::addCamera(CameraPtr cam)
 {
 	SGL_ASSERT(cam);
 
-	auto it(std::find(m_cameras.begin(), m_cameras.end(), obj));
-	if (it == m_cameras.end())
-		m_cameras.push_back(cam);
+	auto it(std::find(m_cameras.begin(), m_cameras.end(), cam));
+	if (it != m_cameras.end())
+		return;
+
+	m_cameras.push_back(cam);
 
 	for (auto it(m_listeners.begin()); it != m_listeners.end(); ++it)
-		(*it)->cameraAdded(obj);
+		(*it)->cameraAdded(cam);
 }
 
 void Scene::removeCamera(CameraPtr cam)
 {
 	SGL_ASSERT(obj);
 
-	auto it(std::find(m_cameras.begin(), m_cameras.end(), obj));
-	if (it != m_cameras.end())
-		m_cameras.earse(it);
+	auto it(std::find(m_cameras.begin(), m_cameras.end(), cam));
+	if (it == m_cameras.end())
+		return;
+
+	m_cameras.erase(it);
 
 	for (auto it(m_listeners.begin()); it != m_listeners.end(); ++it)
 		(*it)->cameraRemoved(cam);
@@ -121,7 +137,7 @@ void Scene::removeCamera(CameraPtr cam)
 
 void Scene::update(float elapsed)
 {
-	for (auto it(m_objects.begin(); it != m_objects.end(); ++it)
+	for (auto it(m_objects.begin()); it != m_objects.end(); ++it)
 		(*it)->update(elapsed);
 
 	for (auto it(m_listeners.begin()); it != m_listeners.end(); ++it)
@@ -131,7 +147,7 @@ void Scene::update(float elapsed)
 void Scene::draw(void)
 {
 	for (auto it(m_listeners.begin()); it != m_listeners.end(); ++it)
-		it->draw();
+		(*it)->draw();
 }
 
 SGL_END

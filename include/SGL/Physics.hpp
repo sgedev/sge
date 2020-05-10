@@ -15,14 +15,12 @@ public:
 
 public:
 	bool init(void);
-
-protected:
-	void objectAdded(ObjectPtr obj);
-	void objectRemoved(ObjectPtr obj);
-	void cameraAdded(CameraPtr cam);
-	void cameraRemoved(CameraPtr cam);
-	void update(float elapsed);
-	void draw(void);
+	void objectAdded(ObjectPtr obj) override;
+	void objectRemoved(ObjectPtr obj) override;
+	void cameraAdded(CameraPtr cam) override;
+	void cameraRemoved(CameraPtr cam) override;
+	void update(float elapsed) override;
+	void draw(void) override;
 
 private:
 };

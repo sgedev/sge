@@ -4,7 +4,7 @@
 #define MAINWINDOW_HPP
 
 #include <SGL/Scene.hpp>
-#include <SGL/OpenGLWinodw.hpp>
+#include <SGL/OpenGLWindow.hpp>
 #include <SGL/OpenGLRenderer.hpp>
 #include <SGL/BulletPhysics.hpp>
 
@@ -13,8 +13,12 @@ public:
 	MainWindow(void);
 	virtual ~MainWindow(void);
 
+public:
+	bool init(const char *name, int x, int y, int width, int height);
+
 protected:
 	void paint(void) override;
+	bool initGL(void) override;
 
 private:
 	SGL::Scene m_scene;

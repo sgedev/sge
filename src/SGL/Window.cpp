@@ -5,7 +5,7 @@
 SGL_BEGIN
 
 Window::Window(void):
-	m_window(NULL)
+	m_handle(NULL)
 {
 }
 
@@ -16,17 +16,17 @@ Window::~Window(void)
 
 bool Window::init(const char *name, int x, int y, int width, int height, int flags)
 {
-	SGL_ASSERT(m_window == NULL);
+	SGL_ASSERT(m_handle == NULL);
 
-	SGE_LOGD("Creating main window...");
+	SGL_LOGD("Creating main window...");
 
-	m_window = SDL_CreateWindow("SGE", x, y, width, height, flags);
-	if (sge_window == NULL) {
+	m_handle = SDL_CreateWindow("SGE", x, y, width, height, flags);
+	if (m_handle == NULL) {
 		SGL_LOGE("Failed to create main window.");
 		return false;
 	}
 	
-	m_id = SDL_GetWindowID(m_window);
+	m_id = SDL_GetWindowID(m_handle);
 
 	m_rect[0] = x;
 	m_rect[1] = y;
@@ -50,8 +50,8 @@ bool Window::handleEvent(const SDL_WindowEvent &event)
 		m_visibled = false;
 		break;
 	case SDL_WINDOWEVENT_RESIZED:
-		m_rect[2] = event->data1;
-		m_rect[3] = event->data2;
+		m_rect[2] = event.data1;
+		m_rect[3] = event.data2;
 		break;
 	case SDL_WINDOWEVENT_FOCUS_GAINED:
 		break;
@@ -66,15 +66,15 @@ bool Window::handleEvent(const SDL_WindowEvent &event)
 
 void Window::update(float elapsed)
 {
-	SGL_ASSERT(m_window != NULL);
+	SGL_ASSERT(m_handle != NULL);
 
 	paint();
 }
 
 void Window::release(void)
 {
-	if (m_window != NULL)
-		SDL_DestroyWindow(m_window);
+	if (m_handle != NULL)
+		SDL_DestroyWindow(m_handle);
 }
 
 void Window::paint(void)

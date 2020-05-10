@@ -3,9 +3,7 @@ sge_sources(
 	BulletPhysics.hpp
 	Camera.hpp
 	Common.hpp
-	Client.hpp
 	Config.hpp.in
-	FpsGame.hpp
 	Game.hpp
 	Object.hpp
 	OpenGLBuffer.hpp
@@ -22,7 +20,6 @@ sge_sources(
 	Physics.hpp
 	Renderer.hpp
 	Scene.hpp
-	Server.hpp
 	Window.hpp
 	)
 

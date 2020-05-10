@@ -5,19 +5,19 @@
 SGL_BEGIN
 
 OpenGLWindow::OpenGLWindow(void):
-	m_gl(NULL)
+	m_context(NULL)
 {
 }
 
 OpenGLWindow::~OpenGLWindow(void)
 {
-	if (m_gl != NULL)
-		SDL_GL_DeleteContext(m_gl);
+	if (m_context != NULL)
+		SDL_GL_DeleteContext(m_context);
 }
 
 bool OpenGLWindow::init(const char *name, int x, int y, int width, int height, int flags)
 {
-	SGL_ASSERT(m_gl == NULL);
+	SGL_ASSERT(m_context == NULL);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -38,14 +38,14 @@ bool OpenGLWindow::init(const char *name, int x, int y, int width, int height, i
 		goto bad0;
 	}	
 
-	SGE_LOGD("Create OpenGL context...");
-	m_gl = SDL_GL_CreateContext(handle());
-	if (m_gl == NULL) {
+	SGL_LOGD("Create OpenGL context...");
+	m_context = SDL_GL_CreateContext(handle());
+	if (m_context == NULL) {
 		SGL_LOGE("Failed to create OpenGL context.");
 		goto bad1;
 	}
 
-	SDL_GL_MakeCurrent(handle(), m_gl);
+	SDL_GL_MakeCurrent(handle(), m_context);
 
 	if (gl3wInit(&m_gl3w, (GL3WGetProcAddressProc)SDL_GL_GetProcAddress) < 0) {
 		SGL_LOGE("Failed to init OpenGL procs.");
@@ -64,11 +64,14 @@ bool OpenGLWindow::init(const char *name, int x, int y, int width, int height, i
 		glDebugMessageCallback(sge_gl_debug_output, NULL);
 #endif
 
+	if (!initGL())
+		goto bad2;
+
 	return true;
 
 bad2:
-	SDL_GL_DeleteContext(m_gl);
-	m_gl = NULL;
+	SDL_GL_DeleteContext(m_context);
+	m_context = NULL;
 
 bad1:
 	release();
@@ -88,7 +91,7 @@ bool OpenGLWindow::handleEvent(const SDL_WindowEvent &event)
 
 void OpenGLWindow::update(float elapsed)
 {
-	SGL_ASSERT(m_gl != NULL);
+	SGL_ASSERT(m_context != NULL);
 
 	if (!visibled())
 		return;
@@ -96,7 +99,7 @@ void OpenGLWindow::update(float elapsed)
 	if (width() < 1 || height() < 1)
 		return;
 
-	if (SDL_GL_MakeCurrent(handle(), m_gl) < 0)
+	if (SDL_GL_MakeCurrent(handle(), m_context) < 0)
 		return;
 
 	gl3wProcs = &m_gl3w;
@@ -108,7 +111,16 @@ void OpenGLWindow::update(float elapsed)
 
 	gl3wProcs = NULL;
 
-	SDL_GL_SwapWindow(m_window);
+	SDL_GL_SwapWindow(handle());
+}
+
+void OpenGLWindow::paint(void)
+{
+}
+
+bool OpenGLWindow::initGL(void)
+{
+	return true;
 }
 
 SGL_END

@@ -1,17 +1,17 @@
 //
 //
-#ifndef SGL_PHYSICS_HPP
-#define SGL_PHYSICS_HPP
+#ifndef SGL_BULLETPHYSICS_HPP
+#define SGL_BULLETPHYSICS_HPP
 
 #include <SGL/Common.hpp>
-#include <SGL/Scene.hpp>
+#include <SGL/Physics.hpp>
 
 SGL_BEGIN
 
-class Physics: public Scene::Listener {
+class BulletPhysics: public Physics {
 public:
-	Physics(void);
-	virtual ~Physics(void);
+	BulletPhysics(void);
+	virtual ~BulletPhysics(void);
 
 public:
 	bool init(void);
@@ -29,5 +29,5 @@ private:
 
 SGL_END
 
-#endif // SGL_PHYSICS_HPP
+#endif // SGL_BULLETPHYSICS_HPP
 

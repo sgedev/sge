@@ -14,6 +14,7 @@ Renderer::~Renderer(void)
 
 bool Renderer::init(void)
 {
+	return true;
 }
 
 void Renderer::objectAdded(ObjectPtr obj)

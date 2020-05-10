@@ -5,6 +5,9 @@
 
 #include <SGL/Common.hpp>
 #include <SGL/Scene.hpp>
+#include <SGL/Window.hpp>
+#include <SGL/Renderer.hpp>
+#include <SGL/Physics.hpp>
 
 SGL_BEGIN
 
@@ -14,19 +17,16 @@ public:
 	virtual ~Game(void);
 
 public:
-	virtual bool init(const char *name);
+	virtual bool init(void);
 	virtual bool handleEvent(const SDL_Event &event);
 	virtual void frame(float elapsed);
-	Scene *scene(void);
-
-protected:
-	virtual Scene *getScene(void) = 0;
+	Scene &scene(void);
 
 private:
-	Scene *m_scene;
+	Scene m_scene;
 };
 
-inline Scene *Game::scene(void)
+inline Scene &Game::scene(void)
 {
 	return m_scene;
 }
@@ -34,4 +34,3 @@ inline Scene *Game::scene(void)
 SGL_END
 
 #endif // SGL_GAME_HPP
-

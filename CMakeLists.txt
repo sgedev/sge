@@ -10,7 +10,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -53,14 +53,6 @@ add_executable(sge)
 
 set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
 set(SGE_LOG ON CACHE BOOL "Enable log functions.")
-
-if(NOT SGE_DEBUG)
-	sge_compile_definitions(GLEX_DEBUG_DISABLE)
-endif()
-
-if(NOT SGE_LOG)
-	sge_compile_definitions(GLEX_LOG_DISABLE)
-endif()
 
 sge_include_directories(
 	${CMAKE_SOURCE_DIR}/include

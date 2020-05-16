@@ -3,16 +3,17 @@ sge_subdirectories(
 	GL
 	glm
 	KHR
-	SGL
+	SGE
 	)
 
 sge_sources(
 	argh.h
-	fontstash.h
-	nanovg.h
-	nanovg_gl.h
-	nanovg_gl_utils.h
-	stb_image.h
-	stb_truetype.h
+	imconfig.h
+	imgui.h
+	imgui_impl_opengl3.h
+	imgui_impl_sdl.h
+	imgui_internal.h
+	imstb_rectpack.h
+	imstb_textedit.h
+	imstb_truetype.h
 	)
-

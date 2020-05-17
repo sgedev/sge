@@ -5,6 +5,7 @@
 
 #include <SGE/Scene.hpp>
 #include <SGE/Graphics/Common.hpp>
+#include <SGE/Graphics/Heap.hpp>
 
 SGE_GRAPHICS_BEGIN
 
@@ -23,7 +24,10 @@ public:
 	void draw(void);
 
 private:
-
+	Heap m_staticVertexHeap;
+	Heap m_staticVertexIndexHeap;
+	Heap m_dynamicVertexHeap;
+	Heap m_dynamicVertexIndexHeap;
 };
 
 SGE_GRAPHICS_END

@@ -11,7 +11,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include <SGE/Handle.hpp>
+#include <SGE/Game.hpp>
 #include <SGE/Player.hpp>
 #include <SGE/Editor.hpp>
 #include <SGE/Server.hpp>
@@ -40,8 +40,8 @@ static void sgePollEvents(uv_prepare_t *p)
 {
 	SDL_Event event;
 
-	SGE::Handle *handler = (SGE::Handle *)(p->data);
-	SGE_ASSERT(handler != NULL);
+	SGE::Game *game = (SGE::Game *)(p->data);
+	SGE_ASSERT(game != NULL);
 
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
@@ -49,7 +49,7 @@ static void sgePollEvents(uv_prepare_t *p)
 			uv_stop(p->loop);
 			break;
 		default:
-			handler->handleEvent(event);
+			game->handleEvent(event);
 			break;
 		}
 	}
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 	}
 
 	std::string mode;
-	std::unique_ptr<SGE::Handle> handler;
+	std::unique_ptr<SGE::Game> game;
 
 	cmdline({ "-m", "--mode" }, "play") >> mode;
 	SGE_LOGI("Mode: %s", mode.c_str());
@@ -139,24 +139,24 @@ int main(int argc, char *argv[])
 
 	if (mode == "play") {
 		SGE_LOGD("Creating game player...");
-		handler.reset(new SGE::Player(uv_default_loop()));
+		game.reset(new SGE::Player(uv_default_loop()));
 	} else if (mode == "edit") {
 		SGE_LOGD("Creating game editor...");
-		handler.reset(new SGE::Editor(uv_default_loop()));
+		game.reset(new SGE::Editor(uv_default_loop()));
 	} else if (mode == "serve") {
 		SGE_LOGD("Creating game server...");
-		handler.reset(new SGE::Server(uv_default_loop()));
+		game.reset(new SGE::Server(uv_default_loop()));
 	} else {
 		SGE_LOGE("Unknown mode '%s'", mode.c_str());
 		return EXIT_FAILURE;
 	}
 
-	if (!handler) {
+	if (!game) {
 		SGE_LOGE("Failed to init SGE.");
 		return EXIT_FAILURE;
 	}
 
-	if (!handler->start(cmdline[1])) {
+	if (!game->start(cmdline[1])) {
 		SGE_LOGE("Failed to start game.");
 		return EXIT_FAILURE;
 	}
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
 	uv_prepare_t eventPoller;
 	uv_prepare_init(uv_default_loop(), &eventPoller);
 	uv_prepare_start(&eventPoller, sgePollEvents);
-	eventPoller.data = handler.get();
+	eventPoller.data = game.get();
 
 	// Main loop.
 	uv_run(uv_default_loop(), UV_RUN_DEFAULT);

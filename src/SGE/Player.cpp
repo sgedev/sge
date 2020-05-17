@@ -5,7 +5,7 @@
 SGE_BEGIN
 
 Player::Player(uv_loop_t *loop):
-	Handle(loop),
+	Game(loop),
 	m_window(NULL),
 	m_context(NULL),
 	m_imgui_sdl2(NULL),
@@ -13,12 +13,6 @@ Player::Player(uv_loop_t *loop):
 	m_imgui(NULL)
 {
 	SGE_ASSERT(loop != NULL);
-
-	uv_timer_init(loop, &m_frameTimer);
-	m_frameTimer.data = this;
-
-	uv_timer_init(loop, &m_stateTimer);
-	m_stateTimer.data = this;
 }
 
 Player::~Player(void)
@@ -33,16 +27,11 @@ bool Player::start(const std::string &path)
 	SGE_ASSERT(m_imgui_sdl2 == NULL);
 	SGE_ASSERT(m_imgui_opengl3 == NULL);
 
-	if (!Handle::start(path))
+	if (!Game::start(path))
 		return false;
-
-	if (!m_scene.init()) {
-		Handle::stop();
-		return false;
-	}
 
 	if (!initWindow()) {
-		Handle::stop();
+		Game::stop();
 		return false;
 	}
 
@@ -51,7 +40,7 @@ bool Player::start(const std::string &path)
 	if (gl3wInit(&m_gl3w, (GL3WGetProcAddressProc)SDL_GL_GetProcAddress) < 0) {
 		SGE_LOGE("Failed to init OpenGL procs.");
 		releaseWindow();
-		Handle::stop();
+		Game::stop();
 		return false;
 	}
 
@@ -74,16 +63,6 @@ bool Player::start(const std::string &path)
 	m_renderer.init();
 	m_scene.addListener(&m_renderer);
 
-	m_physicsWorld.init();
-	m_scene.addListener(&m_physicsWorld);
-
-	uv_timer_start(&m_frameTimer, &Player::frameCallback, 16, 16);
-	uv_timer_start(&m_stateTimer, &Player::stateCallback, 1000, 1000);
-
-	m_fps = 0;
-	m_fpsCount = 0;
-	m_last = SDL_GetTicks();
-
 	return true;
 }
 
@@ -95,10 +74,7 @@ void Player::stop(void)
 	SGE_ASSERT(m_imgui_sdl2 != NULL);
 	SGE_ASSERT(m_imgui_opengl3 != NULL);
 
-	Handle::stop();
-
-	uv_timer_stop(&m_stateTimer);
-	uv_timer_stop(&m_frameTimer);
+	Game::stop();
 
 	SDL_GL_MakeCurrent(m_window, m_context);
 
@@ -111,16 +87,39 @@ void Player::stop(void)
 
 bool Player::handleEvent(const SDL_Event &event)
 {
+	if (Game::handleEvent(event))
+		return true;
+
+	SGE_ASSERT(m_window != NULL);
+
 	if (event.type == SDL_WINDOWEVENT)
-		return handleWindowEvent(event.window);
+		handleWindowEvent(event.window);
+
+	SGE_ASSERT(m_imgui != NULL);
+	SGE_ASSERT(m_imgui_sdl2 != NULL);
+	SGE_ASSERT(m_imgui_opengl3 != NULL);
 
 	ImGui::SetCurrentContext(m_imgui);
 	ImGui_ImplSDL2_MakeCurrent(m_imgui_sdl2);
+	ImGui_ImplOpenGL3_MakeCurrent(m_imgui_opengl3);
 
+	// TODO game input or gui input?
 	if (ImGui_ImplSDL2_ProcessEvent(&event))
 		return true;
 
 	return false;
+}
+
+void Player::updateLoading(float progress)
+{
+	updateWindow();
+}
+
+void Player::updatePlaying(void)
+{
+	m_renderer.update(elapsed());
+
+	updateWindow();
 }
 
 bool Player::initWindow(void)
@@ -241,36 +240,6 @@ void Player::updateWindow(void)
 
 void Player::updateGui(void)
 {
-}
-
-void Player::frame(void)
-{
-	Uint32 curr = SDL_GetTicks() - m_last;
-	float elapsed = float(curr) / 1000.0f;
-
-	m_scene.update(elapsed);
-	m_physicsWorld.update(elapsed);
-	m_renderer.update(elapsed);
-
-	updateWindow();
-
-	uv_update_time(loop());
-}
-
-void Player::frameCallback(uv_timer_t *p)
-{
-	((Player *)(p->data))->frame();
-}
-
-void Player::state(void)
-{
-	m_fps = m_fpsCount;
-	m_fpsCount = 0;
-}
-
-void Player::stateCallback(uv_timer_t *p)
-{
-	((Player *)(p->data))->state();
 }
 
 SGE_END

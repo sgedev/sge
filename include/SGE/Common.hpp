@@ -3,6 +3,8 @@
 #ifndef SGE_COMMON_HPP
 #define SGE_COMMON_HPP
 
+#include <cstddef>
+
 #include <uv.h>
 #include <SDL.h>
 
@@ -39,5 +41,18 @@
 
 #define SGE_BEGIN namespace SGE {
 #define SGE_END }
+
+SGE_BEGIN
+
+class Noncopyable {
+public:
+	Noncopyable(void) { }
+
+private:
+	Noncopyable(const Noncopyable &);
+	Noncopyable &operator=(const Noncopyable &);
+};
+
+SGE_END
 
 #endif // SGE_COMMON_HPP

@@ -31,7 +31,8 @@ sge_subdirectories(
 sge_sources(
 	Camera.cpp
 	Editor.cpp
-	Handle.cpp
+	Game.cpp
+	List.cpp
 	Main.cpp
 	Object.cpp
 	Player.cpp

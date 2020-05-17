@@ -4,11 +4,11 @@
 #define SGE_SERVER_HPP
 
 #include <SGE/Common.hpp>
-#include <SGE/Handle.hpp>
+#include <SGE/Game.hpp>
 
 SGE_BEGIN
 
-class Server: public Handle {
+class Server: public Game {
 public:
 	Server(uv_loop_t *loop);
 	virtual ~Server(void);
@@ -16,6 +16,10 @@ public:
 public:
 	bool start(const std::string &path) override;
 	void stop(void) override;
+
+protected:
+	void updateLoading(float progress) override;
+	void updatePlaying(void) override;
 };
 
 SGE_END

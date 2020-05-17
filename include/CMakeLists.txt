@@ -16,4 +16,5 @@ sge_sources(
 	imstb_rectpack.h
 	imstb_textedit.h
 	imstb_truetype.h
+	physfs.h
 	)

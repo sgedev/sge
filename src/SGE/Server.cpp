@@ -5,7 +5,7 @@
 SGE_BEGIN
 
 Server::Server(uv_loop_t *loop):
-	Handle(loop)
+	Game(loop)
 {
 }
 
@@ -15,7 +15,7 @@ Server::~Server(void)
 
 bool Server::start(const std::string &path)
 {
-	if (!Handle::start(path))
+	if (!Game::start(path))
 		return false;
 
 	return true;
@@ -23,7 +23,15 @@ bool Server::start(const std::string &path)
 
 void Server::stop(void)
 {
-	Handle::stop();
+	Game::stop();
+}
+
+void Server::updateLoading(float progress)
+{
+}
+
+void Server::updatePlaying(void)
+{
 }
 
 SGE_END

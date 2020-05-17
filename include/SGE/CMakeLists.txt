@@ -9,8 +9,9 @@ sge_sources(
 	Common.hpp
 	Config.hpp.in
 	Editor.hpp
+	Game.hpp
 	Graphics.hpp
-	Handle.hpp
+	List.hpp
 	Object.hpp
 	Physics.hpp
 	Player.hpp

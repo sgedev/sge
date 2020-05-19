@@ -14,11 +14,16 @@ Renderer::Renderer(void):
 
 Renderer::~Renderer(void)
 {
+	shutdown();
 }
 
 bool Renderer::init(void)
 {
 	return true;
+}
+
+void Renderer::shutdown(void)
+{
 }
 
 void Renderer::objectAdded(ObjectPtr obj)

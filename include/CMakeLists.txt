@@ -1,5 +1,6 @@
 
 sge_subdirectories(
+	cx
 	GL
 	glm
 	KHR
@@ -16,5 +17,10 @@ sge_sources(
 	imstb_rectpack.h
 	imstb_textedit.h
 	imstb_truetype.h
+	luaconf.h
+	lua.h
+	lua.hpp
+	lualib.h
+	lauxlib.h
 	physfs.h
 	)

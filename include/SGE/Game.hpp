@@ -6,12 +6,13 @@
 #include <string>
 
 #include <SGE/Common.hpp>
+#include <SGE/VM.hpp>
 #include <SGE/Scene.hpp>
 #include <SGE/Physics.hpp>
 
 SGE_BEGIN
 
-class Game {
+class Game: public VM {
 public:
 	enum State {
 		StateIdle = 0,
@@ -26,14 +27,16 @@ public:
 	virtual ~Game(void);
 
 public:
-	virtual bool start(const std::string &path);
-	virtual void stop(void);
+	bool start(const std::string &initrc) override;
+	void stop(void) override;
 	virtual bool handleEvent(const SDL_Event &event);
 
 protected:
 	float elapsed(void) const;
 	virtual void updateLoading(float progress) = 0;
 	virtual void updatePlaying(void) = 0;
+
+protected:
 
 private:
 	void doLoading(void);
@@ -49,6 +52,7 @@ protected:
 	Scene m_scene;
 
 private:
+	std::string m_root;
 	uv_loop_t *m_loop;
 	uv_timer_t m_frameTimer;
 	uv_timer_t m_stateTimer;
@@ -58,7 +62,6 @@ private:
 	Uint32 m_last;
 	float m_elapsed;
 	Physics::World m_physicsWorld;
-	std::string m_root;
 };
 
 SGE_INLINE float Game::elapsed(void) const

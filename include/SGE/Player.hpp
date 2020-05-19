@@ -41,6 +41,13 @@ protected:
 	Graphics::Renderer m_renderer;
 
 private:
+#if defined SGE_DEBUG && defined SGE_LOG
+	static void APIENTRY glDebugOutput(
+		GLenum source, GLenum type, unsigned int id, GLenum severity,
+		GLsizei length, const char *message, const void *userParam);
+#endif
+
+private:
 	std::string m_path;
 	Uint32 m_id;
 	union GL3WProcs m_gl3w;

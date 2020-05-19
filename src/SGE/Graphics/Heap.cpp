@@ -8,28 +8,18 @@ static const int HeapBlockOrder = 26;
 static const int HeapBlockSize = (1 << HeapBlockOrder);
 
 struct Heap::Buffer {
-    Buffer(void):
-        node(this)
-    {
-    }
-
+    cx_list_node_t node;
 	Heap::Block *block;
 	int pos;
 	int size;
-    List<Buffer>::Node node;
 };
 
 struct Heap::Block {
-    Block(void):
-        node(this)
-    {
-    }
-
+    cx_list_node_t node;
+    cx_list_t bufferList;
     Heap *heap;
     int freeSize;
     GLuint id;
-    List<Block>::Node node;
-    List<Buffer> bufferList;
 };
 
 // Heap
@@ -38,43 +28,51 @@ Heap::Heap(GLenum target, GLenum usage):
     m_target(target),
 	m_usage(usage)
 {
+    cx_list_reset(&m_blockList);
 }
 
 Heap::~Heap(void)
 {
-    List<Block>::Node *p;
-    for (p = m_blockList.first(); p != m_blockList.knot(); p = p->next())
-        destroyBlock(p->value());
+    cx_list_node_t *node;
+    Block *block;
+
+    while (!cx_list_empty(&m_blockList)) {
+        node = cx_list_del_head(&m_blockList);
+        block = CX_MEMBEROF(node, Block, node);
+        destroyBlock(block);
+    }
 }
 
 Heap::Buffer *Heap::allocBuffer(int size)
 {
-    Block *blk;
-    Buffer *buf;
-
     SGE_ASSERT(size > 0);
 
     if (size > HeapBlockSize)
         return NULL;
 
-    for (List<Block>::Node *p = m_blockList.first(); p != m_blockList.knot(); p = p->next()) {
-        buf = allocBufferFromBlock(p->value(), size);
+    cx_list_node_t *node;
+    Block *block;
+    Buffer *buf;
+
+    CX_LIST_FOREACH(node, &m_blockList) {
+        block = CX_MEMBEROF(node, Block, node);
+        buf = allocBufferFromBlock(block, size);
         if (buf != NULL)
             return buf;
     }
 
-    blk = createBlock();
-    if (blk == NULL)
+    block = createBlock();
+    if (block == NULL)
         return NULL;
 
-    return allocBufferFromBlock(blk, size);
+    return allocBufferFromBlock(block, size);
 }
 
 void Heap::freeBuffer(Buffer *buf)
 {
     SGE_ASSERT(buf != NULL);
 
-    buf->node.unlink();
+    cx_list_node_unlink(&buf->node);
     delete buf;
 }
 
@@ -99,68 +97,75 @@ int Heap::writeBuffer(Buffer *buf, int offset, const void *p, int size)
 
 Heap::Block *Heap::createBlock(void)
 {
-    Block *blk = new Block();
+    Block *block = new Block();
 
-    glGenBuffers(1, &blk->id);
-    if (blk->id == 0) {
-        delete blk;
+    glGenBuffers(1, &block->id);
+    if (block->id == 0) {
+        delete block;
         return NULL;
     }
 
-    glBindBuffer(m_target, blk->id);
+    glBindBuffer(m_target, block->id);
     glBufferData(m_target, HeapBlockSize, NULL, m_usage);
     glBindBuffer(m_target, 0);
 
-    blk->heap = this;
-    blk->freeSize = HeapBlockSize;
+    block->heap = this;
+    block->freeSize = HeapBlockSize;
 
-    m_blockList.prepand(&blk->node);
+    cx_list_reset(&block->bufferList);
+    cx_list_node_reset(&block->node);
+    cx_list_add_head(&m_blockList, &block->node);
 
-    return blk;
+    return block;
 }
 
-void Heap::destroyBlock(Block *blk)
+void Heap::destroyBlock(Block *block)
 {
-    SGE_ASSERT(blk != NULL);
-    SGE_ASSERT(blk->bufferList.empty());
+    SGE_ASSERT(block != NULL);
+    SGE_ASSERT(cx_list_empty(&block->bufferList));
 
-    m_blockList.remove(&blk->node);
-    delete blk;
+    cx_list_del_node(&m_blockList, &block->node);
+
+    delete block;
 }
 
-Heap::Buffer *Heap::allocBufferFromBlock(Block *blk, int size)
+Heap::Buffer *Heap::allocBufferFromBlock(Block *block, int size)
 {
     int pos = 0;
-    List<Buffer>::Node *used;
+    cx_list_node_t *node;
+    Buffer *used;
     Buffer *buf;
     bool found = false;
 
     SGE_ASSERT(size > 0);
 
-    if (size > blk->freeSize)
+    if (size > block->freeSize)
         return NULL;
 
-    for (used = blk->bufferList.first(); used != blk->bufferList.knot(); used = used->next()) {
-        if ((used->value()->pos - pos) >= size) {
+    CX_LIST_FOREACH(node, &block->bufferList) {
+        used = CX_MEMBEROF(node, Buffer, node);
+        if ((used->pos - pos) >= size) {
             found = true;
             break;
         }
-        pos = used->value()->pos + used->value()->size;
+        pos = used->pos + used->size;
     }
 
     buf = new Buffer();
+    cx_list_node_reset(&buf->node);
+
     if (!found) {
         if (used != NULL && size > (HeapBlockSize - pos))
             return NULL;
-        blk->bufferList.append(&buf->node);
+        cx_list_add_tail(&block->bufferList, &buf->node);
     } else
-        buf->node.link(used, used->next());
+        cx_list_node_link(&buf->node, node, cx_list_node_next(node));
 
-    buf->block = blk;
+    buf->block = block;
     buf->pos = pos;
     buf->size = size;
 
-    blk->freeSize -= size;
+    block->freeSize -= size;
 
     return 0;
 }

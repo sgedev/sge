@@ -7,6 +7,7 @@
 #include <string>
 
 #include <argh.h>
+#include <physfs.h>
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -16,23 +17,39 @@
 #include <SGE/Editor.hpp>
 #include <SGE/Server.hpp>
 
-struct SDL_Initialization {
-	int state;
-
-	SDL_Initialization(Uint32 flags = SDL_INIT_EVERYTHING)
+struct PHYSFS_Initialization {
+	PHYSFS_Initialization(const char *argv0)
 	{
-		state = SDL_Init(flags);
+		PHYSFS_init(argv0);
+	}
+
+	~PHYSFS_Initialization(void)
+	{
+		if (PHYSFS_isInit())
+			PHYSFS_deinit();
+	}
+
+	operator bool(void) const
+	{
+		return PHYSFS_isInit();
+	}
+};
+
+struct SDL_Initialization {
+	SDL_Initialization(Uint32 flags)
+	{
+		SDL_Init(flags);
 	}
 
 	~SDL_Initialization(void)
 	{
-		if (state == 0)
+		if (SDL_WasInit(0))
 			SDL_Quit();
 	}
 
 	operator bool(void) const
 	{
-		return (state == 0);
+		return (SDL_WasInit(0));
 	}
 };
 
@@ -65,7 +82,7 @@ static void sgePrintHelp(void)
 	SGE_LOGI("    edit  - edit a game.");
 	SGE_LOGI("    serve - start a game server.");
 	SGE_LOGI("  -d, --debug");
-	SGE_LOGI("    debug mode for developer.");
+	SGE_LOGI("    enable debug log level.");
 	SGE_LOGI("  -h, --help");
 	SGE_LOGI("    Show this message.");
 	SGE_LOGI("  -v, --version");
@@ -100,11 +117,11 @@ int main(int argc, char *argv[])
 	cmdline.add_params({ "-m", "--mode" });
 	cmdline.parse(argc, argv);
 
-#ifdef SGE_DEBUG
-	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
-#else
 	if (cmdline[{ "-d", "--debug"}])
 		SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
+
+#ifdef SGE_DEBUG
+	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
 #endif
 
 	if (cmdline[{ "-h", "--help"}]) {
@@ -118,13 +135,19 @@ int main(int argc, char *argv[])
 	}
 
 	if (cmdline.size() < 2) {
-		SGE_LOGE("Game path is not specified. %d", cmdline.size());
+		SGE_LOGE("Game path is not specified.");
 		return EXIT_FAILURE;
 	}
 
 	sgePrintBanner();
 
-	SDL_Initialization sdl;
+	PHYSFS_Initialization physfs(argv[0]);
+	if (!physfs) {
+		SGE_LOGE("Failed to init PhysFS.");
+		return EXIT_FAILURE;
+	}
+
+	SDL_Initialization sdl(SDL_INIT_EVERYTHING);
 	if (!sdl) {
 		SGE_LOGE("Failed to init SDL.");
 		return EXIT_FAILURE;
@@ -138,13 +161,13 @@ int main(int argc, char *argv[])
 	SGE_LOGI("Path: %s", cmdline[1].c_str());
 
 	if (mode == "play") {
-		SGE_LOGD("Creating game player...");
+		SGE_LOGD("Creating player...");
 		game.reset(new SGE::Player(uv_default_loop()));
 	} else if (mode == "edit") {
-		SGE_LOGD("Creating game editor...");
+		SGE_LOGD("Creating editor...");
 		game.reset(new SGE::Editor(uv_default_loop()));
 	} else if (mode == "serve") {
-		SGE_LOGD("Creating game server...");
+		SGE_LOGD("Creating server...");
 		game.reset(new SGE::Server(uv_default_loop()));
 	} else {
 		SGE_LOGE("Unknown mode '%s'", mode.c_str());

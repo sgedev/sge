@@ -38,4 +38,5 @@ sge_sources(
 	Player.cpp
 	Scene.cpp
 	Server.cpp
+	VM.cpp
 	)

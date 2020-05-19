@@ -10,11 +10,16 @@ World::World(void)
 
 World::~World(void)
 {
+	shutdown();
 }
 
 bool World::init(void)
 {
 	return true;
+}
+
+void World::shutdown(void)
+{
 }
 
 void World::objectAdded(ObjectPtr obj)

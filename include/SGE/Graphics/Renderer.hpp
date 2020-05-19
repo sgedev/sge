@@ -16,6 +16,7 @@ public:
 
 public:
 	bool init(void);
+	void shutdown(void);
 	void objectAdded(ObjectPtr obj) override;
 	void objectRemoved(ObjectPtr obj) override;
 	void cameraAdded(CameraPtr cam) override;

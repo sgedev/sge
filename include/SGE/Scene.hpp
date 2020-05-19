@@ -40,6 +40,7 @@ public:
 
 public:
 	bool init(void);
+	void shutdown(void);
 	virtual void update(float elapsed);
 	const std::string &name(void) const;
 	void rename(const std::string &name);

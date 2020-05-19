@@ -27,6 +27,10 @@ bool Scene::init(void)
 	return true;
 }
 
+void Scene::shutdown(void)
+{
+}
+
 void Scene::update(float elapsed)
 {
 	for (auto it(m_objects.begin()); it != m_objects.end(); ++it)

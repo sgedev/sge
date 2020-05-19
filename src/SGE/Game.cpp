@@ -17,10 +17,6 @@ Game::Game(uv_loop_t *loop):
 
 	uv_timer_init(loop, &m_stateTimer);
 	m_stateTimer.data = this;
-
-	char buf[128];
-	snprintf(buf, sizeof(buf), "/sge/game/%llx", (uintptr_t)this);
-	m_root = buf;
 }
 
 Game::~Game(void)
@@ -29,15 +25,23 @@ Game::~Game(void)
 		stop();
 }
 
-bool Game::start(const std::string &path)
+bool Game::start(const std::string &initrc)
 {
 	SGE_ASSERT(m_state == StateIdle);
 
-	if (!m_scene.init())
+	if (!VM::start(initrc))
 		return false;
 
-	if (!m_physicsWorld.init())
+	if (!m_scene.init()) {
+		VM::stop();
 		return false;
+	}
+
+	if (!m_physicsWorld.init()) {
+		m_scene.shutdown();
+		VM::stop();
+		return false;
+	}
 
 	m_scene.addListener(&m_physicsWorld);
 
@@ -60,6 +64,8 @@ void Game::stop(void)
 	uv_timer_stop(&m_frameTimer);
 
 	m_state = StateIdle;
+
+	VM::stop();
 }
 
 bool Game::handleEvent(const SDL_Event &event)
@@ -82,18 +88,18 @@ void Game::doPlaying(void)
 
 void Game::doPaused(void)
 {
-
 }
 
 void Game::doError(void)
 {
-
 }
 
 void Game::frame(void)
 {
 	Uint32 curr = SDL_GetTicks() - m_last;
 	m_elapsed = float(curr) / 1000.0f;
+
+	VM::poll();
 
 	switch (m_state) {
 	case StateLoading:

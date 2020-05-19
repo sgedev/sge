@@ -35,6 +35,8 @@ bool Player::start(const std::string &path)
 		return false;
 	}
 
+	// OpenGL
+
 	SDL_GL_MakeCurrent(m_window, m_context);
 
 	if (gl3wInit(&m_gl3w, (GL3WGetProcAddressProc)SDL_GL_GetProcAddress) < 0) {
@@ -49,14 +51,24 @@ bool Player::start(const std::string &path)
 	SGE_LOGI("OpenGL: %s", glGetString(GL_VERSION));
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-#if 0 // defined SGE_DEBUG && defined SGE_LOG
+#if defined SGE_DEBUG && defined SGE_LOG
 	if (GL_KHR_debug)
-		glDebugMessageCallback(sge_gl_debug_output, NULL);
+		glDebugMessageCallback(glDebugOutput, this);
 #endif
 
-	m_imgui = ImGui::CreateContext();
+	// ImGui
 
+	IMGUI_CHECKVERSION();
+	m_imgui = ImGui::CreateContext();
 	ImGui::SetCurrentContext(m_imgui);
+
+	ImGuiIO &io = ImGui::GetIO();
+	io.IniFilename = NULL;
+	io.LogFilename = NULL;
+
+	ImGuiStyle &style = ImGui::GetStyle();
+	style.WindowRounding = 0.0f;
+	
 	m_imgui_sdl2 = ImGui_ImplSDL2_NewForOpenGL(m_window, m_context);
 	m_imgui_opengl3 = ImGui_ImplOpenGL3_New("#version 130");
 
@@ -241,5 +253,51 @@ void Player::updateWindow(void)
 void Player::updateGui(void)
 {
 }
+
+#if defined SGE_DEBUG && defined SGE_LOG
+void APIENTRY Player::glDebugOutput(
+	GLenum source, GLenum type, unsigned int id, GLenum severity,
+	GLsizei length, const char *message, const void *userParam)
+{
+	const char *sourceStr;
+    switch (source) {
+	case GL_DEBUG_SOURCE_API:             sourceStr = "API"; break;
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   sourceStr = "WINDOW_SYSTEM"; break;
+	case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "SHADER_COMPILER"; break;
+	case GL_DEBUG_SOURCE_THIRD_PARTY:     sourceStr = "THIRD_PART"; break;
+	case GL_DEBUG_SOURCE_APPLICATION:     sourceStr = "APPLICATION"; break;
+	default:
+	case GL_DEBUG_SOURCE_OTHER:           sourceStr = "OTHER"; break;
+    }
+
+	const char *typeStr;
+    switch (type) {
+	case GL_DEBUG_TYPE_ERROR:               typeStr = "ERROR"; break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "DEPRECATED_BEHAVIOR"; break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  typeStr = "UNDEFINED_BEHAVIOR"; break; 
+	case GL_DEBUG_TYPE_PORTABILITY:         typeStr = "PORTABILITY"; break;
+	case GL_DEBUG_TYPE_PERFORMANCE:         typeStr = "PERFORMANCE"; break;
+	case GL_DEBUG_TYPE_MARKER:              typeStr = "MARKER"; break;
+	case GL_DEBUG_TYPE_PUSH_GROUP:          typeStr = "PUSH_GROUP"; break;
+	case GL_DEBUG_TYPE_POP_GROUP:           typeStr = "POP_GROUP"; break;
+	default:
+	case GL_DEBUG_TYPE_OTHER:               typeStr = "OTHER"; break;
+    }
+    
+	const char *severityStr;
+    switch (severity) {
+	case GL_DEBUG_SEVERITY_HIGH:         severityStr = "H"; break;
+	case GL_DEBUG_SEVERITY_MEDIUM:       severityStr = "M"; break;
+	case GL_DEBUG_SEVERITY_LOW:          severityStr = "L"; break;
+	default:
+	case GL_DEBUG_SEVERITY_NOTIFICATION: severityStr = "N"; break;
+    };
+
+	if (type == GL_DEBUG_TYPE_ERROR)
+		SGE_LOGE("GL/%s/%s/%s: %s", severityStr, sourceStr, typeStr, message);
+	else
+		SGE_LOGD("GL/%s/%s/%s: %s", severityStr, sourceStr, typeStr, message);
+}
+#endif
 
 SGE_END

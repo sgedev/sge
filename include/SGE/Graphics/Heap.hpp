@@ -3,13 +3,11 @@
 #ifndef SGE_GRAPHICS_HEAP_HPP
 #define SGE_GRAPHICS_HEAP_HPP
 
-#include <SGE/List.hpp>
+#include <cx/list.h>
+
 #include <SGE/Graphics/Common.hpp>
 
 SGE_GRAPHICS_BEGIN
-
-class Buffer;
-class Chunk;
 
 class Heap {
 public:
@@ -35,7 +33,7 @@ private:
 private:
     GLenum m_target;
     GLenum m_usage;
-    List<Block> m_blockList;
+    cx_list_t m_blockList;
 };
 
 SGE_GRAPHICS_END

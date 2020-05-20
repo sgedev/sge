@@ -25,21 +25,24 @@ Game::~Game(void)
 		stop();
 }
 
-bool Game::start(const std::string &initrc)
+bool Game::start(void)
 {
 	SGE_ASSERT(m_state == StateIdle);
 
-	if (!VM::start(initrc))
+	m_physfs = PHYSFS_createContext("sge");
+	if (m_physfs == NULL)
 		return false;
 
 	if (!m_scene.init()) {
-		VM::stop();
+		PHYSFS_destroyContext(m_physfs);
+		m_physfs = NULL;
 		return false;
 	}
 
 	if (!m_physicsWorld.init()) {
+		PHYSFS_destroyContext(m_physfs);
+		m_physfs = NULL;
 		m_scene.shutdown();
-		VM::stop();
 		return false;
 	}
 
@@ -63,9 +66,10 @@ void Game::stop(void)
 	uv_timer_stop(&m_stateTimer);
 	uv_timer_stop(&m_frameTimer);
 
-	m_state = StateIdle;
+	PHYSFS_destroyContext(m_physfs);
+	m_physfs = NULL;
 
-	VM::stop();
+	m_state = StateIdle;
 }
 
 bool Game::handleEvent(const SDL_Event &event)
@@ -99,7 +103,9 @@ void Game::frame(void)
 	Uint32 curr = SDL_GetTicks() - m_last;
 	m_elapsed = float(curr) / 1000.0f;
 
-	VM::poll();
+	PHYSFS_makeCurrent(m_physfs);
+
+	m_scene.update(m_elapsed);
 
 	switch (m_state) {
 	case StateLoading:

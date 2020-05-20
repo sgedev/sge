@@ -19,7 +19,7 @@ Player::~Player(void)
 {
 }
 
-bool Player::start(const std::string &path)
+bool Player::start(void)
 {
 	SGE_ASSERT(m_window == NULL);
 	SGE_ASSERT(m_context == NULL);
@@ -27,7 +27,7 @@ bool Player::start(const std::string &path)
 	SGE_ASSERT(m_imgui_sdl2 == NULL);
 	SGE_ASSERT(m_imgui_opengl3 == NULL);
 
-	if (!Game::start(path))
+	if (!Game::start())
 		return false;
 
 	if (!initWindow()) {

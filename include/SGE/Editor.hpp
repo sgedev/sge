@@ -15,7 +15,7 @@ public:
 	virtual ~Editor(void);
 
 public:
-	bool start(const std::string &path) override;
+	bool start(void) override;
 	void stop(void) override;
 
 protected:

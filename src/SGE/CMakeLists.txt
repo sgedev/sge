@@ -32,11 +32,10 @@ sge_sources(
 	Camera.cpp
 	Editor.cpp
 	Game.cpp
-	List.cpp
-	Main.cpp
+	Lua.cpp
 	Object.cpp
 	Player.cpp
+	Resource.cpp
 	Scene.cpp
 	Server.cpp
-	VM.cpp
 	)

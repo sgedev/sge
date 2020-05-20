@@ -5,14 +5,16 @@
 
 #include <string>
 
+#include <physfs.h>
+
 #include <SGE/Common.hpp>
-#include <SGE/VM.hpp>
+#include <SGE/Resource.hpp>
 #include <SGE/Scene.hpp>
 #include <SGE/Physics.hpp>
 
 SGE_BEGIN
 
-class Game: public VM {
+class Game {
 public:
 	enum State {
 		StateIdle = 0,
@@ -27,9 +29,10 @@ public:
 	virtual ~Game(void);
 
 public:
-	bool start(const std::string &initrc) override;
-	void stop(void) override;
+	virtual bool start(void);
+	virtual void stop(void);
 	virtual bool handleEvent(const SDL_Event &event);
+	//Resource &res(void);
 
 protected:
 	float elapsed(void) const;
@@ -52,7 +55,7 @@ protected:
 	Scene m_scene;
 
 private:
-	std::string m_root;
+	PHYSFS_Context *m_physfs;
 	uv_loop_t *m_loop;
 	uv_timer_t m_frameTimer;
 	uv_timer_t m_stateTimer;

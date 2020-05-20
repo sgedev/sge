@@ -48,6 +48,7 @@ sge_sources(
 	ltablib.c
 	ltm.c
 	ltm.h
+	lua.c
 	lundump.c
 	lundump.h
 	lutf8lib.c

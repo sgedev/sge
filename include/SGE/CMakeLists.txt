@@ -11,14 +11,13 @@ sge_sources(
 	Editor.hpp
 	Game.hpp
 	Graphics.hpp
-	List.hpp
+	Lua.h
 	Object.hpp
 	Physics.hpp
 	Player.hpp
+	Resource.hpp
 	Scene.hpp
 	Server.hpp
-	VM.hpp
-	VMTask.h
 	)
 
 configure_file(
@@ -26,4 +25,4 @@ configure_file(
 	Config.hpp
 	)
 
-sge_compile_definitions(LUA_USER_H=\"${CMAKE_CURRENT_SOURCE_DIR}/VMTask.h\")
+sge_compile_definitions(LUA_USER_H=\"${CMAKE_CURRENT_SOURCE_DIR}/Lua.h\")

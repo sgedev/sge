@@ -21,7 +21,7 @@ public:
 	virtual ~Player(void);
 
 public:
-	bool start(const std::string &path) override;
+	bool start(void) override;
 	void stop(void) override;
 	bool handleEvent(const SDL_Event &event) override;
 	const std::string &path(void) const;

@@ -13,9 +13,9 @@ Editor::~Editor(void)
 {
 }
 
-bool Editor::start(const std::string &path)
+bool Editor::start(void)
 {
-	if (!Player::start(path))
+	if (!Player::start())
 		return false;
 
 	SDL_SetWindowResizable(m_window, SDL_TRUE);

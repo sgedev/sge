@@ -513,7 +513,7 @@ PHYSFS_DECL void PHYSFS_getLinkedVersion(PHYSFS_Version *ver);
  * \sa PHYSFS_deinit
  * \sa PHYSFS_isInit
  */
-PHYSFS_DECL int PHYSFS_init(const char *argv0);
+/* PHYSFS_DECL int PHYSFS_init(const char *argv0); */
 
 
 /**
@@ -542,7 +542,7 @@ PHYSFS_DECL int PHYSFS_init(const char *argv0);
  * \sa PHYSFS_init
  * \sa PHYSFS_isInit
  */
-PHYSFS_DECL int PHYSFS_deinit(void);
+/* PHYSFS_DECL int PHYSFS_deinit(void); */
 
 
 /**
@@ -3841,6 +3841,10 @@ PHYSFS_DECL int PHYSFS_registerArchiver(const PHYSFS_Archiver *archiver);
  */
 PHYSFS_DECL int PHYSFS_deregisterArchiver(const char *ext);
 
+typedef struct PHYSFS_context PHYSFS_Context;
+PHYSFS_Context *PHYSFS_createContext(const char *argv0);
+PHYSFS_DECL void PHYSFS_destroyContext(PHYSFS_Context *context);
+PHYSFS_DECL void PHYSFS_makeCurrent(PHYSFS_Context *context);
 
 /* Everything above this line is part of the PhysicsFS 2.1 API. */
 

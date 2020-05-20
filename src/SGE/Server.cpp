@@ -13,9 +13,9 @@ Server::~Server(void)
 {
 }
 
-bool Server::start(const std::string &path)
+bool Server::start(void)
 {
-	if (!Game::start(path))
+	if (!Game::start())
 		return false;
 
 	return true;

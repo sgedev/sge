@@ -20,6 +20,7 @@ enum SGEMode {
 	SGE_SERVER
 };
 
+static bool sgeRunning;
 static SGELuaTask *sgeLuaTaskCurrent;
 static cx_list_t sgeLuaTaskListReady;
 static cx_list_t sgeLuaTaskListSleep;
@@ -44,6 +45,7 @@ static void sgePollEvents(uv_prepare_t *p)
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 		case SDL_QUIT:
+			sgeRunning = false;
 			uv_stop(p->loop);
 			break;
 		default:
@@ -87,9 +89,9 @@ static int sgeLuaRun(lua_State *L)
 	int mode = SGE_PLAYER;
 
 	switch (lua_gettop(L)) {
-	case 2:
-		mode = luaL_checkinteger(L, 1);
 	case 1:
+		mode = luaL_checkinteger(L, 1);
+	case 0:
 		break;
 	default:
 		luaL_error(L, "too many parameters.");
@@ -122,7 +124,13 @@ static int sgeLuaRun(lua_State *L)
 	eventPoller.data = game.get();
 
 	// Main loop.
-	uv_run(uv_default_loop(), UV_RUN_DEFAULT);
+	sgeRunning = true;
+	for (;;) {
+		sgeLuaSchedule(L);
+		if (!sgeRunning)
+			break;
+		uv_run(uv_default_loop(), UV_RUN_ONCE);
+	}
 
 	game->stop();
 	uv_prepare_stop(&eventPoller);
@@ -191,13 +199,18 @@ extern "C" void sgeLuaInit(lua_State *L)
 	sgePrintBanner();
 
 	ret = SDL_Init(SDL_INIT_EVERYTHING);
-	if (ret < 0)
+	if (ret == 0)
 		luaL_error(L, "Failed to init SDL.");
 
 	cx_list_reset(&sgeLuaTaskListReady);
 	cx_list_reset(&sgeLuaTaskListSleep);
 
 	sgeLuaInitExports(L);
+
+	SGELuaTask *T = sgeLuaTaskFromLua(L);
+	uv_timer_init(uv_default_loop(), &T->sleepTimer);
+	cx_list_node_reset(&T->node);
+	sgeLuaTaskCurrent = T;
 }
 
 extern "C" void sgeLuaShutdown(lua_State *L)

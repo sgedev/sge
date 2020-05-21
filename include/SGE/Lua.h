@@ -42,7 +42,6 @@ extern "C" {
 typedef struct {
 	cx_list_node_t node;
 	uv_timer_t sleepTimer;
-	void *vm;
 } SGELuaTask;
 
 void sgeLuaInit(lua_State *L);

@@ -73,47 +73,28 @@ typedef struct __PHYSFS_ERRSTATETYPE__
 
 
 /* General PhysicsFS state ... */
-struct PHYSFS_context {
-    int initialized;
-    ErrState *errorStates;
-    DirHandle *searchPath;
-    DirHandle *writeDir;
-    FileHandle *openWriteList;
-    FileHandle *openReadList;
-    char *baseDir;
-    char *userDir;
-    char *prefDir;
-    int allowSymLinks;
-    PHYSFS_Archiver **archivers;
-    PHYSFS_ArchiveInfo **archiveInfo;
-    volatile size_t numArchivers;
-    void *errorLock;
-    void *stateLock;
-    int externalAllocator;
-};
-
-static PHYSFS_Context *PHYSFS_current;
-
-#define initialized (PHYSFS_current->initialized)
-#define errorStates (PHYSFS_current->errorStates)
-#define searchPath (PHYSFS_current->searchPath)
-#define writeDir (PHYSFS_current->writeDir)
-#define openWriteList (PHYSFS_current->openWriteList)
-#define openReadList (PHYSFS_current->openReadList)
-#define baseDir (PHYSFS_current->baseDir)
-#define userDir (PHYSFS_current->userDir)
-#define prefDir (PHYSFS_current->prefDir)
-#define allowSymLinks (PHYSFS_current->allowSymLinks)
-#define archivers (PHYSFS_current->archivers)
-#define archiveInfo (PHYSFS_current->archiveInfo)
-#define numArchivers (PHYSFS_current->numArchivers)
+static int initialized = 0;
+static ErrState *errorStates = NULL;
+static DirHandle *searchPath = NULL;
+static DirHandle *writeDir = NULL;
+static FileHandle *openWriteList = NULL;
+static FileHandle *openReadList = NULL;
+static char *baseDir = NULL;
+static char *userDir = NULL;
+static char *prefDir = NULL;
+static int allowSymLinks = 0;
+static PHYSFS_Archiver **archivers = NULL;
+static PHYSFS_ArchiveInfo **archiveInfo = NULL;
+static volatile size_t numArchivers = 0;
 
 /* mutexes ... */
-#define errorLock (PHYSFS_current->errorLock)     /* protects error message list.        */
-#define stateLock (PHYSFS_current->stateLock)     /* protects other PhysFS static state. */
-#define externalAllocator (PHYSFS_current->externalAllocator)
+static void *errorLock = NULL;     /* protects error message list.        */
+static void *stateLock = NULL;     /* protects other PhysFS static state. */
 
+/* allocator ... */
+static int externalAllocator = 0;
 PHYSFS_Allocator allocator;
+
 
 #ifdef PHYSFS_NEED_ATOMIC_OP_FALLBACK
 static inline int __PHYSFS_atomicAdd(int *ptrval, const int val)
@@ -3332,56 +3313,6 @@ void __PHYSFS_DirTreeDeinit(__PHYSFS_DirTree *dt)
         allocator.Free(dt->hash);
     } /* if */
 } /* __PHYSFS_DirTreeDeinit */
-
-PHYSFS_Context *PHYSFS_createContext(const char *argv0)
-{
-    int ret;
-    PHYSFS_Context *old;
-    PHYSFS_Context *context;
-    
-    context = mallocAllocatorMalloc(sizeof(PHYSFS_Context));
-    if (context == NULL)
-        return NULL;
-
-    memset(context, 0, sizeof(PHYSFS_Context));
-
-    if (PHYSFS_current != context)
-        old = PHYSFS_current;
-    else
-        old = NULL;
-
-    PHYSFS_current = context;
-
-    ret = PHYSFS_init(argv0);
-    PHYSFS_current = old;
-
-    if (ret < 0) {
-        mallocAllocatorFree(context);
-        return NULL;
-    }
-
-    return context;
-}
-
-void PHYSFS_destroyContext(PHYSFS_Context *context)
-{
-    PHYSFS_Context *old;
-    
-    if (PHYSFS_current != context)
-        old = PHYSFS_current;
-    else
-        old = NULL;
-
-    PHYSFS_current = context;
-    PHYSFS_deinit();
-    PHYSFS_current = old;
-    mallocAllocatorFree(context);
-}
-
-void PHYSFS_makeCurrent(PHYSFS_Context *context)
-{
-    PHYSFS_current = context;
-}
 
 /* end of physfs.c ... */
 

@@ -2,26 +2,26 @@
  *
  */
 #include <lua.hpp>
+#include <btBulletCollisionCommon.h>
 
 #include <sge/physics.h>
 
-extern "C" void sge_physics_init(lua_State *L)
+extern "C" void sge_physics_export(lua_State *L)
 {
 	lua_newtable(L);
 
 	lua_setfield(L, -2, "physics");
 }
 
-extern "C" void sge_physics_shutdown(void)
-{
-}
-
-extern "C" bool sge_physics_start(void)
+extern "C" bool sge_physics_init(void)
 {
 	return true;
 }
 
-extern "C" void sge_physics_stop(void)
+extern "C" void sge_physics_shutdown(void)
 {
+}
 
+extern "C" void sge_physics_update(float elapsed)
+{
 }

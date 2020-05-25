@@ -4,22 +4,19 @@
 #ifndef SGE_H
 #define SGE_H
 
-#include <assert.h>
-#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
-#ifdef SGE_DEBUG
-#	define SGE_ASSERT(expr) assert(expr)
-#else
-#	define SGE_ASSERT(expr)
-#endif
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+
+#include <sge/config.h>
 
 #ifdef __cplusplus
-#	define SGE_EXTEN extern "C"
 #	define SGE_BEGIN_DECLS extern "C" {
 #	define SGE_END_DECLS }
 #else
-#	define SGE_EXTEN
 #	define SGE_BEGIN_DECLS
 #	define SGE_END_DECLS
 #endif
@@ -65,6 +62,29 @@
 #define SGE_MEMBEROF(p, struct_type, member_name) \
 	((struct_type *)SGE_PMOVB(p, -SGE_OFFSETOF(struct_type, member_name)))
 
+#ifdef SGE_DEBUG
+#   include <SDL_assert.h>
+#	ifdef SDL_ASSERT_LEVEL
+#		undef SDL_ASSERT_LEVEL
+#	endif
+#   define SDL_ASSERT_LEVEL 2
+#   define SGE_ASSERT(expr) SDL_assert(expr)
+#else
+#   define SGE_ASSERT(expr)
+#endif
+
+#ifdef SGE_LOG
+#	define SGE_LOGE(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
+#	define SGE_LOGW(fmt, ...) fprintf(stderr, fmt, ##__VA_ARGS__)
+#	define SGE_LOGI(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
+#	define SGE_LOGD(fmt, ...) fprintf(stdout, fmt, ##__VA_ARGS__)
+#else
+#	define SGE_LOGE(fmt, ...) do { } while (0)
+#	define SGE_LOGW(fmt, ...) do { } while (0)
+#	define SGE_LOGI(fmt, ...) do { } while (0)
+#	define SGE_LOGD(fmt, ...) do { } while (0)
+#endif
+
 SGE_BEGIN_DECLS
 
 typedef signed char sge_int8_t;
@@ -75,6 +95,8 @@ typedef signed int sge_int32_t;
 typedef unsigned int sge_uint32_t;
 typedef SGE_INT64 sge_int64_t;
 typedef SGE_UINT64 sge_uint64_t;
+
+#include <HandmadeMath.h>
 
 SGE_END_DECLS
 

@@ -1701,6 +1701,7 @@ HMM_EXTERN hmm_quaternion HMM_PREFIX(QuaternionFromAxisAngle)(hmm_vec3 Axis, flo
 }
 #endif
 
+#if 0 /* sge */
 #ifdef __cplusplus
 
 COVERAGE(HMM_LengthVec2CPP, 1)
@@ -2790,6 +2791,7 @@ HMM_INLINE hmm_bool operator!=(hmm_vec4 Left, hmm_vec4 Right)
 }
 
 #endif /* __cplusplus */
+#endif /* sge */
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop

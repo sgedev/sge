@@ -31,6 +31,97 @@
 
 #define ARRAY_SIZE(x)  (sizeof(x) / sizeof((x)[0]))
 
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1 // Exclude advanced Windows headers
+#endif // WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+static HMODULE libgl;
+static PROC (__stdcall *wgl_get_proc_address)(LPCSTR);
+
+static int open_libgl(void)
+{
+	libgl = LoadLibraryA("opengl32.dll");
+	if (!libgl)
+		return GL3W_ERROR_LIBRARY_OPEN;
+
+	*(void **)(&wgl_get_proc_address) = GetProcAddress(libgl, "wglGetProcAddress");
+	return GL3W_OK;
+}
+
+static void close_libgl(void)
+{
+	FreeLibrary(libgl);
+}
+
+static GL3WglProc get_proc(const char *proc)
+{
+	GL3WglProc res;
+
+	res = (GL3WglProc)wgl_get_proc_address(proc);
+	if (!res)
+		res = (GL3WglProc)GetProcAddress(libgl, proc);
+	return res;
+}
+#elif defined(__APPLE__)
+#include <dlfcn.h>
+
+static void *libgl;
+
+static int open_libgl(void)
+{
+	libgl = dlopen("/System/Library/Frameworks/OpenGL.framework/OpenGL", RTLD_LAZY | RTLD_LOCAL);
+	if (!libgl)
+		return GL3W_ERROR_LIBRARY_OPEN;
+
+	return GL3W_OK;
+}
+
+static void close_libgl(void)
+{
+	dlclose(libgl);
+}
+
+static GL3WglProc get_proc(const char *proc)
+{
+	GL3WglProc res;
+
+	*(void **)(&res) = dlsym(libgl, proc);
+	return res;
+}
+#else
+#include <dlfcn.h>
+
+static void *libgl;
+static GL3WglProc (*glx_get_proc_address)(const GLubyte *);
+
+static int open_libgl(void)
+{
+	libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_LOCAL);
+	if (!libgl)
+		return GL3W_ERROR_LIBRARY_OPEN;
+
+	*(void **)(&glx_get_proc_address) = dlsym(libgl, "glXGetProcAddressARB");
+	return GL3W_OK;
+}
+
+static void close_libgl(void)
+{
+	dlclose(libgl);
+}
+
+static GL3WglProc get_proc(const char *proc)
+{
+	GL3WglProc res;
+
+	res = glx_get_proc_address((const GLubyte *)proc);
+	if (!res)
+		*(void **)(&res) = dlsym(libgl, proc);
+	return res;
+}
+#endif
+
 static struct {
 	int major, minor;
 } version;
@@ -50,9 +141,20 @@ static int parse_version(void)
 
 static void load_procs(GL3WGetProcAddressProc proc);
 
-int gl3wInit(union GL3WProcs *procs, GL3WGetProcAddressProc proc)
+int gl3wInit(void)
 {
-	gl3wProcs = procs;
+	int res;
+
+	res = open_libgl();
+	if (res)
+		return res;
+
+	atexit(close_libgl);
+	return gl3wInit2(get_proc);
+}
+
+int gl3wInit2(GL3WGetProcAddressProc proc)
+{
 	load_procs(proc);
 	return parse_version();
 }
@@ -64,6 +166,11 @@ int gl3wIsSupported(int major, int minor)
 	if (version.major == major)
 		return version.minor >= minor;
 	return version.major >= major;
+}
+
+GL3WglProc gl3wGetProcAddress(const char *proc)
+{
+	return get_proc(proc);
 }
 
 static const char *proc_names[] = {
@@ -728,12 +835,12 @@ static const char *proc_names[] = {
 	"glWaitSync",
 };
 
-union GL3WProcs *gl3wProcs;
+union GL3WProcs gl3wProcs;
 
 static void load_procs(GL3WGetProcAddressProc proc)
 {
 	size_t i;
 
 	for (i = 0; i < ARRAY_SIZE(proc_names); i++)
-		gl3wProcs->ptr[i] = proc(proc_names[i]);
+		gl3wProcs.ptr[i] = proc(proc_names[i]);
 }

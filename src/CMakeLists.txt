@@ -1,9 +1,8 @@
 
 sge_subdirectories(
-	cx
 	GL
-	imgui
 	lua
+	nanovg
 	physfs
-	SGE
+	sge
 	)

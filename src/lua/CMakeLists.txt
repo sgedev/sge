@@ -1,4 +1,8 @@
 
+if(UNIX)
+	sge_link_libraries(dl m)
+endif()
+
 sge_sources(
 	lapi.c
 	lapi.h

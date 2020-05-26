@@ -10,6 +10,8 @@
 #include <lua.h>
 #include <lauxlib.h>
 
+#include <cx/list.h>
+
 #include <sge/object.h>
 #include <sge/renderer.h>
 #include <sge/physics.h>
@@ -18,8 +20,8 @@ static lua_State *sge_lua;
 static uv_timer_t sge_frame_timer;
 static uv_timer_t sge_state_timer;
 static uv_prepare_t sge_sched_preparer;
-static sge_list_t sge_task_list_ready;
-static sge_list_t sge_task_list_sleep;
+static cx_list_t sge_task_list_ready;
+static cx_list_t sge_task_list_sleep;
 static Uint32 sge_last;
 
 static SGE_INLINE sge_task_t *sge_task_from_lua(lua_State *L)
@@ -29,7 +31,7 @@ static SGE_INLINE sge_task_t *sge_task_from_lua(lua_State *L)
 
 static SGE_INLINE lua_State *sge_task_to_lua(sge_task_t *task)
 {
-	return (lua_State *)SGE_PMOVB(task, LUA_EXTRASPACE);
+	return (lua_State *)CX_PMOVB(task, LUA_EXTRASPACE);
 }
 
 static void sge_handle_event(const SDL_Event *evt)
@@ -72,15 +74,15 @@ static void sge_state(uv_timer_t *p)
 
 static void sge_sched(uv_prepare_t *p)
 {
-	sge_list_node_t *node;
+	cx_list_node_t *node;
 	sge_task_t *task;
 	lua_State *L;
 	int ret;
 	int nret;
 
-	while (!sge_list_empty(&sge_task_list_ready)) {
-		node = sge_list_del_head(&sge_task_list_ready);
-		task = SGE_MEMBEROF(node, sge_task_t, node);
+	while (!cx_list_empty(&sge_task_list_ready)) {
+		node = cx_list_del_head(&sge_task_list_ready);
+		task = CX_MEMBEROF(node, sge_task_t, node);
 		L = sge_task_to_lua(task);
 		ret = lua_resume(L, sge_lua, 0, &nret);
 		if (ret != LUA_OK && ret != LUA_YIELD) {
@@ -88,6 +90,14 @@ static void sge_sched(uv_prepare_t *p)
 			// TODO vm exit?
 		}
 	}
+}
+
+static int sge_import(lua_State *L)
+{
+	// TODO import from physfs.
+	lua_pushboolean(L, 0);
+
+	return 1;
 }
 
 static int sge_run(lua_State *L)
@@ -118,20 +128,20 @@ static int sge_run(lua_State *L)
 static void sge_sleep_done(uv_timer_t *p)
 {
 	sge_task_t *task = (sge_task_t *)(p->data);
-	sge_list_node_unlink(&task->node);
-	sge_list_add_tail(&sge_task_list_ready, &task->node);
+	cx_list_node_unlink(&task->node);
+	cx_list_add_tail(&sge_task_list_ready, &task->node);
 }
 
 static int sge_sleep(lua_State *L)
 {
 	int ms = (int)luaL_checkinteger(L, 1);
 	sge_task_t *task = sge_task_from_lua(L);
-	sge_list_node_unlink(&task->node);
+	cx_list_node_unlink(&task->node);
 	if (ms > 0) {
 		uv_timer_start(&task->sleep_timer, &sge_sleep_done, ms, 0);
-		sge_list_add_tail(&sge_task_list_sleep, &task->node);
+		cx_list_add_tail(&sge_task_list_sleep, &task->node);
 	} else
-		sge_list_add_tail(&sge_task_list_ready, &task->node);
+		cx_list_add_tail(&sge_task_list_ready, &task->node);
 
 	return lua_yield(L, 0);
 }
@@ -151,9 +161,42 @@ static int sge_umount(lua_State *L)
 	return 1;
 }
 
+static int sge_task(lua_State *L)
+{
+	int type;
+	lua_State *L1;
+	
+	type = lua_type(L, 1);
+	switch (type) {
+	case LUA_TFUNCTION:
+		L1 = lua_newthread(L);
+		if (L1 != NULL) {
+			lua_pushvalue(L, 1);
+			lua_xmove(L, L1, 1);
+		} else
+			lua_pushnil(L);
+		break;
+	case LUA_TSTRING:
+		L1 = lua_newthread(L);
+		if (L1 != NULL)
+			luaL_loadfile(L1, lua_tostring(L, 1));
+		else
+			lua_pushnil(L1);
+		break;
+	default:
+		luaL_error(L, "unknown type.");
+		break;
+	}
+
+	return 1;
+}
+
 static void sge_export(lua_State *L)
 {
 	lua_newtable(L);
+
+	lua_pushcfunction(L, &sge_import);
+	lua_setfield(L, -2, "import");
 
 	lua_pushcfunction(L, &sge_run);
 	lua_setfield(L, -2, "run");
@@ -167,6 +210,9 @@ static void sge_export(lua_State *L)
 	lua_pushcfunction(L, &sge_umount);
 	lua_setfield(L, -2, "umount");
 
+	lua_pushcfunction(L, &sge_task);
+	lua_setfield(L, -2, "Task");
+
 	sge_object_export(L);
 	sge_renderer_export(L);
 	sge_physics_export(L);
@@ -177,12 +223,6 @@ static void sge_export(lua_State *L)
 void sge_init(lua_State *L)
 {
 	int ret;
-
-#ifdef SGE_DEBUG
-	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_DEBUG);
-#else
-	SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
-#endif
 
 	SGE_LOGI("SGE %d.%d.%d  Copyright (C) 2020 sgedev@gmail.com\n",
 		SGE_VERSION_MAJOR, SGE_VERSION_MINOR, SGE_VERSION_PATCH);
@@ -199,8 +239,8 @@ void sge_init(lua_State *L)
 	uv_timer_init(uv_default_loop(), &sge_state_timer);
 	uv_prepare_init(uv_default_loop(), &sge_sched_preparer);
 
-	sge_list_reset(&sge_task_list_ready);
-	sge_list_reset(&sge_task_list_sleep);
+	cx_list_reset(&sge_task_list_ready);
+	cx_list_reset(&sge_task_list_sleep);
 
 	sge_export(L);
 
@@ -218,14 +258,14 @@ void sge_task_new(lua_State *L, lua_State *L1)
 	sge_task_t *task = sge_task_from_lua(L1);
 	uv_timer_init(uv_default_loop(), &task->sleep_timer);
 	task->sleep_timer.data = task;
-	sge_list_node_reset(&task->node);
-	sge_list_add_tail(&sge_task_list_ready, &task->node);
+	cx_list_node_reset(&task->node);
+	cx_list_add_tail(&sge_task_list_ready, &task->node);
 }
 
 void sge_task_destroy(lua_State *L, lua_State *L1)
 {
 	sge_task_t *task = sge_task_from_lua(L1);
-	sge_list_node_unlink(&task->node);
+	cx_list_node_unlink(&task->node);
 }
 
 void sge_task_resume(lua_State *L, int n)
@@ -235,6 +275,3 @@ void sge_task_resume(lua_State *L, int n)
 void sge_task_yield(lua_State *L, int n)
 {
 }
-
-#define HANDMADE_MATH_IMPLEMENTATION
-#include <HandmadeMath.h>

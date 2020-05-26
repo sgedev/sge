@@ -22,6 +22,5 @@ sge_subdirectories(
 
 sge_sources(
 	core.c
-	list.c
 	object.c
 	)

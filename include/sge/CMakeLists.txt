@@ -6,7 +6,6 @@ sge_subdirectories(
 sge_sources(
 	common.h
 	config.h.in
-	list.h
 	lua.h
 	object.h
 	physics.h

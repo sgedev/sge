@@ -1,16 +1,30 @@
 /*
  *
  */
-#include <SDL.h>
-#include <GL/gl3w.h>
-
-#include <nanovg.h>
-
-#define NANOVG_GL3_IMPLEMENTATION
-#include <nanovg_gl.h>
+#include <cx/list.h>
 
 #include <sge/object.h>
 #include <sge/renderer.h>
+
+#define NANOVG_GL3_IMPLEMENTATION
+#include <nanovg.h>
+#include <nanovg_gl.h>
+
+typedef struct {
+	cx_list_node_t node;
+	cx_list_node_t node_material;
+	GLEXMesh *mesh;
+} sge_renderer_mesh_t;
+
+typedef struct {
+	GLEXMaterial *material;
+	cx_list_t mesh_list;
+} sge_renderer_material_t;
+
+typedef struct {
+	sge_object_t *object;
+	cx_list_t mesh_list;
+} sge_renderer_object_t;
 
 #define SGE_RENDERER_WINDOW_VISIBLE 0x1
 #define SGE_RENDERER_WINDOW_FOCUS 0x2
@@ -20,6 +34,7 @@ static Uint32 sge_renderer_window_id;
 static int sge_renderer_window_flags;
 static int sge_renderer_window_rect[4];
 static SDL_GLContext *sge_renderer_gl;
+static GLEXContext *sge_renderer_glex;
 static NVGcontext *sge_renderer_nvg;
 
 static void sge_renderer_object_added(sge_object_t *object)
@@ -30,10 +45,33 @@ static void sge_renderer_object_removed(sge_object_t *object)
 {
 }
 
-static sge_object_watch_t sge_renderer_object_watch = {
-	.object_added = sge_renderer_object_added,
-	.object_removed = sge_renderer_object_removed,
-};
+static void sge_renderer_draw3d(void)
+{
+	SGE_ASSERT(sge_renderer_glex != NULL);
+
+	glexMakeCurrent(sge_renderer_glex);
+	glexBeginFrame();
+
+	// TODO
+
+	glexEndFrame();
+}
+
+static void sge_renderer_draw2d(void)
+{
+	SGE_ASSERT(sge_renderer_nvg != NULL);
+
+	nvgBeginFrame(sge_renderer_nvg,
+		(float)sge_renderer_window_rect[2], (float)sge_renderer_window_rect[3], 1.0f);
+
+	/* TODO draw 2d */
+	nvgBeginPath(sge_renderer_nvg);
+	nvgRect(sge_renderer_nvg, 100, 100, 120, 30);
+	nvgFillColor(sge_renderer_nvg, nvgRGBA(255, 192, 0, 255));
+	nvgFill(sge_renderer_nvg);
+
+	nvgEndFrame(sge_renderer_nvg);
+}
 
 static void sge_renderer_handle_window_event(const SDL_WindowEvent *evt)
 {
@@ -64,6 +102,11 @@ static void sge_renderer_handle_window_event(const SDL_WindowEvent *evt)
 	default:
 		break;
 	}
+}
+
+static void sge_renderer_gl_debug_log(GLenum source, GLenum type, GLuint id, GLenum serverity, GLsizei length, const char *message, const GLvoid *userParam)
+{
+    SGE_LOGI("GL: %s\n", message);
 }
 
 void sge_renderer_export(lua_State *L)
@@ -123,30 +166,43 @@ bool sge_renderer_init(void)
 		goto bad1;
 	}
 
-	SDL_GL_MakeCurrent(sge_renderer_window, sge_renderer_gl);
-
-	if (gl3wInit2((GL3WGetProcAddressProc)SDL_GL_GetProcAddress) < 0) {
-		SGE_LOGE("Failed to init OpenGL procs.\n");
+	if (SDL_GL_MakeCurrent(sge_renderer_window, sge_renderer_gl) < 0) {
+		SGE_LOGE("Failed to make current OpenGL context.\n");
 		goto bad2;
 	}
 
+	if (glewInit() != GLEW_OK) {
+		SGE_LOGE("Failed to init GLEW.\n");
+		goto bad2;
+	}
+
+	SGE_LOGI("GLEW: %s\n", glewGetString(GLEW_VERSION));
 	SGE_LOGI("OpenGL: %s\n", glGetString(GL_VERSION));
+
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-#if defined SGE_DEBUG
-	//if (GL_KHR_debug)
-	//	glDebugMessageCallback(glDebugOutput, this);
+#ifdef SGE_DEBUG
+	if (GL_KHR_debug)
+		glDebugMessageCallback(sge_renderer_gl_debug_log, NULL);
 #endif
+
+	sge_renderer_glex = glexCreateContext();
+	if (sge_renderer_glex == NULL) {
+		SGE_LOGE("Failed to init GLEX.\n");
+		goto bad2;
+	}
 
 	sge_renderer_nvg = nvgCreateGL3(0);
 	if (sge_renderer_nvg == NULL) {
 		SGE_LOGE("Failed to init NANOVG.\n");
-		goto bad2;
+		goto bad3;
 	}
 
-	sge_object_watch_add(&sge_renderer_object_watch);
-
 	return true;
+
+bad3:
+	glexDeleteContext(sge_renderer_glex);
+	sge_renderer_glex = NULL;
 
 bad2:
 	SDL_GL_DeleteContext(sge_renderer_gl);
@@ -164,12 +220,14 @@ void sge_renderer_shutdown(void)
 {
 	SGE_ASSERT(sge_renderer_window != NULL);
 	SGE_ASSERT(sge_renderer_gl != NULL);
+	SGE_ASSERT(sge_renderer_glex != NULL);
 	SGE_ASSERT(sge_renderer_nvg != NULL);
-
-	sge_object_watch_remove(&sge_renderer_object_watch);
 
 	nvgDeleteGL3(sge_renderer_nvg);
 	sge_renderer_nvg = NULL;
+
+	glexDeleteContext(sge_renderer_glex);
+	sge_renderer_glex = NULL;
 
 	SDL_GL_DeleteContext(sge_renderer_gl);
 	sge_renderer_gl = NULL;
@@ -199,6 +257,7 @@ void sge_renderer_draw(float elapsed)
 
 	SGE_ASSERT(sge_renderer_window != NULL);
 	SGE_ASSERT(sge_renderer_gl != NULL);
+	SGE_ASSERT(sge_renderer_glex != NULL);
 	SGE_ASSERT(sge_renderer_nvg != NULL);
 
 	if (SDL_GL_MakeCurrent(sge_renderer_window, sge_renderer_gl) < 0)
@@ -207,18 +266,8 @@ void sge_renderer_draw(float elapsed)
 	glViewport(0, 0, sge_renderer_window_rect[2], sge_renderer_window_rect[3]);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	/* TOOD draw 3d */
-
-	nvgBeginFrame(sge_renderer_nvg,
-		(float)sge_renderer_window_rect[2], (float)sge_renderer_window_rect[3], 1.0f);
-
-	/* TODO draw 2d */
-	nvgBeginPath(sge_renderer_nvg);
-	nvgRect(sge_renderer_nvg, 100, 100, 120, 30);
-	nvgFillColor(sge_renderer_nvg, nvgRGBA(255, 192, 0, 255));
-	nvgFill(sge_renderer_nvg);
-
-	nvgEndFrame(sge_renderer_nvg);
+	sge_renderer_draw3d();
+	sge_renderer_draw2d();
 
 	SDL_GL_SwapWindow(sge_renderer_window);
 }

@@ -1,5 +1,6 @@
 
 sge_subdirectories(
+	cx
 	GL
 	KHR
 	sge
@@ -7,7 +8,6 @@ sge_subdirectories(
 
 sge_sources(
 	fontstash.h
-	HandmadeMath.h
 	lauxlib.h
 	lua.h
 	lua.hpp

@@ -1,6 +1,8 @@
 
 sge_sources(
-	gl3w.h
-	glcorearb.h
+	eglew.h
+	glew.h
+	glex.h
+	glxew.h
+	wglew.h
 	)
-

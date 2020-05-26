@@ -33,14 +33,14 @@
 #endif
 
 #include <uv.h>
-#include <sge/list.h>
+#include <cx/list.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct {
-	sge_list_node_t node;
+	cx_list_node_t node;
 	uv_timer_t sleep_timer;
 } sge_task_t;
 

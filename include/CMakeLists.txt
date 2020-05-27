@@ -13,6 +13,7 @@ sge_sources(
 	lua.hpp
 	luaconf.h
 	lualib.h
+	luasge.h
 	nanovg.h
 	nanovg_gl.h
 	nanovg_gl_utils.h
@@ -20,3 +21,5 @@ sge_sources(
 	stb_image.h
 	stb_truetype.h
 	)
+
+sge_compile_definitions(LUA_USER_H=\"${CMAKE_CURRENT_SOURCE_DIR}/luasge.h\")

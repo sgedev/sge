@@ -12,6 +12,8 @@
 
 #include <cx/list.h>
 
+#include <sge/window.h>
+#include <sge/gui.h>
 #include <sge/object.h>
 #include <sge/renderer.h>
 #include <sge/physics.h>
@@ -37,8 +39,6 @@ static SGE_INLINE lua_State *sge_task_to_lua(sge_task_t *task)
 static void sge_handle_event(const SDL_Event *evt)
 {
 	SGE_ASSERT(evt != NULL);
-
-	sge_renderer_handle_event(evt);
 }
 
 static void sge_poll_events(void)
@@ -49,6 +49,9 @@ static void sge_poll_events(void)
 		switch (evt.type) {
 		case SDL_QUIT:
 			uv_stop(uv_default_loop());
+			break;
+		case SDL_WINDOWEVENT:
+			sge_window_handle_event(&evt.window);
 			break;
 		default:
 			sge_handle_event(&evt);
@@ -64,8 +67,14 @@ static void sge_frame(uv_timer_t *p)
 	float elapsed = ((float)pass) / 1000.0f;
 
 	sge_poll_events();
+
 	sge_physics_update(elapsed);
-	sge_renderer_draw(elapsed);
+
+	if (sge_window_begin_draw()) {
+		sge_renderer_draw(elapsed);
+		sge_gui_draw(elapsed);
+		sge_window_end_draw();
+	}
 }
 
 static void sge_state(uv_timer_t *p)
@@ -102,6 +111,8 @@ static int sge_import(lua_State *L)
 
 static int sge_run(lua_State *L)
 {
+	sge_window_init();
+	sge_gui_init();
 	sge_object_init();
 	sge_renderer_init();
 	sge_physics_init();
@@ -121,6 +132,8 @@ static int sge_run(lua_State *L)
 	sge_physics_shutdown();
 	sge_renderer_shutdown();
 	sge_object_shutdown();
+	sge_gui_shutdown();
+	sge_window_shutdown();
 
 	return 0;
 }
@@ -213,6 +226,8 @@ static void sge_export(lua_State *L)
 	lua_pushcfunction(L, &sge_task);
 	lua_setfield(L, -2, "Task");
 
+	sge_window_export(L);
+	sge_gui_export(L);
 	sge_object_export(L);
 	sge_renderer_export(L);
 	sge_physics_export(L);

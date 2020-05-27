@@ -4,64 +4,117 @@
 #ifndef SGE_LUA_H
 #define SGE_LUA_H
 
-#ifdef LUA_EXTRASPACE
-#	undef LUA_EXTRASPACE
-#endif
+#include <lua.h>
+#include <lauxlib.h>
 
-#ifdef luai_userstateopen
-#	undef luai_userstateopen
-#endif
+#include <sge/common.h>
 
-#ifdef luai_userstateclose
-#	undef luai_userstateclose
-#endif
+SGE_BEGIN_C_DECLS
 
-#ifdef luai_userstatethread
-#	undef luai_userstatethread
-#endif
+static SGE_INLINE void sge_lua_push_vec2(lua_State *L, const cx_vec2_t *p)
+{
+	lua_newtable(L);
 
-#ifdef luai_userstatefree
-#	undef luai_userstatefree
-#endif
+	lua_pushnumber(L, p->x);
+	lua_rawseti(L, -2, 0);
 
-#ifdef luai_userstateresume
-#	undef luai_userstateresume
-#endif
-
-#ifdef luai_userstateyield
-#	undef luai_userstateyield
-#endif
-
-#include <uv.h>
-#include <cx/list.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct {
-	cx_list_node_t node;
-	uv_timer_t sleep_timer;
-} sge_task_t;
-
-extern void sge_init(lua_State *L);
-extern void sge_shutdown(lua_State *L);
-extern void sge_task_new(lua_State *L, lua_State *L1);
-extern void sge_task_destroy(lua_State *L, lua_State *L1);
-extern void sge_task_resume(lua_State *L, int n);
-extern void sge_task_yield(lua_State *L, int n);
-
-#ifdef __cplusplus
+	lua_pushnumber(L, p->y);
+	lua_rawseti(L, -2, 1);
 }
-#endif
 
-#define LUA_EXTRASPACE sizeof(sge_task_t)
+static SGE_INLINE void sge_lua_push_vec3(lua_State *L, const cx_vec3_t *p)
+{
+	lua_newtable(L);
 
-#define luai_userstateopen(L) sge_init(L)
-#define luai_userstateclose(L) sge_shutdown(L)
-#define luai_userstatethread(L, L1) sge_task_new(L, L1)
-#define luai_userstatefree(L, L1) sge_task_destroy(L, L1)
-#define luai_userstateresume(L, n) sge_task_resume(L, n)
-#define luai_userstateyield(L, n) sge_task_yield(L, n)
+	lua_pushnumber(L, p->x);
+	lua_rawseti(L, -2, 0);
+
+	lua_pushnumber(L, p->y);
+	lua_rawseti(L, -2, 1);
+
+	lua_pushnumber(L, p->y);
+	lua_rawseti(L, -2, 2);
+}
+
+static SGE_INLINE void sge_lua_push_quat(lua_State *L, const cx_quat_t *p)
+{
+	lua_newtable(L);
+
+	lua_pushnumber(L, p->x);
+	lua_rawseti(L, -2, 0);
+
+	lua_pushnumber(L, p->y);
+	lua_rawseti(L, -2, 1);
+
+	lua_pushnumber(L, p->y);
+	lua_rawseti(L, -2, 2);
+
+	lua_pushnumber(L, p->w);
+	lua_rawseti(L, -2, 3);
+}
+
+static SGE_INLINE void sge_lua_check_vec2(lua_State *L, int i, cx_vec2_t *p)
+{
+	luaL_argcheck(L, lua_istable(L, i), i, "vec2 expects a number table.");
+	luaL_argcheck(L, lua_rawlen(L, i) == 2, i, "vec2 expects a number table.");
+
+	lua_rawgeti(L, i, 0);
+	p->x = luaL_checknumber(L, -1);
+	lua_rawgeti(L, i, 1);
+	p->y = luaL_checknumber(L, -1);
+
+	lua_pop(L, 2);
+}
+
+static SGE_INLINE void sge_lua_check_vec3(lua_State *L, int i, cx_vec3_t *p)
+{
+	luaL_argcheck(L, lua_istable(L, i), i, "vec3 expects a number table.");
+	luaL_argcheck(L, lua_rawlen(L, i) == 3, i, "vec3 expects a number table.");
+
+	lua_rawgeti(L, i, 0);
+	p->x = luaL_checknumber(L, -1);
+	lua_rawgeti(L, i, 1);
+	p->y = luaL_checknumber(L, -1);
+	lua_rawgeti(L, i, 2);
+	p->z = luaL_checknumber(L, -1);
+
+	lua_pop(L, 3);
+}
+
+static SGE_INLINE void sge_lua_check_vec4(lua_State *L, int i, cx_vec4_t *p)
+{
+	luaL_argcheck(L, lua_istable(L, i), i, "vec4 expects a number table.");
+	luaL_argcheck(L, lua_rawlen(L, i) == 4, i, "vec4 expects a number table.");
+
+	lua_rawgeti(L, i, 0);
+	p->x = luaL_checknumber(L, -1);
+	lua_rawgeti(L, i, 1);
+	p->y = luaL_checknumber(L, -1);
+	lua_rawgeti(L, i, 2);
+	p->z = luaL_checknumber(L, -1);
+	lua_rawgeti(L, i, 3);
+	p->w = luaL_checknumber(L, -1);
+
+	lua_pop(L, 4);
+}
+
+static SGE_INLINE void sge_lua_check_quat(lua_State *L, int i, cx_quat_t *p)
+{
+	luaL_argcheck(L, lua_istable(L, i), i, "quat expects a number table.");
+	luaL_argcheck(L, lua_rawlen(L, i) == 4, i, "quat expects a number table.");
+
+	lua_rawgeti(L, i, 0);
+	p->x = luaL_checknumber(L, -1);
+	lua_rawgeti(L, i, 1);
+	p->y = luaL_checknumber(L, -1);
+	lua_rawgeti(L, i, 2);
+	p->z = luaL_checknumber(L, -1);
+	lua_rawgeti(L, i, 3);
+	p->w = luaL_checknumber(L, -1);
+
+	lua_pop(L, 4);
+}
+
+SGE_END_C_DECLS
 
 #endif /* SGE_LUA_H */

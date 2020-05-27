@@ -78,9 +78,6 @@
 #define CX_MEMBEROF(p, struct_type, member_name) \
 	((struct_type *)CX_PMOVB(p, -CX_OFFSETOF(struct_type, member_name)))
 
-#define CX_TRUE 1
-#define CX_FALSE 0
-
 CX_BEGIN_C_DECLS
 
 CX_END_C_DECLS

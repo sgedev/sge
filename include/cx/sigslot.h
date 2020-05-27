@@ -18,13 +18,14 @@
 	CX_CONCAT(cx_slot_, type)
 
 #define cx_sigslot_define(type, ...) \
-	typedef void (*cx_sig_func(type))(__VA_ARGS__); \
+	typedef void (*cx_sig_func(type))(__VA_ARGS__, void *data); \
 	typedef struct { \
 		cx_list_t slot_list; \
 	} cx_sig(type); \
 	typedef struct { \
 		cx_list_node_t node; \
 		cx_sig_func(type) func; \
+		void *data; \
 	} cx_slot(type)
 
 #define cx_sig_init(type, sig) \
@@ -33,11 +34,12 @@
 		cx_list_reset(&p->slot_list); \
 	} while (0)
 
-#define cx_slot_init(type, slot, fp) \
+#define cx_slot_init(type, slot, fp, userdata) \
 	do { \
 		cx_slot(type) *p = &(slot); \
 		cx_list_node_reset(&p->node); \
 		p->func = fp; \
+		p->data = userdata; \
 	} while (0)
 
 #define cx_sig_connect(type, sig, slot) \
@@ -62,21 +64,20 @@
 		cx_slot(type) *slot; \
 		CX_LIST_FOREACH(node, &psig->slot_list) { \
 			slot = CX_MEMBEROF(node, cx_slot(type), node); \
-			slot->func(__VA_ARGS__); \
+			slot->func(__VA_ARGS__, slot->data); \
 		} \
 	} while (0)
 
-CX_BEGIN_C_DECLS
-
-cx_sigslot_define(void);
-cx_sigslot_define(bool, bool v);
-cx_sigslot_define(int, int v);
-cx_sigslot_define(float, float v);
-cx_sigslot_define(str, const char *v);
-cx_sigslot_define(vec3, const cx_vec3_t *v);
-cx_sigslot_define(quat, const cx_quat_t *v);
-cx_sigslot_define(mat4, const cx_mat4_t *v);
-
-CX_END_C_DECLS
+#define cx_sig_emit_except(type, sig, except_slot, ...) \
+	do { \
+		cx_list_node_t *node; \
+		cx_sig(type) *psig = &(sig); \
+		cx_slot(type) *slot; \
+		CX_LIST_FOREACH(node, &psig->slot_list) { \
+			slot = CX_MEMBEROF(node, cx_slot(type), node); \
+			if (slot != &(except_slot)) \
+				slot->func(__VA_ARGS__, slot->data); \
+		} \
+	} while (0)
 
 #endif /* CX_SIGSLOT_H */

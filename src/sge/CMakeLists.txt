@@ -16,6 +16,7 @@ else()
 endif()
 
 sge_subdirectories(
+	gui
 	renderer
 	physics
 	)
@@ -23,4 +24,5 @@ sge_subdirectories(
 sge_sources(
 	core.c
 	object.c
+	window.c
 	)

@@ -17,7 +17,7 @@ CX_API int cx_list_length(cx_list_t *list)
 	return length;
 }
 
-CX_API int cxIsListContains(cx_list_t *list, cx_list_node_t *node)
+CX_API bool cx_list_contains(cx_list_t *list, cx_list_node_t *node)
 {
 	cx_list_node_t *temp;
 
@@ -26,8 +26,8 @@ CX_API int cxIsListContains(cx_list_t *list, cx_list_node_t *node)
 
 	CX_LIST_FOREACH(temp, list) {
 		if (temp == node)
-			return 1;
+			return true;
 	}
 
-	return 0;
+	return false;
 }

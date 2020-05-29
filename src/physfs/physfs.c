@@ -45,7 +45,7 @@ typedef struct __PHYSFS_DIRHANDLE__
 {
     void *opaque;  /* Instance data unique to the archiver. */
     char *dirName;  /* Path to archive in platform-dependent notation. */
-    char *mountPoint; /* Mountpoint in virtual file tree. */
+    char *fs; /* Mountpoint in virtual file tree. */
     const PHYSFS_Archiver *funcs;  /* Ptr to archiver info for this handle. */
     struct __PHYSFS_DIRHANDLE__ *next;  /* linked list stuff. */
 } DirHandle;
@@ -856,7 +856,7 @@ static DirHandle *tryOpenDir(PHYSFS_Io *io, const PHYSFS_Archiver *funcs,
         else
         {
             memset(retval, '\0', sizeof (DirHandle));
-            retval->mountPoint = NULL;
+            retval->fs = NULL;
             retval->funcs = funcs;
             retval->opaque = opaque;
         } /* else */
@@ -994,13 +994,13 @@ static int partOfMountPoint(DirHandle *h, char *fname)
     int rc;
     size_t len, mntpntlen;
 
-    if (h->mountPoint == NULL)
+    if (h->fs == NULL)
         return 0;
     else if (*fname == '\0')
         return 1;
 
     len = strlen(fname);
-    mntpntlen = strlen(h->mountPoint);
+    mntpntlen = strlen(h->fs);
     if (len > mntpntlen)  /* can't be a subset of mountpoint. */
         return 0;
 
@@ -1008,31 +1008,31 @@ static int partOfMountPoint(DirHandle *h, char *fname)
     if ((len + 1) == mntpntlen)
         return 0;
 
-    rc = strncmp(fname, h->mountPoint, len); /* !!! FIXME: case insensitive? */
+    rc = strncmp(fname, h->fs, len); /* !!! FIXME: case insensitive? */
     if (rc != 0)
         return 0;  /* not a match. */
 
     /* make sure /a/b matches /a/b/ and not /a/bc ... */
-    return h->mountPoint[len] == '/';
+    return h->fs[len] == '/';
 } /* partOfMountPoint */
 
 
 static DirHandle *createDirHandle(PHYSFS_Io *io, const char *newDir,
-                                  const char *mountPoint, int forWriting)
+                                  const char *fs, int forWriting)
 {
     DirHandle *dirHandle = NULL;
     char *tmpmntpnt = NULL;
 
     assert(newDir != NULL);  /* should have caught this higher up. */
 
-    if (mountPoint != NULL)
+    if (fs != NULL)
     {
-        const size_t len = strlen(mountPoint) + 1;
+        const size_t len = strlen(fs) + 1;
         tmpmntpnt = (char *) __PHYSFS_smallAlloc(len);
         GOTO_IF(!tmpmntpnt, PHYSFS_ERR_OUT_OF_MEMORY, badDirHandle);
-        if (!sanitizePlatformIndependentPath(mountPoint, tmpmntpnt))
+        if (!sanitizePlatformIndependentPath(fs, tmpmntpnt))
             goto badDirHandle;
-        mountPoint = tmpmntpnt;  /* sanitized version. */
+        fs = tmpmntpnt;  /* sanitized version. */
     } /* if */
 
     dirHandle = openDirectory(io, newDir, forWriting);
@@ -1042,13 +1042,13 @@ static DirHandle *createDirHandle(PHYSFS_Io *io, const char *newDir,
     GOTO_IF(!dirHandle->dirName, PHYSFS_ERR_OUT_OF_MEMORY, badDirHandle);
     strcpy(dirHandle->dirName, newDir);
 
-    if ((mountPoint != NULL) && (*mountPoint != '\0'))
+    if ((fs != NULL) && (*fs != '\0'))
     {
-        dirHandle->mountPoint = (char *)allocator.Malloc(strlen(mountPoint)+2);
-        if (!dirHandle->mountPoint)
+        dirHandle->fs = (char *)allocator.Malloc(strlen(fs)+2);
+        if (!dirHandle->fs)
             GOTO(PHYSFS_ERR_OUT_OF_MEMORY, badDirHandle);
-        strcpy(dirHandle->mountPoint, mountPoint);
-        strcat(dirHandle->mountPoint, "/");
+        strcpy(dirHandle->fs, fs);
+        strcat(dirHandle->fs, "/");
     } /* if */
 
     __PHYSFS_smallFree(tmpmntpnt);
@@ -1059,7 +1059,7 @@ badDirHandle:
     {
         dirHandle->funcs->closeArchive(dirHandle->opaque);
         allocator.Free(dirHandle->dirName);
-        allocator.Free(dirHandle->mountPoint);
+        allocator.Free(dirHandle->fs);
         allocator.Free(dirHandle);
     } /* if */
 
@@ -1081,7 +1081,7 @@ static int freeDirHandle(DirHandle *dh, FileHandle *openList)
 
     dh->funcs->closeArchive(dh->opaque);
     allocator.Free(dh->dirName);
-    allocator.Free(dh->mountPoint);
+    allocator.Free(dh->fs);
     allocator.Free(dh);
     return 1;
 } /* freeDirHandle */
@@ -1685,7 +1685,7 @@ int PHYSFS_setWriteDir(const char *newDir)
 
 
 static int doMount(PHYSFS_Io *io, const char *fname,
-                   const char *mountPoint, int appendToPath)
+                   const char *fs, int appendToPath)
 {
     DirHandle *dh;
     DirHandle *prev = NULL;
@@ -1693,8 +1693,8 @@ static int doMount(PHYSFS_Io *io, const char *fname,
 
     BAIL_IF(!fname, PHYSFS_ERR_INVALID_ARGUMENT, 0);
 
-    if (mountPoint == NULL)
-        mountPoint = "/";
+    if (fs == NULL)
+        fs = "/";
 
     __PHYSFS_platformGrabMutex(stateLock);
 
@@ -1706,7 +1706,7 @@ static int doMount(PHYSFS_Io *io, const char *fname,
         prev = i;
     } /* for */
 
-    dh = createDirHandle(io, fname, mountPoint, 0);
+    dh = createDirHandle(io, fname, fs, 0);
     BAIL_IF_MUTEX_ERRPASS(!dh, stateLock, 0);
 
     if (appendToPath)
@@ -1728,17 +1728,17 @@ static int doMount(PHYSFS_Io *io, const char *fname,
 
 
 int PHYSFS_mountIo(PHYSFS_Io *io, const char *fname,
-                   const char *mountPoint, int appendToPath)
+                   const char *fs, int appendToPath)
 {
     BAIL_IF(!io, PHYSFS_ERR_INVALID_ARGUMENT, 0);
     BAIL_IF(!fname, PHYSFS_ERR_INVALID_ARGUMENT, 0);
     BAIL_IF(io->version != 0, PHYSFS_ERR_UNSUPPORTED, 0);
-    return doMount(io, fname, mountPoint, appendToPath);
+    return doMount(io, fname, fs, appendToPath);
 } /* PHYSFS_mountIo */
 
 
 int PHYSFS_mountMemory(const void *buf, PHYSFS_uint64 len, void (*del)(void *),
-                       const char *fname, const char *mountPoint,
+                       const char *fname, const char *fs,
                        int appendToPath)
 {
     int retval = 0;
@@ -1749,7 +1749,7 @@ int PHYSFS_mountMemory(const void *buf, PHYSFS_uint64 len, void (*del)(void *),
 
     io = __PHYSFS_createMemoryIo(buf, len, del);
     BAIL_IF_ERRPASS(!io, 0);
-    retval = doMount(io, fname, mountPoint, appendToPath);
+    retval = doMount(io, fname, fs, appendToPath);
     if (!retval)
     {
         /* docs say not to call (del) in case of failure, so cheat. */
@@ -1763,7 +1763,7 @@ int PHYSFS_mountMemory(const void *buf, PHYSFS_uint64 len, void (*del)(void *),
 
 
 int PHYSFS_mountHandle(PHYSFS_File *file, const char *fname,
-                       const char *mountPoint, int appendToPath)
+                       const char *fs, int appendToPath)
 {
     int retval = 0;
     PHYSFS_Io *io = NULL;
@@ -1773,7 +1773,7 @@ int PHYSFS_mountHandle(PHYSFS_File *file, const char *fname,
 
     io = __PHYSFS_createHandleIo(file);
     BAIL_IF_ERRPASS(!io, 0);
-    retval = doMount(io, fname, mountPoint, appendToPath);
+    retval = doMount(io, fname, fs, appendToPath);
     if (!retval)
     {
         /* docs say not to destruct in case of failure, so cheat. */
@@ -1785,10 +1785,10 @@ int PHYSFS_mountHandle(PHYSFS_File *file, const char *fname,
 } /* PHYSFS_mountHandle */
 
 
-int PHYSFS_mount(const char *newDir, const char *mountPoint, int appendToPath)
+int PHYSFS_mount(const char *newDir, const char *fs, int appendToPath)
 {
     BAIL_IF(!newDir, PHYSFS_ERR_INVALID_ARGUMENT, 0);
-    return doMount(NULL, newDir, mountPoint, appendToPath);
+    return doMount(NULL, newDir, fs, appendToPath);
 } /* PHYSFS_mount */
 
 
@@ -1849,7 +1849,7 @@ const char *PHYSFS_getMountPoint(const char *dir)
     {
         if (strcmp(i->dirName, dir) == 0)
         {
-            const char *retval = ((i->mountPoint) ? i->mountPoint : "/");
+            const char *retval = ((i->fs) ? i->fs : "/");
             __PHYSFS_platformReleaseMutex(stateLock);
             return retval;
         } /* if */
@@ -2017,15 +2017,15 @@ static int verifyPath(DirHandle *h, char **_fname, int allowMissing)
         return 1;
 
     /* !!! FIXME: This codeblock sucks. */
-    if (h->mountPoint != NULL)  /* NULL mountpoint means "/". */
+    if (h->fs != NULL)  /* NULL mountpoint means "/". */
     {
-        size_t mntpntlen = strlen(h->mountPoint);
+        size_t mntpntlen = strlen(h->fs);
         size_t len = strlen(fname);
         assert(mntpntlen > 1); /* root mount points should be NULL. */
         /* not under the mountpoint, so skip this archive. */
         BAIL_IF(len < mntpntlen-1, PHYSFS_ERR_NOT_FOUND, 0);
         /* !!! FIXME: Case insensitive? */
-        retval = strncmp(h->mountPoint, fname, mntpntlen-1);
+        retval = strncmp(h->fs, fname, mntpntlen-1);
         BAIL_IF(retval != 0, PHYSFS_ERR_NOT_FOUND, 0);
         if (len > mntpntlen-1)  /* corner case... */
             BAIL_IF(fname[mntpntlen-1]!='/', PHYSFS_ERR_NOT_FOUND, 0);
@@ -2338,18 +2338,18 @@ static PHYSFS_EnumerateCallbackResult enumerateFromMountPoint(DirHandle *i,
     const size_t len = strlen(arcfname);
     char *ptr = NULL;
     char *end = NULL;
-    const size_t slen = strlen(i->mountPoint) + 1;
-    char *mountPoint = (char *) __PHYSFS_smallAlloc(slen);
+    const size_t slen = strlen(i->fs) + 1;
+    char *fs = (char *) __PHYSFS_smallAlloc(slen);
 
-    BAIL_IF(!mountPoint, PHYSFS_ERR_OUT_OF_MEMORY, PHYSFS_ENUM_ERROR);
+    BAIL_IF(!fs, PHYSFS_ERR_OUT_OF_MEMORY, PHYSFS_ENUM_ERROR);
 
-    strcpy(mountPoint, i->mountPoint);
-    ptr = mountPoint + ((len) ? len + 1 : 0);
+    strcpy(fs, i->fs);
+    ptr = fs + ((len) ? len + 1 : 0);
     end = strchr(ptr, '/');
     assert(end);  /* should always find a terminating '/'. */
     *end = '\0';
     retval = callback(data, _fname, ptr);
-    __PHYSFS_smallFree(mountPoint);
+    __PHYSFS_smallFree(fs);
 
     BAIL_IF(retval == PHYSFS_ENUM_ERROR, PHYSFS_ERR_APP_CALLBACK, retval);
     return retval;

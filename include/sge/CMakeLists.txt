@@ -1,19 +1,25 @@
 
 sge_subdirectories(
-	gui
+	Graphics
+	Physics
+	VM
 	)
 
 sge_sources(
-	common.h
-	config.h.in
-	gui.h
-	lua.h
-	object.h
-	physics.h
-	renderer.h
+	Camera.hpp
+	Client.hpp
+	Common.hpp
+	Config.hpp.in
+	Game.hpp
+	Graphics.hpp
+	Object.hpp
+	Physics.hpp
+	Scene.hpp
+	Server.hpp
+	VM.hpp
 	)
 
 configure_file(
-	config.h.in
-	config.h
+	Config.hpp.in
+	Config.hpp
 	)

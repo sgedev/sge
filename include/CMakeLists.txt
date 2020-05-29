@@ -2,24 +2,31 @@
 sge_subdirectories(
 	cx
 	GL
+	glm
 	KHR
-	sge
+	SGE
 	)
 
 sge_sources(
-	fontstash.h
-	lauxlib.h
+	argh.h
+	imconfig.h
+	imgui.h
+	imgui_impl_opengl3.h
+	imgui_impl_sdl.h
+	imgui_internal.h
+	imstb_rectpack.h
+	imstb_textedit.h
+	imstb_truetype.h
+	luaconf.h
 	lua.h
 	lua.hpp
-	luaconf.h
 	lualib.h
-	luasge.h
-	nanovg.h
-	nanovg_gl.h
-	nanovg_gl_utils.h
+	lauxlib.h
+	miniz.h
+	miniz_common.h
+	miniz_export.h
+	miniz_tdef.h
+	miniz_tinfl.h
+	miniz_zip.h
 	physfs.h
-	stb_image.h
-	stb_truetype.h
 	)
-
-sge_compile_definitions(LUA_USER_H=\"${CMAKE_CURRENT_SOURCE_DIR}/luasge.h\")

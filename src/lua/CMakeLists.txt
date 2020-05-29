@@ -1,8 +1,4 @@
 
-if(UNIX)
-	sge_link_libraries(dl m)
-endif()
-
 sge_sources(
 	lapi.c
 	lapi.h
@@ -52,7 +48,6 @@ sge_sources(
 	ltablib.c
 	ltm.c
 	ltm.h
-	lua.c
 	lundump.c
 	lundump.h
 	lutf8lib.c

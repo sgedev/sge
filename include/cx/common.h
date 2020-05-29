@@ -6,7 +6,6 @@
 
 #include <assert.h>
 #include <stdarg.h>
-#include <stdint.h>
 #include <stdbool.h>
 
 #ifdef CX_DEBUG
@@ -16,11 +15,13 @@
 #endif
 
 #ifdef __cplusplus
-#	define CX_BEGIN_C_DECLS extern "C" {
-#	define CX_END_C_DECLS }
+#	define CX_EXTEN extern "C"
+#	define CX_BEGIN_DECLS extern "C" {
+#	define CX_END_DECLS }
 #else
-#	define CX_BEGIN_C_DECLS
-#	define CX_END_C_DECLS
+#	define CX_EXTEN
+#	define CX_BEGIN_DECLS
+#	define CX_END_DECLS
 #endif
 
 #if defined(_MSC_VER)
@@ -78,8 +79,17 @@
 #define CX_MEMBEROF(p, struct_type, member_name) \
 	((struct_type *)CX_PMOVB(p, -CX_OFFSETOF(struct_type, member_name)))
 
-CX_BEGIN_C_DECLS
+CX_BEGIN_DECLS
 
-CX_END_C_DECLS
+typedef signed char cx_int8_t;
+typedef unsigned char cx_uint8_t;
+typedef signed short cx_int16_t;
+typedef unsigned short cx_uint16_t;
+typedef signed int cx_int32_t;
+typedef unsigned int cx_uint32_t;
+typedef CX_INT64 cx_int64_t;
+typedef CX_UINT64 cx_uint64_t;
+
+CX_END_DECLS
 
 #endif /* CX_H */

@@ -8,6 +8,6 @@ else()
 endif()
 
 sge_sources(
-	glew.c
-	glex.c
+	gl3w.c
 	)
+

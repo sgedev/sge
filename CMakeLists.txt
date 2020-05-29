@@ -9,8 +9,6 @@ project(sge VERSION 0.1.0)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 
-set(CMAKE_C_STANDARD 99)
-
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 if(MSVC)
@@ -49,6 +47,7 @@ endmacro()
 # sge
 
 add_executable(sge)
+target_compile_features(sge PRIVATE cxx_std_17)
 
 set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
 set(SGE_LOG ON CACHE BOOL "Enable log functions.")

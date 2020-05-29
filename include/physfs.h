@@ -2201,7 +2201,7 @@ PHYSFS_DECL int PHYSFS_setAllocator(const PHYSFS_Allocator *allocator);
  * \sa PHYSFS_mountIo
  */
 PHYSFS_DECL int PHYSFS_mount(const char *newDir,
-                             const char *mountPoint,
+                             const char *fs,
                              int appendToPath);
 
 /**
@@ -3238,7 +3238,7 @@ typedef struct PHYSFS_Io
  * \sa PHYSFS_getMountPoint
  */
 PHYSFS_DECL int PHYSFS_mountIo(PHYSFS_Io *io, const char *newDir,
-                               const char *mountPoint, int appendToPath);
+                               const char *fs, int appendToPath);
 
 
 /**
@@ -3286,7 +3286,7 @@ PHYSFS_DECL int PHYSFS_mountIo(PHYSFS_Io *io, const char *newDir,
  */
 PHYSFS_DECL int PHYSFS_mountMemory(const void *buf, PHYSFS_uint64 len,
                                    void (*del)(void *), const char *newDir,
-                                   const char *mountPoint, int appendToPath);
+                                   const char *fs, int appendToPath);
 
 
 /**
@@ -3343,7 +3343,7 @@ PHYSFS_DECL int PHYSFS_mountMemory(const void *buf, PHYSFS_uint64 len,
  * \sa PHYSFS_getMountPoint
  */
 PHYSFS_DECL int PHYSFS_mountHandle(PHYSFS_File *file, const char *newDir,
-                                   const char *mountPoint, int appendToPath);
+                                   const char *fs, int appendToPath);
 
 
 /**

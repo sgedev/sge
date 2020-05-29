@@ -15,14 +15,26 @@ else()
 	message(FATAL_ERROR "SDL2 not found.")
 endif()
 
+include(FindBullet)
+if(BULLET_FOUND)
+	sge_include_directories(${BULLET_INCLUDE_DIRS})
+	sge_link_libraries(${BULLET_LIBRARIES})
+else()
+	message(FATAL_ERROR "BulletPhysics not found.")
+endif()
+
 sge_subdirectories(
-	gui
-	renderer
-	physics
+	Graphics
+	Physics
+	VM
 	)
 
 sge_sources(
-	core.c
-	object.c
-	window.c
+	Camera.cpp
+	Client.cpp
+	Game.cpp
+	Main.cpp
+	Object.cpp
+	Scene.cpp
+	Server.cpp
 	)

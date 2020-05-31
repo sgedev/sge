@@ -5,30 +5,29 @@
 
 #include <SGE/Scene.hpp>
 #include <SGE/Graphics/Common.hpp>
-#include <SGE/Graphics/Heap.hpp>
+#include <SGE/Graphics/Memory.hpp>
 
 SGE_GRAPHICS_BEGIN
 
-class Renderer : public Scene::Listener {
+class Renderer {
 public:
 	Renderer(void);
 	virtual ~Renderer(void);
 
 public:
-	bool init(void);
+	bool init(Scene &scene);
 	void shutdown(void);
-	void objectAdded(ObjectPtr obj) override;
-	void objectRemoved(ObjectPtr obj) override;
-	void cameraAdded(CameraPtr cam) override;
-	void cameraRemoved(CameraPtr cam) override;
-	void update(float elapsed) override;
 	void draw(void);
 
+protected:
+	void objectAdded(ObjectPtr obj);
+	void objectRemoved(ObjectPtr obj);
+	void cameraAdded(CameraPtr cam);
+	void cameraRemoved(CameraPtr cam);
+
 private:
-	Heap m_staticVertexHeap;
-	Heap m_staticVertexIndexHeap;
-	Heap m_dynamicVertexHeap;
-	Heap m_dynamicVertexIndexHeap;
+	Scene *m_scene;
+	Memory m_memory;
 };
 
 SGE_GRAPHICS_END

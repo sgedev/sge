@@ -1,6 +1,7 @@
 
 sge_sources(
 	Common.hpp
-	Heap.hpp
+	Memory.hpp
+	Mesh.hpp
     Renderer.hpp
 	)

@@ -14,12 +14,10 @@ public:
 	virtual ~Server(void);
 
 public:
-	bool start(const std::string &path) override;
+	bool start(void) override;
 	void stop(void) override;
 
 protected:
-	bool init(void) override;
-	void shutdown(void) override;
 	void frame(float elapsed) override;
 };
 

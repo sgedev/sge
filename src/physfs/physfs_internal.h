@@ -314,7 +314,10 @@ char *__PHYSFS_strdup(const char *str);
  */
 PHYSFS_uint32 __PHYSFS_hashString(const char *str, size_t len);
 
-
+#ifdef PHYSFS_MX
+extern PHYSFS_Allocator *__PHYSFS_AllocatorHooks;
+#define allocator (*__PHYSFS_AllocatorHooks)
+#else
 /*
  * The current allocator. Not valid before PHYSFS_init is called!
  */
@@ -322,6 +325,7 @@ extern PHYSFS_Allocator __PHYSFS_AllocatorHooks;
 
 /* convenience macro to make this less cumbersome internally... */
 #define allocator __PHYSFS_AllocatorHooks
+#endif
 
 /*
  * Create a PHYSFS_Io for a file in the physical filesystem.

@@ -3,6 +3,8 @@
 #ifndef SGE_COMMON_HPP
 #define SGE_COMMON_HPP
 
+#include <cstdio>
+#include <cstdarg>
 #include <cstddef>
 
 #include <uv.h>
@@ -26,32 +28,51 @@
 #   define SGE_ASSERT(expr)
 #endif
 
-#ifdef SGE_LOG
-#	define SGE_LOG_CATEGORY SDL_LOG_CATEGORY_CUSTOM
-#	define SGE_LOGE(fmt, ...) SDL_LogError(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
-#	define SGE_LOGW(fmt, ...) SDL_LogWarn(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
-#	define SGE_LOGI(fmt, ...) SDL_LogInfo(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
-#	define SGE_LOGD(fmt, ...) SDL_LogDebug(SGE_LOG_CATEGORY, fmt, ##__VA_ARGS__)
-#else
-#	define SGE_LOGE(fmt, ...) do { } while (0)
-#	define SGE_LOGW(fmt, ...) do { } while (0)
-#	define SGE_LOGI(fmt, ...) do { } while (0)
-#	define SGE_LOGD(fmt, ...) do { } while (0)
-#endif
-
 #define SGE_BEGIN namespace SGE {
 #define SGE_END }
 
 SGE_BEGIN
 
-class Noncopyable {
-public:
-	Noncopyable(void) { }
-
-private:
-	Noncopyable(const Noncopyable &);
-	Noncopyable &operator=(const Noncopyable &);
+enum Log {
+	LogError = 0,
+	LogWarning,
+	LogInfo,
+	LogDebug
 };
+
+void logWrite(Log type, const char *fmt, va_list args);
+
+SGE_INLINE void logError(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	logWrite(LogError, fmt, args);
+	va_end(args);
+}
+
+SGE_INLINE void logWarning(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	logWrite(LogWarning, fmt, args);
+	va_end(args);
+}
+
+SGE_INLINE void logInfo(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	logWrite(LogInfo, fmt, args);
+	va_end(args);
+}
+
+SGE_INLINE void logDebug(const char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	logWrite(LogDebug, fmt, args);
+	va_end(args);
+}
 
 SGE_END
 

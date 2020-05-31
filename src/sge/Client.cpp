@@ -19,7 +19,7 @@ Client::~Client(void)
 {
 }
 
-bool Client::start(const std::string &initrc)
+bool Client::start(void)
 {
 	SGE_ASSERT(m_window == NULL);
 	SGE_ASSERT(m_context == NULL);
@@ -27,7 +27,7 @@ bool Client::start(const std::string &initrc)
 	SGE_ASSERT(m_imgui_sdl2 == NULL);
 	SGE_ASSERT(m_imgui_opengl3 == NULL);
 
-	if (!Game::start(initrc))
+	if (!Game::start())
 		return false;
 
 	if (!initWindow()) {
@@ -40,7 +40,7 @@ bool Client::start(const std::string &initrc)
 	SDL_GL_MakeCurrent(m_window, m_context);
 
 	if (gl3wInit(&m_gl3w, (GL3WGetProcAddressProc)SDL_GL_GetProcAddress) < 0) {
-		SGE_LOGE("Failed to init OpenGL procs.");
+		logError("Failed to init OpenGL procs.\n");
 		releaseWindow();
 		Game::stop();
 		return false;
@@ -48,7 +48,7 @@ bool Client::start(const std::string &initrc)
 
 	gl3wProcs = &m_gl3w;
 
-	SGE_LOGI("OpenGL: %s", glGetString(GL_VERSION));
+	logInfo("OpenGL: %s\n", glGetString(GL_VERSION));
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 #if defined SGE_DEBUG && defined SGE_LOG
@@ -72,7 +72,7 @@ bool Client::start(const std::string &initrc)
 	m_imgui_sdl2 = ImGui_ImplSDL2_NewForOpenGL(m_window, m_context);
 	m_imgui_opengl3 = ImGui_ImplOpenGL3_New("#version 130");
 
-	m_renderer.init();
+	m_renderer.init(scene());
 
 	return true;
 }
@@ -121,39 +121,11 @@ bool Client::handleEvent(const SDL_Event &event)
 	return false;
 }
 
-bool Client::init(void)
-{
-	if (!Game::init())
-		return false;
-
-	return true;
-}
-
-void Client::shutdown(void)
-{
-	Game::shutdown();
-}
-
 void Client::frame(float elapsed)
 {
 	Game::frame(elapsed);
 
-	// TODO generate visibled view for renderer.
-
-	updateAsync();
-	barrier();
-
-	// TODO swap renderer view.
-}
-
-void Client::update(void)
-{
-	barrier();
-
-	Game::update();
-
 	updateWindow();
-
 }
 
 bool Client::initWindow(void)
@@ -171,17 +143,17 @@ bool Client::initWindow(void)
 
 #ifdef SGE_DEBUG
 	int glFlags;
-	SGE_LOGI("OpenGL debug enabled.");
+	logInfo("OpenGL debug enabled.\n");
 	SDL_GL_GetAttribute(SDL_GL_CONTEXT_FLAGS, &glFlags);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, glFlags | SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
-	SGE_LOGD("Creating main window...");
+	logDebug("Creating main window...\n");
 
 	m_window = SDL_CreateWindow("SGE",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL);
 	if (m_window == NULL) {
-		SGE_LOGE("Failed to create main window.");
+		logError("Failed to create main window.");
 		return false;
 	}
 
@@ -190,12 +162,12 @@ bool Client::initWindow(void)
 	SDL_GetWindowPosition(m_window, &m_rect[0], &m_rect[1]);
 	SDL_GetWindowSize(m_window, &m_rect[2], &m_rect[3]);
 
-	SGE_LOGD("Create OpenGL context...");
+	logDebug("Create OpenGL context...");
 	m_context = SDL_GL_CreateContext(m_window);
 	if (m_context == NULL) {
 		SDL_DestroyWindow(m_window);
 		m_window = NULL;
-		SGE_LOGE("Failed to create OpenGL context.");
+		logError("Failed to create OpenGL context.");
 		return false;
 	}
 
@@ -316,9 +288,9 @@ void APIENTRY Client::glDebugOutput(
     };
 
 	if (type == GL_DEBUG_TYPE_ERROR)
-		SGE_LOGE("GL/%s/%s/%s: %s", severityStr, sourceStr, typeStr, message);
+		logError("GL/%s/%s/%s: %s", severityStr, sourceStr, typeStr, message);
 	else
-		SGE_LOGD("GL/%s/%s/%s: %s", severityStr, sourceStr, typeStr, message);
+		logDebug("GL/%s/%s/%s: %s", severityStr, sourceStr, typeStr, message);
 }
 #endif
 

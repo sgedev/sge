@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 #ifdef CX_DEBUG

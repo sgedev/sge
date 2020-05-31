@@ -13,9 +13,9 @@ Server::~Server(void)
 {
 }
 
-bool Server::start(const std::string &path)
+bool Server::start(void)
 {
-	if (!Game::start(path))
+	if (!Game::start())
 		return false;
 
 	return true;
@@ -24,18 +24,6 @@ bool Server::start(const std::string &path)
 void Server::stop(void)
 {
 	Game::stop();
-}
-
-bool Server::init(void)
-{
-	if (!Game::init())
-		return false;
-
-	return true;
-}
-
-void Server::shutdown(void)
-{
 }
 
 void Server::frame(float elapsed)

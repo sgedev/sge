@@ -4,42 +4,43 @@
 
 SGE_PHYSICS_BEGIN
 
-World::World(void)
+World::World(void):
+	m_scene(NULL)
 {
 }
 
 World::~World(void)
 {
-	shutdown();
+	if (m_scene != NULL)
+		shutdown();
 }
 
-bool World::init(void)
+bool World::init(Scene &scene)
 {
+	SGE_ASSERT(m_scene == NULL);
+
+	m_scene = &scene;
+
+	m_scene->addObject.connect<&World::objectAdded>(this);
+	m_scene->removeObject.connect<&World::objectRemoved>(this);
+
 	return true;
 }
 
 void World::shutdown(void)
 {
+	SGE_ASSERT(m_scene != NULL);
+	m_scene = NULL;
 }
 
 void World::objectAdded(ObjectPtr obj)
 {
+
 }
 
 void World::objectRemoved(ObjectPtr obj)
 {
-}
 
-void World::cameraAdded(CameraPtr cam)
-{
-}
-
-void World::cameraRemoved(CameraPtr cam)
-{
-}
-
-void World::update(float elapsed)
-{
 }
 
 SGE_PHYSICS_END

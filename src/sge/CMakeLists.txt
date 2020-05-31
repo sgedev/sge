@@ -26,15 +26,12 @@ endif()
 sge_subdirectories(
 	Graphics
 	Physics
-	VM
 	)
 
 sge_sources(
-	Camera.cpp
 	Client.cpp
+	Common.cpp
 	Game.cpp
-	Main.cpp
-	Object.cpp
-	Scene.cpp
+	Lua.cpp
 	Server.cpp
 	)

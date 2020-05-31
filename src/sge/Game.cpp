@@ -7,13 +7,16 @@
 SGE_BEGIN
 
 Game::Game(uv_loop_t *loop):
-	Kernel(loop),
+	m_loop(loop),
 	m_state(StateIdle)
 {
 	SGE_ASSERT(loop != NULL);
 
-	uv_async_init(loop, &m_updateAsync, &Game::updateCallback);
-	m_updateAsync.data = this;
+	uv_timer_init(loop, &m_frameTimer);
+	m_frameTimer.data = this;
+
+	uv_timer_init(loop, &m_stateTimer);
+	m_stateTimer.data = this;
 }
 
 Game::~Game(void)
@@ -22,44 +25,66 @@ Game::~Game(void)
 		stop();
 }
 
+bool Game::start(void)
+{
+	if (!m_physicsWorld.init(m_scene))
+		return false;
+
+	uv_timer_start(&m_frameTimer, &Game::frameCallback, 0, 16);
+	uv_timer_start(&m_stateTimer, &Game::stateCallback, 1000, 1000);
+
+	m_last = uv_now(m_loop);
+	m_fps = 0;
+	m_fpsCount = 0;
+	m_elapsed = 0.0f;
+	m_elapsedMin = 16.667f;
+
+	m_state = StateLoading;
+
+	return true;
+}
+
+void Game::stop(void)
+{
+	SGE_ASSERT(m_state != StateIdle);
+
+	uv_timer_stop(&m_frameTimer);
+	uv_timer_stop(&m_stateTimer);
+
+	m_state = StateIdle;
+}
+
 bool Game::handleEvent(const SDL_Event &event)
 {
 	// TODO
 	return false;
 }
 
-bool Game::init(void)
+void Game::setName(const std::string &name)
 {
-	uv_barrier_init(&m_barrier, 2);
+	if (m_name == name)
+		return;
 
-	if (!m_physicsWorld.init())
-		return false;
-
-	uv_timer_init(loop(), &m_frameTimer);
-	uv_timer_start(&m_frameTimer, &Game::frameCallback, 0, 16);
-	m_frameTimer.data = this;
-
-	m_last = uv_now(loop());
-
-	return true;
+	m_name = name;
+	nameChanged(name);
 }
 
-void Game::shutdown(void)
+void Game::setGravity(const glm::vec3 &v)
 {
-	SGE_ASSERT(m_state != StateIdle);
+}
 
+void Game::setFpsMax(int v)
+{
+	m_elapsedMin = 1000.0f / float(v);
 	uv_timer_stop(&m_frameTimer);
-
-	uv_barrier_destroy(&m_barrier);
-
-	m_state = StateIdle;
+	uv_timer_start(&m_frameTimer, &Game::frameCallback, 0, uint64_t(m_elapsedMin));
 }
 
 void Game::frame(float elapsed)
 {
-	SGE_ASSERT(inKernel());
+	m_fpsCount += 1;
 
-	m_physicsWorld.update(elapsed);
+	// m_physicsWorld.update(elapsed);
 }
 
 void Game::frameCallback(uv_timer_t *p)
@@ -71,19 +96,14 @@ void Game::frameCallback(uv_timer_t *p)
 
 	G->frame(float(pass) / 1000.0f);
 	G->m_last = curr;
-
 	uv_update_time(p->loop);
 }
 
-void Game::update(void)
+void Game::stateCallback(uv_timer_t *p)
 {
-	SGE_ASSERT(!inKernel());
-}
-
-void Game::updateCallback(uv_async_t *p)
-{
-	Game *G = ((Game *)(p->data));
-	G->update();
+	Game *game = ((Game *)(p->data));
+	game->m_fps = game->m_fpsCount;
+	game->m_fpsCount = 0;
 }
 
 SGE_END

@@ -84,6 +84,13 @@ set(PHYSFS_SRCS
     ${PHYSFS_M_SRCS}
 )
 
+set(PHYSFS_HDRS
+    physfs_casefolding.h
+    physfs_internal.h
+    physfs_lzmasdk.h
+    physfs_miniz.h
+    physfs_platforms.h
+    )
 
 # Archivers ...
 # These are (mostly) on by default now, so these options are only useful for
@@ -139,4 +146,7 @@ if(NOT PHYSFS_ARCHIVE_VDF)
     sge_compile_definitions(-DPHYSFS_SUPPORTS_VDF=0)
 endif()
 
-sge_sources(${PHYSFS_SRCS})
+sge_sources(
+    ${PHYSFS_SRCS}
+    ${PHYSFS_HDRS}
+    )

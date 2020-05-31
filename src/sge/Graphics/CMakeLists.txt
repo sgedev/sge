@@ -1,6 +1,7 @@
 
 sge_sources(
-	Heap.cpp
+	Memory.cpp
+	Mesh.cpp
 	Renderer.cpp
 	)
 

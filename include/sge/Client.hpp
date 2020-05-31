@@ -21,16 +21,14 @@ public:
 	virtual ~Client(void);
 
 public:
-	bool start(const std::string &initrc) override;
+	bool start(void) override;
 	void stop(void) override;
 	bool handleEvent(const SDL_Event &event) override;
-	const std::string &path(void) const;
 
 protected:
-	bool init(void) override;
-	void shutdown(void) override;
 	void frame(float elapsed) override;
-	void update(void) override;
+
+private:
 	void updateGui(void);
 	bool initWindow(void);
 	void releaseWindow(void);
@@ -50,7 +48,6 @@ private:
 #endif
 
 private:
-	std::string m_path;
 	Uint32 m_id;
 	union GL3WProcs m_gl3w;
 	glm::ivec4 m_rect;
@@ -59,11 +56,6 @@ private:
 	ImGui_ImplOpenGL3_Context *m_imgui_opengl3;
 	ImGuiContext *m_imgui;
 };
-
-SGE_INLINE const std::string &Client::path(void) const
-{
-	return m_path;
-}
 
 SGE_END
 

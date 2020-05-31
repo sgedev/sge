@@ -1,53 +1,65 @@
 //
 //
+#include <SGE/Graphics/Mesh.hpp>
 #include <SGE/Graphics/Renderer.hpp>
 
 SGE_GRAPHICS_BEGIN
 
 Renderer::Renderer(void):
-	m_staticVertexHeap(GL_ARRAY_BUFFER, GL_STATIC_DRAW),
-	m_staticVertexIndexHeap(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW),
-	m_dynamicVertexHeap(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW),
-	m_dynamicVertexIndexHeap(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW)
+	m_scene(NULL)
 {
 }
 
 Renderer::~Renderer(void)
 {
-	shutdown();
+	if (m_scene != NULL)
+		shutdown();
 }
 
-bool Renderer::init(void)
+bool Renderer::init(Scene &scene)
 {
+	SGE_ASSERT(m_scene == NULL);
+
+	m_scene = &scene;
+
+	m_scene->addObject.connect<&Renderer::objectAdded>(this);
+	m_scene->removeObject.connect<&Renderer::objectRemoved>(this);
+	m_scene->addCamera.connect<&Renderer::cameraAdded>(this);
+	m_scene->removeCamera.connect<&Renderer::cameraRemoved>(this);
+
 	return true;
 }
 
 void Renderer::shutdown(void)
 {
-}
+	SGE_ASSERT(m_scene != NULL);
 
-void Renderer::objectAdded(ObjectPtr obj)
-{
-}
-
-void Renderer::objectRemoved(ObjectPtr obj)
-{
-}
-
-void Renderer::cameraAdded(CameraPtr cam)
-{
-}
-
-void Renderer::cameraRemoved(CameraPtr cam)
-{
-}
-
-void Renderer::update(float elapsed)
-{
+	m_scene = NULL;
 }
 
 void Renderer::draw(void)
 {
+}
+
+void Renderer::objectAdded(ObjectPtr obj)
+{
+	// mesh = new Mesh(m_memory);
+	// mesh->
+}
+
+void Renderer::objectRemoved(ObjectPtr obj)
+{
+
+}
+
+void Renderer::cameraAdded(CameraPtr cam)
+{
+
+}
+
+void Renderer::cameraRemoved(CameraPtr cam)
+{
+
 }
 
 SGE_GRAPHICS_END

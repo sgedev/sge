@@ -492,6 +492,13 @@ typedef struct PHYSFS_Version
  */
 PHYSFS_DECL void PHYSFS_getLinkedVersion(PHYSFS_Version *ver);
 
+#define PHYSFS_MX
+#ifdef PHYSFS_MX
+typedef struct PHYSFS_Context PHYSFS_Context;
+PHYSFS_DECL PHYSFS_Context *PHYSFS_createContext(const char *argv0);
+PHYSFS_DECL void PHYSFS_DestroyContext(PHYSFS_Context *ctx);
+PHYSFS_DECL void PHYSFS_makeCurrent(PHYSFS_Context *ctx);
+#endif
 
 /**
  * \fn int PHYSFS_init(const char *argv0)
@@ -513,7 +520,7 @@ PHYSFS_DECL void PHYSFS_getLinkedVersion(PHYSFS_Version *ver);
  * \sa PHYSFS_deinit
  * \sa PHYSFS_isInit
  */
-PHYSFS_DECL int PHYSFS_init(const char *argv0);
+/* PHYSFS_DECL int PHYSFS_init(const char *argv0); */
 
 
 /**
@@ -542,7 +549,7 @@ PHYSFS_DECL int PHYSFS_init(const char *argv0);
  * \sa PHYSFS_init
  * \sa PHYSFS_isInit
  */
-PHYSFS_DECL int PHYSFS_deinit(void);
+/* PHYSFS_DECL int PHYSFS_deinit(void); */
 
 
 /**

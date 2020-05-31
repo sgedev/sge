@@ -8,7 +8,6 @@ sge_subdirectories(
 	)
 
 sge_sources(
-	argh.h
 	imconfig.h
 	imgui.h
 	imgui_impl_opengl3.h
@@ -17,16 +16,9 @@ sge_sources(
 	imstb_rectpack.h
 	imstb_textedit.h
 	imstb_truetype.h
+	lauxlib.h
 	luaconf.h
 	lua.h
 	lua.hpp
 	lualib.h
-	lauxlib.h
-	miniz.h
-	miniz_common.h
-	miniz_export.h
-	miniz_tdef.h
-	miniz_tinfl.h
-	miniz_zip.h
-	physfs.h
 	)

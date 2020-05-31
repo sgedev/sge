@@ -8,21 +8,21 @@
 
 SGE_PHYSICS_BEGIN
 
-class World: public Scene::Listener {
+class World {
 public:
 	World(void);
 	virtual ~World(void);
 
 public:
-	bool init(void);
+	bool init(Scene &scene);
 	void shutdown(void);
-	void objectAdded(ObjectPtr obj) override;
-	void objectRemoved(ObjectPtr obj) override;
-	void cameraAdded(CameraPtr cam) override;
-	void cameraRemoved(CameraPtr cam) override;
-	void update(float elapsed) override;
+
+protected:
+	void objectAdded(ObjectPtr obj);
+	void objectRemoved(ObjectPtr obj);
 
 private:
+	Scene *m_scene;
 };
 
 SGE_PHYSICS_END

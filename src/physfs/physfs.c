@@ -71,6 +71,50 @@ typedef struct __PHYSFS_ERRSTATETYPE__
     struct __PHYSFS_ERRSTATETYPE__ *next;
 } ErrState;
 
+#ifdef PHYSFS_MX
+
+struct PHYSFS_Context {
+    int initialized;
+    ErrState *errorStates;
+    DirHandle *searchPath;
+    DirHandle *writeDir;
+    FileHandle *openWriteList;
+    FileHandle *openReadList;
+    char *baseDir;
+    char *userDir;
+    char *prefDir;
+    int allowSymLinks;
+    PHYSFS_Archiver **archivers;
+    PHYSFS_ArchiveInfo **archiveInfo;
+    volatile size_t numArchivers;
+    void *errorLock;
+    void *stateLock;
+    int externalAllocator;
+    PHYSFS_Allocator allocator_;
+};
+
+PHYSFS_Context *PHYSFS_current;
+PHYSFS_Allocator *__PHYSFS_AllocatorHooks;
+
+/* General PhysicsFS state ... */
+#define initialized (PHYSFS_current->initialized)
+#define errorStates (PHYSFS_current->errorStates)
+#define searchPath (PHYSFS_current->searchPath)
+#define writeDir (PHYSFS_current->writeDir)
+#define openWriteList (PHYSFS_current->openWriteList)
+#define openReadList (PHYSFS_current->openReadList)
+#define baseDir (PHYSFS_current->baseDir)
+#define userDir (PHYSFS_current->userDir)
+#define prefDir (PHYSFS_current->prefDir)
+#define allowSymLinks (PHYSFS_current->allowSymLinks)
+#define archivers (PHYSFS_current->archivers)
+#define archiveInfo (PHYSFS_current->archiveInfo)
+#define numArchivers (PHYSFS_current->numArchivers)
+#define errorLock (PHYSFS_current->errorLock)
+#define stateLock (PHYSFS_current->stateLock)
+#define externalAllocator (PHYSFS_current->externalAllocator)
+
+#else /* PHYSFS_MX */
 
 /* General PhysicsFS state ... */
 static int initialized = 0;
@@ -95,6 +139,7 @@ static void *stateLock = NULL;     /* protects other PhysFS static state. */
 static int externalAllocator = 0;
 PHYSFS_Allocator allocator;
 
+#endif /* PHYSFS_MX */
 
 #ifdef PHYSFS_NEED_ATOMIC_OP_FALLBACK
 static inline int __PHYSFS_atomicAdd(int *ptrval, const int val)
@@ -1192,7 +1237,7 @@ static int initStaticArchivers(void)
 static void setDefaultAllocator(void);
 static int doDeinit(void);
 
-int PHYSFS_init(const char *argv0)
+static int PHYSFS_init(const char *argv0)
 {
     BAIL_IF(initialized, PHYSFS_ERR_IS_INITIALIZED, 0);
 
@@ -1395,7 +1440,7 @@ static int doDeinit(void)
 } /* doDeinit */
 
 
-int PHYSFS_deinit(void)
+static int PHYSFS_deinit(void)
 {
     BAIL_IF(!initialized, PHYSFS_ERR_NOT_INITIALIZED, 0);
     return doDeinit();
@@ -3313,6 +3358,57 @@ void __PHYSFS_DirTreeDeinit(__PHYSFS_DirTree *dt)
         allocator.Free(dt->hash);
     } /* if */
 } /* __PHYSFS_DirTreeDeinit */
+
+PHYSFS_DECL PHYSFS_Context *PHYSFS_createContext(const char *argv0)
+{
+    int ret;
+    PHYSFS_Context *old;
+    PHYSFS_Context *ctx;
+    
+    ctx = mallocAllocatorMalloc(sizeof(PHYSFS_Context));
+    if (ctx == NULL)
+        return NULL;
+
+    memset(ctx, 0, sizeof(PHYSFS_Context));
+
+    old = PHYSFS_current;
+
+    PHYSFS_makeCurrent(ctx);
+    ret = PHYSFS_init(argv0);
+    PHYSFS_makeCurrent(old);
+
+    if (!ret) {
+        mallocAllocatorFree(ctx);
+        return NULL;
+    }
+
+    return ctx;
+}
+
+PHYSFS_DECL void PHYSFS_DestroyContext(PHYSFS_Context *ctx)
+{
+    PHYSFS_Context *old;
+
+    if (ctx == NULL)
+        return;
+
+    if (PHYSFS_current == ctx)
+        PHYSFS_current = NULL;
+
+    old = PHYSFS_current;
+    PHYSFS_makeCurrent(ctx);
+    PHYSFS_deinit();
+    PHYSFS_makeCurrent(old);
+}
+
+PHYSFS_DECL void PHYSFS_makeCurrent(PHYSFS_Context *ctx)
+{
+    PHYSFS_current = ctx;
+    if (ctx != NULL)
+        __PHYSFS_AllocatorHooks = &ctx->allocator_;
+    else
+        __PHYSFS_AllocatorHooks = NULL;
+}
 
 /* end of physfs.c ... */
 

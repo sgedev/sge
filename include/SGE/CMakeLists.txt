@@ -1,0 +1,29 @@
+
+target_sources(sge
+	PUBLIC
+		BulletPhysics.hpp
+		Camera.hpp
+		Client.hpp
+		Common.hpp
+		Game.hpp
+		JsVM.hpp
+		LuaVM.hpp
+		Object.hpp
+		OpenGLMesh.hpp
+		OpenGLRenderer.hpp
+		Physics.hpp
+		Renderer.hpp
+		ResourceManager.hpp
+		Server.hpp
+		VM.hpp
+		ZipFile.hpp
+		ZipPackage.hpp
+		ZipReader.hpp
+	PRIVATE
+		Config.hpp.in
+	)
+
+configure_file(
+	Config.hpp.in
+	Config.hpp
+	)

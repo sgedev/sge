@@ -1,9 +1,4 @@
 
-sge_subdirectories(
-	cx
-	GL
-	imgui
-	lua
-	physfs
-	SGE
-	)
+add_subdirectory(miniz miniz)
+add_subdirectory(nanovg nanovg)
+add_subdirectory(SGE SGE)

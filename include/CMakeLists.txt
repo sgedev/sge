@@ -1,24 +1,19 @@
 
-sge_subdirectories(
-	cx
-	GL
-	glm
-	KHR
-	SGE
-	)
+add_subdirectory(SGE SGE)
 
-sge_sources(
-	imconfig.h
-	imgui.h
-	imgui_impl_opengl3.h
-	imgui_impl_sdl.h
-	imgui_internal.h
-	imstb_rectpack.h
-	imstb_textedit.h
-	imstb_truetype.h
-	lauxlib.h
-	luaconf.h
-	lua.h
-	lua.hpp
-	lualib.h
+target_sources(sge
+	PUBLIC
+		SGE.hpp
+	PRIVATE
+		fontstash.h
+		miniz.h
+		miniz_common.h
+		miniz_export.h
+		miniz_tinfl.h
+		miniz_zip.h
+		nanovg.h
+		nanovg_gl.h
+		nanovg_gl_utils.h
+		stb_image.h
+		stb_truetype.h
 	)

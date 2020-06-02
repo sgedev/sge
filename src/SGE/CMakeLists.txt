@@ -1,0 +1,21 @@
+
+target_sources(sge
+	PRIVATE
+		BulletPhysics.cpp
+		Camera.cpp
+		Common.cpp
+		Game.cpp
+		JsVM.cpp
+		LuaVM.cpp
+		Object.cpp
+		OpenGLMesh.cpp
+		OpenGLRenderer.cpp
+		Package.cpp
+		Physics.cpp
+		Renderer.cpp
+		ResourceManager.cpp
+		VM.cpp
+		ZipFile.cpp
+		ZipPackage.cpp
+		ZipReader.cpp
+	)

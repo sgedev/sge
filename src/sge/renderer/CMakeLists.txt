@@ -3,6 +3,7 @@ target_sources(sge
 	PRIVATE
 		core.cpp
 		dir_light.cpp
+        fb.cpp
 		light.cpp
 		material.cpp
 		mesh.cpp

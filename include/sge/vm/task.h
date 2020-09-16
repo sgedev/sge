@@ -34,6 +34,7 @@ extern "C" {
 
 typedef struct sge_vm_task {
 	cx_list_node_t node;
+    uv_loop_t *loop;
 	uv_timer_t sleep_timer;
 } sge_vm_task_t;
 

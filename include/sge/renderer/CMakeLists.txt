@@ -3,6 +3,7 @@ target_sources(sge
 	PRIVATE
 		common.hpp
 		dir_light.hpp
+        fb.hpp
 		light.hpp
 		material.hpp
 		mesh.hpp

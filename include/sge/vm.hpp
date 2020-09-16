@@ -3,6 +3,9 @@
 #ifndef SGE_VM_HPP
 #define SGE_VM_HPP
 
+#include <string>
+#include <thread>
+
 #include <sge/vm/common.hpp>
 #include <sge/vm/gui.hpp>
 #include <sge/vm/scene.hpp>
@@ -10,9 +13,11 @@
 
 SGE_VM_BEGIN
 
-typedef void (*output_func_t)(output *p);
+extern std::thread thread;
 
-bool start(uv_loop_t *loop, output_func_t func);
+typedef void (*backend_func_t)(output &r);
+
+bool start(uv_loop_t *loop, const std::string &root, const std::string &init, backend_func_t func);
 void stop(void);
 void post_event(const SDL_Event &evt);
 

@@ -1,7 +1,6 @@
 //
 //
 #include <string>
-#include <thread>
 #include <mutex>
 #include <condition_variable>
 
@@ -14,8 +13,6 @@
 
 SGE_VM_BEGIN
 
-static const char initrc_path[] = "/init.lua";
-
 typedef enum {
 	STATE_NOT_START = 0,
 	STATE_RUNNING,
@@ -25,17 +22,20 @@ typedef enum {
 
 typedef sge_vm_task_t task_t;
 
+std::thread thread;
+
+static std::string rootfs_path;
+static std::string initrc_path;
+
 static std::mutex mutex;
 static std::condition_variable_any cond;
-static std::thread thread;
-static std::string rootfs_path;
 static state_t state;
 static uv_async_t quit_async;
 static cx_list_t task_list;
 static int frame_count;
 static int frame_per_second;
-static uv_async_t output_async;
-static output_func_t output_func;
+static uv_async_t backend_async;
+static backend_func_t backend_func;
 static output outputs[SGE_VM_OUTPUT_NUM];
 static int output_rslot;
 static int output_wslot;
@@ -55,7 +55,8 @@ static SGE_INLINE void task_added(lua_State *L, lua_State *L1)
 	task_t *main = task_from_lua(L);
 	task_t *task = task_from_lua(L1);
 
-	uv_timer_init(main->sleep_timer.loop, &task->sleep_timer);
+    uv_timer_init(main->loop, &task->sleep_timer);
+    task->loop = main->loop;
 	task->sleep_timer.data = task;
 	cx_list_node_reset(&task->node);
 	cx_list_add_tail(&task_list, &task->node);
@@ -85,9 +86,31 @@ static SGE_INLINE void set_state(state_t st)
 	}
 }
 
+static int trap_current(lua_State *L)
+{
+    lua_pushthread(L);
+    return 1;
+}
+
 static int trap_task(lua_State *L)
 {
-	lua_State *L1 = lua_newthread(L);
+    lua_State *T = lua_newthread(L);
+    int top = lua_gettop(L);
+    if (top != 1)
+        luaL_error(L, "one parameter.");
+
+    int type = lua_type(L, 1);
+    switch (type) {
+    case LUA_TSTRING:
+        luaL_loadstring(T, lua_tostring(L, 1));
+        break;
+    case LUA_TFUNCTION:
+        lua_xmove(L, T, 1);
+        break;
+    default:
+        luaL_error(L, "invalid type.");
+        break;
+    }
 
 	return 1;
 }
@@ -140,6 +163,9 @@ static void init_exports(lua_State *L)
 	gui::init_exports(L);
 	scene::init_exports(L);
 
+    lua_pushcfunction(L, &trap_current);
+    lua_setfield(L, -2, "current");
+
 	lua_pushcfunction(L, &trap_task);
 	lua_setfield(L, -2, "Task");
 
@@ -159,35 +185,31 @@ static bool init_rootfs(void)
 {
 	PHYSFS_Version ver;
 	PHYSFS_getLinkedVersion(&ver);
-	SGE_LOGI("PhysicsFS: %d.%d.%d", ver.major, ver.minor, ver.patch);
+    SGE_LOGI("physfs: %d.%d.%d", ver.major, ver.minor, ver.patch);
 
 	int ret = PHYSFS_init("sge");
 	if (!ret) {
-		SGE_LOGE("Failed to init PhysicsFS.");
-		goto bad0;
+        SGE_LOGE("failed to init PhysicsFS.");
+        return false;
 	}
 
-	SGE_LOGI("Mount rootfs to '%s'...", rootfs_path.c_str());
+    SGE_LOGI("mount rootfs to '%s'...", rootfs_path.c_str());
 
 	ret = PHYSFS_setWriteDir(rootfs_path.c_str());
 	if (!ret) {
-		SGE_LOGE("Failed to setup PhyFS write dir to '%s'.", rootfs_path.c_str());
-		goto bad1;
+        SGE_LOGE("failed to setup physfs write dir to '%s'.", rootfs_path.c_str());
+        PHYSFS_deinit();
+        return false;
 	}
 
 	ret = PHYSFS_mount(rootfs_path.c_str(), "/", 0);
 	if (!ret) {
-		SGE_LOGE("Failed to mount rootfs to '%s'.", rootfs_path.c_str());
-		goto bad1;
+        SGE_LOGE("failed to mount rootfs to '%s'.", rootfs_path.c_str());
+        PHYSFS_deinit();
+        return false;
 	}
 
 	return true;
-
-bad1:
-	PHYSFS_deinit();
-
-bad0:
-	return false;
 }
 
 static bool load_initrc(lua_State *L)
@@ -198,29 +220,29 @@ static bool load_initrc(lua_State *L)
 	char *rc;
 	int ret;
 
-    SGE_LOGI("Loading '%s'...", initrc_path);
+    SGE_LOGI("loading '%s'...", initrc_path.c_str());
 
 	T = lua_newthread(L);
 	if (T == NULL) {
-		SGE_LOGE("Failed to create init task.");
+        SGE_LOGE("failed to create init task.");
 		goto bad0;
 	}
 
-    fp = PHYSFS_openRead(initrc_path);
+    fp = PHYSFS_openRead(initrc_path.c_str());
 	if (fp == NULL) {
-        SGE_LOGE("Failed to open initrc '%s'.", initrc_path);
+        SGE_LOGE("failed to open initrc '%s'.", initrc_path.c_str());
 		goto bad1;
 	}
 
 	size = PHYSFS_fileLength(fp);
 	if (size < 1) {
-        SGE_LOGE("Empty initrc '%s'.", initrc_path);
+        SGE_LOGE("empty initrc '%s'.", initrc_path.c_str());
 		goto bad2;
 	}
 
     rc = (char *)malloc(size + 4);
 	if (rc == NULL) {
-        SGE_LOGE("No memory for initrc '%s'.", initrc_path);
+        SGE_LOGE("not enough memory for initrc '%s'.", initrc_path.c_str());
 		goto bad2;
 	}
 
@@ -231,7 +253,7 @@ static bool load_initrc(lua_State *L)
 	ret = luaL_loadstring(T, rc);
 	free(rc);
 	if (ret != LUA_OK) {
-        SGE_LOGE("Invalid initrc '%s'.", initrc_path);
+        SGE_LOGE("invalid initrc '%s'.", initrc_path.c_str());
 		goto bad1;
 	}
 
@@ -252,7 +274,7 @@ static void frame(uv_timer_t *p)
 	static int64_t last = uv_now(p->loop);
 	int64_t curr = uv_now(p->loop);
 	int64_t pass = curr - last;
-	if (pass < 0)
+    if (pass <= 0)
 		return;
 
 	float elapsed = float(pass) / 1000.0f;
@@ -269,13 +291,13 @@ static void frame(uv_timer_t *p)
 	uv_update_time(p->loop);
 }
 
-static void count(uv_timer_t *p)
+static void count(uv_timer_t *)
 {
 	frame_per_second = frame_count;
 	frame_count = 0;
 }
 
-static void quit(uv_async_t *p)
+static void quit(uv_async_t *)
 {
     state = STATE_EXITING;
 }
@@ -304,6 +326,8 @@ static int pmain(lua_State *L)
     uv_timer_t frame_timer;
     uv_timer_t count_timer;
 
+    SGE_LOGI("init='%s' root='%s'", initrc_path.c_str(), rootfs_path.c_str());
+
 	luaL_openlibs(L);
 	init_exports(L);
 
@@ -314,7 +338,7 @@ static int pmain(lua_State *L)
 	}
 
     task = task_from_lua(L);
-	uv_timer_init(&loop, &task->sleep_timer);
+    task->loop = &loop;
 
 	if (!init_rootfs()) {
 		set_state(STATE_ERROR);
@@ -347,7 +371,9 @@ static int pmain(lua_State *L)
 	set_state(STATE_RUNNING);
 	while (state == STATE_RUNNING) {
 		schedule(L);
+        mutex.unlock();
 		uv_run(&loop, UV_RUN_ONCE);
+        mutex.lock();
 	}
 
     uv_timer_stop(&count_timer);
@@ -385,20 +411,23 @@ static void tmain(void)
 	lua_close(L);
 }
 
-static void output_handler(uv_async_t *p)
+static void backend_handler(uv_async_t *p)
 {
 
 }
 
-bool start(uv_loop_t *loop, output_func_t func)
+bool start(uv_loop_t *loop, const std::string &root, const std::string &init, backend_func_t func)
 {
 	SGE_ASSERT(loop != nullptr);
     SGE_ASSERT(func != nullptr);
 
 	std::lock_guard locker(mutex);
 
-    uv_async_init(loop, &output_async, &output_handler);
-    output_func = func;
+    uv_async_init(loop, &backend_async, &backend_handler);
+
+    rootfs_path = root;
+    initrc_path = init;
+    backend_func = func;
 
 	state = STATE_NOT_START;
 	thread = std::thread(&tmain);
@@ -407,8 +436,10 @@ bool start(uv_loop_t *loop, output_func_t func)
 		cond.wait(mutex);
 		if (state == STATE_NOT_START)
 			continue;
-		if (state == STATE_ERROR)
+        if (state == STATE_ERROR) {
+            thread.join();
 			return false;
+        }
 		if (state == STATE_RUNNING)
 			break;
 	}

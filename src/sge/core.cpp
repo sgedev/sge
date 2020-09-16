@@ -10,13 +10,13 @@ enum {
 	WINDOW_VISIBLE = 0x1
 };
 
-static SDL_Window *main_window;
-static Uint32 main_window_id;
-static int main_window_rect[4];
-static int main_window_flags;
-static SDL_GLContext main_gl_context;
+static SDL_Window *window;
+static Uint32 window_id;
+static int window_size[2];
+static int window_flags;
+static SDL_GLContext gl_context;
 
-static bool init_main_window(void)
+static bool create_window(void)
 {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -32,132 +32,134 @@ static bool init_main_window(void)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
-	SGE_ASSERT(main_window == nullptr);
-	main_window = SDL_CreateWindow("sge",
+    SGE_ASSERT(window == nullptr);
+    window = SDL_CreateWindow("sge",
 		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
-	if (main_window == nullptr) {
-		SGE_LOGE("Failed to create main window.");
+    if (window == nullptr) {
+        SGE_LOGE("failed to create main window.");
 		goto bad0;
 	}
 
-	main_window_flags = WINDOW_VISIBLE;
-	main_window_id = SDL_GetWindowID(main_window);
-	SDL_GetWindowPosition(main_window, &main_window_rect[0], &main_window_rect[1]);
-	SDL_GetWindowSize(main_window, &main_window_rect[2], &main_window_rect[3]);
+    window_flags = WINDOW_VISIBLE;
+    window_id = SDL_GetWindowID(window);
+    SDL_GetWindowSize(window, &window_size[0], &window_size[1]);
 
-	SGE_ASSERT(main_gl_context == nullptr);
-	main_gl_context = SDL_GL_CreateContext(main_window);
-	if (main_gl_context == nullptr) {
-		SGE_LOGE("Failed to create main gl context.");
+    SGE_ASSERT(gl_context == nullptr);
+    gl_context = SDL_GL_CreateContext(window);
+    if (gl_context == nullptr) {
+        SGE_LOGE("failed to create main gl context.");
 		goto bad1;
 	}
 
-	if (SDL_GL_MakeCurrent(main_window, main_gl_context) < 0) {
-		SGE_LOGE("Failed to make current gl context.");
+    if (SDL_GL_MakeCurrent(window, gl_context) < 0) {
+        SGE_LOGE("failed to make current gl context.");
 		goto bad2;
 	}
 
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK) {
-		SGE_LOGE("Failed to init GLEW.");
+        SGE_LOGE("failed to init GLEW.");
 		goto bad2;
 	}
 
 	if (!renderer::init()) {
-		SGE_LOGE("Failed to init renderer.");
+        SGE_LOGE("failed to init renderer.");
 		goto bad2;
 	}
 
 	return true;
 
 bad2:
-	SDL_GL_DeleteContext(main_gl_context);
-	main_gl_context = nullptr;
+    SDL_GL_DeleteContext(gl_context);
+    gl_context = nullptr;
 
 bad1:
-	SDL_DestroyWindow(main_window);
-	main_window = nullptr;
+    SDL_DestroyWindow(window);
+    window = nullptr;
 
 bad0:
 	return false;
 }
 
-static void shutdown_main_window(void)
+static void destroy_window(void)
 {
 	renderer::shutdown();
 
-	SGE_ASSERT(main_gl_context != nullptr);
-	SDL_GL_DeleteContext(main_gl_context);
-	main_gl_context = nullptr;
+    SGE_ASSERT(gl_context != nullptr);
+    SDL_GL_DeleteContext(gl_context);
+    gl_context = nullptr;
 
-	SGE_ASSERT(main_window != nullptr);
-	SDL_DestroyWindow(main_window);
-	main_window = nullptr;
+    SGE_ASSERT(window != nullptr);
+    SDL_DestroyWindow(window);
+    window = nullptr;
 }
 
-static void handle_main_window_event(const SDL_WindowEvent &evt)
+static void handle_window_event(const SDL_WindowEvent &evt)
 {
 	switch (evt.event) {
 	case SDL_WINDOWEVENT_SHOWN:
-		main_window_flags |= WINDOW_VISIBLE;
+        window_flags |= WINDOW_VISIBLE;
 		break;
 	case SDL_WINDOWEVENT_HIDDEN:
-		main_window_flags &= ~WINDOW_VISIBLE;
-		break;
-	case SDL_WINDOWEVENT_MOVED:
-		main_window_rect[0] = evt.data1;
-		main_window_rect[1] = evt.data2;
+        window_flags &= ~WINDOW_VISIBLE;
 		break;
 	case SDL_WINDOWEVENT_RESIZED:
-		main_window_rect[2] = evt.data1;
-		main_window_rect[3] = evt.data2;
+        window_size[0] = evt.data1;
+        window_size[1] = evt.data2;
 		break;
 	}
 }
 
-static void render(void)
+static void update_window(void)
 {
-	SGE_ASSERT(main_window != nullptr);
-	SGE_ASSERT(main_gl_context != nullptr);
+    SGE_ASSERT(window != nullptr);
+    SGE_ASSERT(gl_context != nullptr);
 
-	if (!(main_window_flags & WINDOW_VISIBLE))
+    if (!(window_flags & WINDOW_VISIBLE))
 		return;
 
-	if (main_window_rect[2] < 1 || main_window_rect[3] < 1)
+    if (window_size[0] < 1 || window_size[1] < 1)
 		return;
 
-	if (SDL_GL_MakeCurrent(main_window, main_gl_context) < 0)
+    if (SDL_GL_MakeCurrent(window, gl_context) < 0)
 		return;
 
-	glViewport(0, 0, main_window_rect[2], main_window_rect[3]);
+    renderer::default_target.resize(window_size[0], window_size[1]);
 
-	glClear(GL_COLOR_BUFFER_BIT);
+    renderer::begin();
 
-	SDL_GL_SwapWindow(main_window);
+    // TODO
+
+    renderer::end();
+
+    SDL_GL_SwapWindow(window);
 }
 
-static bool init(void)
+static void vm_handler(vm::output &r)
 {
-	if (!init_main_window())
-		return false;
-
-	return true;
+    // TODO update graphics
+    // TODO update sound
 }
 
-static void shutdown(void)
+bool start(uv_loop_t *loop, const std::string &root, const std::string &init)
 {
-	shutdown_main_window();
-}
+    if (!create_window())
+        return false;
 
-bool start(uv_loop_t *loop)
-{
-    return vm::start(loop, nullptr);
+    if (!sound::init()) {
+        destroy_window();
+        return false;
+    }
+
+    return vm::start(loop, root, init, &vm_handler);
 }
 
 void stop(void)
 {
 	vm::stop();
+    sound::shutdown();
+    destroy_window();
 }
 
 void post_event(const SDL_Event &evt)
@@ -167,8 +169,8 @@ void post_event(const SDL_Event &evt)
 		return;
 	}
 
-	if (main_window != nullptr && evt.window.windowID == main_window_id)
-		handle_main_window_event(evt.window);
+    if (window != nullptr && evt.window.windowID == window_id)
+        handle_window_event(evt.window);
 }
 
 SGE_END

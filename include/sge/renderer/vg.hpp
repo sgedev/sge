@@ -12,8 +12,8 @@ SGE_RENDERER_VG_BEGIN
 
 bool init(void);
 void shutdown(void);
-void begin(void);
-void end(void);
+void reset(void);
+void render(void);
 
 SGE_RENDERER_VG_END
 

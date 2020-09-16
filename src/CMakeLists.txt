@@ -17,6 +17,11 @@ endif()
 
 target_link_libraries(sge ${CMAKE_DL_LIBS})
 
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
+    target_link_libraries(sge stdc++fs)
+endif()
+
 target_sources(sge
 	PRIVATE
 		main.cpp

@@ -27,12 +27,12 @@ void shutdown(void)
 	vg = nullptr;
 }
 
-void begin(void)
+void reset(void)
 {
 	SGE_ASSERT(vg != nullptr);
 }
 
-void end(void)
+void render(void)
 {
 	SGE_ASSERT(vg != nullptr);
 }

@@ -4,26 +4,6 @@
 
 SGE_VM_BEGIN
 
-static SGE_INLINE task_t *task_from_lua(lua_State *L)
-{
-	return (task_t *)lua_getextraspace(L);
-}
-
-static SGE_INLINE lua_State *task_to_lua(task_t *task)
-{
-	return (lua_State *)SGE_PMOVB(task, LUA_EXTRASPACE);
-}
-
-static SGE_INLINE kernel *kernel_from_task(task_t *task)
-{
-	return reinterpret_cast<kernel *>(task->data);
-}
-
-static SGE_INLINE kernel *kernel_from_lua(lua_State *L)
-{
-	return reinterpret_cast<kernel *>(task_from_lua(L)->data);
-}
-
 kernel::kernel(uv_loop_t *loop):
 	m_loop(loop)
 {
@@ -41,6 +21,8 @@ kernel::~kernel(void)
 
 bool kernel::start(const std::string &rootfs, const std::string &initrc)
 {
+	return true;
+
 	SGE_ASSERT(m_loop != nullptr);
 
 	std::lock_guard locker(m_mutex);
@@ -80,6 +62,8 @@ bool kernel::start(const std::string &rootfs, const std::string &initrc)
 
 void kernel::stop(void)
 {
+	return;
+
 	uv_async_send(&m_quit_async);
 	m_thread.join();
 
@@ -102,7 +86,7 @@ void kernel::task_added(lua_State *L, lua_State *L1)
 	task->sleep_timer.data = task;
 
 	sge_list_node_reset(&task->node);
-	sge_list_add_tail(&kernel_from_task(task)->m_task_list, &task->node);
+	sge_list_add_tail(&from_task(task)->m_task_list, &task->node);
 }
 
 void kernel::task_removed(lua_State *L, lua_State *L1)
@@ -181,7 +165,7 @@ int kernel::trap_task(lua_State *L)
 void kernel::trap_sleep_done(uv_timer_t *p)
 {
 	task_t *task = (task_t *)(p->data);
-	kernel *k = kernel_from_task(task);
+	kernel *k = from_task(task);
 	std::lock_guard locker(k->m_mutex);
 	sge_list_node_unlink(&task->node);
 	sge_list_add_tail(&k->m_task_list, &task->node);
@@ -191,7 +175,7 @@ int kernel::trap_sleep(lua_State *L)
 {
 	int ms = (int)luaL_checkinteger(L, 1);
 	task_t *task = task_from_lua(L);
-	kernel *k = kernel_from_task(task);
+	kernel *k = from_task(task);
 
 	if (ms > 0)
 		uv_timer_start(&task->sleep_timer, trap_sleep_done, ms, 0);
@@ -219,23 +203,18 @@ void kernel::frame(uv_timer_t *p)
     if (pass <= 0)
 		return;
 
-	kernel *k = kernel_from_task(reinterpret_cast<task_t *>(p->data));
-	k->update(float(pass) / 1000.0f);
+	kernel *k = from_task(reinterpret_cast<task_t *>(p->data));
+	k->m_world.update(float(pass) / 1000.0f);
+
 	k->m_last = curr;
 	k->m_frame_count += 1;
 
 	uv_update_time(p->loop);
 }
 
-void kernel::update(float elapsed)
-{
-	// TODO
-
-}
-
 void kernel::count(uv_timer_t *p)
 {
-	kernel *k = kernel_from_task(reinterpret_cast<task_t *>(p->data));
+	kernel *k = from_task(reinterpret_cast<task_t *>(p->data));
 	k->m_frame_per_second = k->m_frame_count;
 	k->m_frame_count = 0;
 }
@@ -296,6 +275,8 @@ void kernel::kmain(lua_State *L)
 		set_state(STATE_ERROR);
 		return;
 	}
+
+	m_world.init();
 
     uv_async_init(&loop, &m_quit_async, &quit);
 

@@ -18,4 +18,13 @@ void canvas::resize(int width, int height)
 	m_size.y = height;
 }
 
+bool canvas::begin(void)
+{
+	return true;
+}
+
+void canvas::end(void)
+{
+}
+
 SGE_GRAPHICS_END

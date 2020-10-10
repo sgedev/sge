@@ -1,25 +1,28 @@
 //
 //
-#include <sge/vm/scene.hpp>
+#include <sge/scene/world.hpp>
 
-SGE_VM_SCENE_BEGIN
+SGE_SCENE_BEGIN
 
-void init_exports(lua_State *L)
+world::world(void)
 {
 }
 
-bool init(void)
+world::~world(void)
+{
+}
+
+bool world::init(void)
 {
 	return true;
 }
 
-void shutdown(void)
+void world::update(float elapsed)
 {
 }
 
-void update(float elapsed)
+void world::handle_event(const SDL_Event &evt)
 {
-
 }
 
-SGE_VM_SCENE_END
+SGE_SCENE_END

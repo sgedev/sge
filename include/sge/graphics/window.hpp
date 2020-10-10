@@ -14,23 +14,22 @@ public:
 	~window(void) override;
 
 public:
-	bool init(const char *name, int x, int y, int width, int height);
+	bool init(const char *name, int width, int height);
 	void handle_event(const SDL_WindowEvent &evt);
 	Uint32 id(void) const;
 	bool visible(void) const;
 	void show(void);
 	void hide(void);
-	const glm::ivec2 &position(void) const;
-	void move(int x, int y);
-	void move(const glm::ivec2 &r);
 	void resize(int width, int height) override;
+	bool begin(void) override;
+	void end(void) override;
 
 private:
 	SDL_Window *m_handle;
 	Uint32 m_id;
-	glm::ivec2 m_position;
 	bool m_visible;
 	SDL_GLContext m_gl_context;
+	union GL3WProcs m_gl3w;
 };
 
 SGE_INLINE Uint32 window::id(void) const
@@ -53,23 +52,6 @@ SGE_INLINE void window::hide(void)
 {
 	SGE_ASSERT(m_handle != nullptr);
 	SDL_HideWindow(m_handle);
-}
-
-SGE_INLINE const glm::ivec2 &window::position(void) const
-{
-	return m_position;
-}
-
-SGE_INLINE void window::move(int x, int y)
-{
-	SGE_ASSERT(m_handle != nullptr);
-	SDL_SetWindowPosition(m_handle, x, y);
-	SDL_GetWindowPosition(m_handle, &m_position.x, &m_position.y);
-}
-
-SGE_INLINE void window::move(const glm::ivec2 &r)
-{
-	move(r.x, r.y);
 }
 
 SGE_GRAPHICS_END

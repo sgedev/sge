@@ -4,6 +4,7 @@
 #define SGE_GRAPHICS_COMMON_HPP
 
 #include <GL/gl3w.h>
+#include <nanovg.h>
 
 #include <sge/common.hpp>
 

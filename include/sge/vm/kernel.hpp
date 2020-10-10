@@ -9,14 +9,10 @@
 #include <mutex>
 #include <condition_variable>
 
-#include <sge/gui/desktop.hpp>
 #include <sge/scene/world.hpp>
-
 #include <sge/vm/common.hpp>
 
 SGE_VM_BEGIN
-
-typedef sge_vm_task_t task_t;
 
 class kernel {
 public:
@@ -35,6 +31,7 @@ public:
 	bool start(const std::string &rootfs, const std::string &initrc);
 	void stop(void);
 	void handle_event(const SDL_Event &evt);
+	const std::thread &thread(void) const;
 	const std::string &rootfs(void) const;
 	const std::string &initrc(void) const;
 
@@ -43,6 +40,14 @@ public: // for lua
 	static void task_removed(lua_State *L, lua_State *L1);
 	static void task_resume(lua_State *L, int n);
 	static void task_yield(lua_State *L, int n);
+
+protected:
+	typedef sge_vm_task_t task_t;
+
+	static task_t *task_from_lua(lua_State *L);
+	static lua_State *task_to_lua(task_t *task);
+	static kernel *from_task(task_t *task);
+	static kernel *from_lua(lua_State *L);
 
 private:
 	void set_state(state_t st);
@@ -55,7 +60,6 @@ private:
 	bool load_initrc(lua_State *L);
 	void init_exports(lua_State *L);
 	static void frame(uv_timer_t *p);
-	void update(float elapsed);
 	static void count(uv_timer_t *p);
 	void schedule(lua_State *L);
 
@@ -81,7 +85,13 @@ private:
 	sge_list_t m_task_list;
 	int m_frame_count;
 	int m_frame_per_second;
+	scene::world m_world;
 };
+
+SGE_INLINE const std::thread &kernel::thread(void) const
+{
+	return m_thread;
+}
 
 SGE_INLINE const std::string &kernel::rootfs(void) const
 {
@@ -91,6 +101,26 @@ SGE_INLINE const std::string &kernel::rootfs(void) const
 SGE_INLINE const std::string &kernel::initrc(void) const
 {
 	return m_initrc;
+}
+
+SGE_INLINE kernel::task_t *kernel::task_from_lua(lua_State *L)
+{
+	return (task_t *)lua_getextraspace(L);
+}
+
+SGE_INLINE lua_State *kernel::task_to_lua(task_t *task)
+{
+	return (lua_State *)SGE_PMOVB(task, LUA_EXTRASPACE);
+}
+
+SGE_INLINE kernel *kernel::from_task(task_t *task)
+{
+	return reinterpret_cast<kernel *>(task->data);
+}
+
+SGE_INLINE kernel *kernel::from_lua(lua_State *L)
+{
+	return reinterpret_cast<kernel *>(task_from_lua(L)->data);
 }
 
 SGE_VM_END

@@ -1,0 +1,19 @@
+
+target_sources(sge
+	PRIVATE
+		buffer.hpp
+		canvas.hpp
+		common.hpp
+		directional_light.hpp
+		frame_buffer.hpp
+		heap.hpp
+		light.hpp
+		material.hpp
+		memory.hpp
+		mesh.hpp
+		point_light.hpp
+		renderer.hpp
+		spot_light.hpp
+		texture.hpp
+		window.hpp
+	)

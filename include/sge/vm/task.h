@@ -6,7 +6,7 @@
 
 #include <uv.h>
 
-#include <cx/list.h>
+#include <sge/list.h>
 
 #ifdef LUA_EXTRASPACE
 #	undef LUA_EXTRASPACE
@@ -33,9 +33,10 @@ extern "C" {
 #endif
 
 typedef struct sge_vm_task {
-	cx_list_node_t node;
+	sge_list_node_t node;
     uv_loop_t *loop;
 	uv_timer_t sleep_timer;
+	void *data;
 } sge_vm_task_t;
 
 void sge_vm_task_added(lua_State *L, lua_State *L1);

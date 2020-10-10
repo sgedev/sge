@@ -1,8 +1,6 @@
 
 target_sources(sge
 	PRIVATE
-		eglew.h
-		glew.h
-		glxew.h
-		wglew.h
+		gl3w.h
+		glcorearb.h
 	)

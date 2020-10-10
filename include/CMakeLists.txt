@@ -12,13 +12,13 @@ target_sources(sge
 		luaconf.h
 		lualib.h
 		physfs.h
-		sge.hpp
 		stb_image.h
 		stb_truetype.h
+		uv.h
 	)
 
-add_subdirectory(cx cx)
 add_subdirectory(GL GL)
 add_subdirectory(glm glm)
 add_subdirectory(rttr rttr)
 add_subdirectory(sge sge)
+add_subdirectory(uv uv)

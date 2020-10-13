@@ -30,16 +30,23 @@ static void poll_events(uv_timer_t *p)
 
 	while (SDL_PollEvent(&evt)) {
         switch (evt.type) {
-        case SDL_QUIT:
-            uv_stop(uv_default_loop());
+		case SDL_MOUSEMOTION:
+		case SDL_KEYUP:
+		case SDL_KEYDOWN:
+		case SDL_MOUSEBUTTONUP:
+		case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEWHEEL:
+			if (kernel != nullptr)
+				kernel->post_event(evt);
+			break;
+		case SDL_QUIT:
+            uv_stop(p->loop);
             break;
         case SDL_WINDOWEVENT:
             if (window != nullptr)
                 window->handle_event(evt.window);
             break;
         default:
-            if (kernel != nullptr)
-                kernel->handle_event(evt);
             break;
         }
 	}

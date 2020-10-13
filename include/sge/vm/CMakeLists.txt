@@ -2,6 +2,7 @@
 target_sources(sge
 	PRIVATE
 		common.hpp
+		core.hpp
 		kernel.hpp
 		task.h
 	)

@@ -24,7 +24,7 @@ bool renderer::init(void)
 	if (!m_target->begin())
 		return false;
 
-	glClearColor(0.0f, 0.0f, 1.0f, 0.0f);
+	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
 	m_target->end();
 

@@ -34,6 +34,12 @@ add_subdirectory(src src)
 get_target_property(SGE_SOURCES sge SOURCES)
 source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SGE_SOURCES})
 
+target_link_libraries(sge ${CMAKE_DL_LIBS})
+
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
+    target_link_libraries(sge stdc++fs)
+endif()
+
 add_subdirectory(docs docs)
 add_subdirectory(test test)
 add_subdirectory(tools tools)

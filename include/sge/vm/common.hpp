@@ -32,41 +32,41 @@ namespace lua_registration {
 	template <typename T>
 	const char *metatable_name(void)
 	{
-		rttr::type::get<T>().get_name().data();
+		return rttr::type::get<T>().get_name().data();
 	}
 
 	template <typename T>
-	void metatable_new(void)
+	void metatable_new(lua_State *L)
 	{
 		luaL_newmetatable(L, metatable_name<T>());
 	}
 
 	template <typename T>
-	void metatable_get(void)
+	void metatable_get(lua_State *L)
 	{
 		luaL_getmetatable(L, metatable_name<T>());
 	}
 
 	template <typename T>
-	T *checkuserdata(lua_State *L, int i)
+	T *check_udata(lua_State *L, int i)
 	{
 		return reinterpret_cast<T *>(luaL_checkudata(L, i, metatable_name<T>()));
 	}
 
-	void userdata_construct(lua_State *L, const rttr::type &t);
+	bool userdata_construct(lua_State *L, const rttr::type &t);
 
-	template <typename T, typename M>
+	template <typename T>
 	int userdata_new(lua_State *L)
 	{
 		T *obj = reinterpret_cast<T *>(lua_newuserdata(L, sizeof(T)));
 		if (obj == nullptr) {
-			lua_pusnil(L);
+			lua_pushnil(L);
 			return 1;
 		}
 
 		userdata_construct(L, rttr::type::get<T>());
 
-		metatable_get<T>();
+		metatable_get<T>(L);
 		lua_setmetatable(L, -2);
 
 		return 1;
@@ -75,7 +75,7 @@ namespace lua_registration {
 	template <typename T>
 	int userdata_method(lua_State *L)
 	{
-		T *obj = checkudata<T>(L, 1);
+		T *obj = check_udata<T>(L, 1);
 		return 0;
 	}
 
@@ -83,10 +83,10 @@ namespace lua_registration {
 	void userdata(lua_State *L, const char *name)
 	{
 		lua_pushstring(L, name);
-		lua_pushcfunction(L, &userdata_new<T>);
+		lua_pushcfunction(L, [](lua_State *L) -> int { return userdata_new<T>(L); });
 		lua_rawset(L, -3);
 
-		metatable_new<T>();
+		metatable_new<T>(L);
 
 		auto type = rttr::type::get<T>();
 		auto methods = type.get_methods();

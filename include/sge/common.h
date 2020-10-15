@@ -58,6 +58,8 @@
 #	error unknown os.
 #endif
 
+#define SGE_UNUSED(x) ((void)(x))
+
 #define SGE_INLINE SGE_FORCE_INLINE
 
 #define SGE_CONCAT(a, b) SGE_CONCAT_IMPL(a, b)

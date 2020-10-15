@@ -33,10 +33,11 @@ public:
 	virtual void close(void);
 	virtual int64_t size(void) = 0;
 	virtual int64_t seek(int64_t offset, seek_from from = SEEK_FROM_START) = 0;
-	virtual int64_t read(void *p, int64_t len) = 0;
-	virtual int64_t write(const void *p, int64_t len) = 0;
+    virtual int64_t read(void *p, int64_t size) = 0;
+    virtual int64_t write(const void *p, int64_t size) = 0;
 	int flags(void) const;
 	bool is_open(void) const;
+    bool is_writable(void) const;
 
 private:
 	int m_flags;
@@ -50,6 +51,11 @@ SGE_INLINE int io::flags(void) const
 SGE_INLINE bool io::is_open(void) const
 {
 	return (m_flags != 0);
+}
+
+SGE_INLINE bool io::is_writable(void) const
+{
+    return (m_flags & (FLAG_WRITE | FLAG_CREATE | FLAG_TRUNCATE));
 }
 
 SGE_END

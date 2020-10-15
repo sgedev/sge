@@ -10,13 +10,15 @@ file::file(void):
 }
 
 file::file(const std::string &filename) :
-	m_fops(nullptr),
-	m_filename(filename)
+    m_filename(filename),
+    m_fops(nullptr)
 {
 }
 
 file::~file(void)
 {
+    if (is_open())
+        close();
 }
 
 bool file::is_seekable(void)
@@ -87,18 +89,18 @@ int64_t file::seek(int64_t offset, seek_from from)
 	return SDL_RWseek(m_fops, offset, w);
 }
 
-int64_t file::read(void *p, int64_t len)
+int64_t file::read(void *p, int64_t size)
 {
 	SGE_ASSERT(m_fops != nullptr);
 
-	return SDL_RWread(m_fops, p, 1, len);
+    return SDL_RWread(m_fops, p, 1, size);
 }
 
-int64_t file::write(const void *p, int64_t len)
+int64_t file::write(const void *p, int64_t size)
 {
 	SGE_ASSERT(m_fops != nullptr);
 
-	return SDL_RWwrite(m_fops, p, 1, len);
+    return SDL_RWwrite(m_fops, p, 1, size);
 }
 
 SGE_END

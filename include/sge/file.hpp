@@ -22,8 +22,8 @@ public:
 	void close(void) override;
 	int64_t size(void) override;
 	int64_t seek(int64_t offset, seek_from from) override;
-	int64_t read(void *p, int64_t len) override;
-	int64_t write(const void *p, int64_t len) override;
+    int64_t read(void *p, int64_t size) override;
+    int64_t write(const void *p, int64_t size) override;
 	const std::string &filename(void) const;
 	void set_filename(const std::string &r);
 

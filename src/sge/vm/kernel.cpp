@@ -47,7 +47,7 @@ void kernel::task_added(lua_State *L, lua_State *L1)
 
     uv_timer_init(main->loop, &task->sleep_timer);
     task->loop = main->loop;
-	task->data = main->data;
+    task->kernel = main->kernel;
 	task->sleep_timer.data = task;
 
 	sge_list_node_reset(&task->node);
@@ -83,7 +83,7 @@ void kernel::kmain(lua_State *L, uv_loop_t *loop)
 	init_exports(L);
 
 	task_t *task = task_from_lua(L);
-	task->data = this;
+    task->kernel = this;
 	task->loop = loop;
 
 	if (!load_initrc(L)) {
@@ -128,6 +128,8 @@ void kernel::init_exports(lua_State *L)
 	lua_registration::function(L, "task", &kernel::trap_task);
 	lua_registration::function(L, "sleep", &kernel::trap_sleep);
 	lua_registration::function(L, "wait", &kernel::trap_wait);
+    // mount
+    // umount
 
 	lua_registration::userdata<scene::world>(L, "world");
 

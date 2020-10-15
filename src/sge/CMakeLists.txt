@@ -3,11 +3,8 @@ target_sources(sge
 	PRIVATE
 		buffer.cpp
 		file.cpp
-		fs.cpp
 		io.cpp
 		list.c
-		root_fs.cpp
-		zip_fs.cpp
 		zip_reader.cpp
 	)
 

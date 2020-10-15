@@ -32,14 +32,7 @@ bool core::start(const std::string &rootfs_path, const std::string &initrc_path)
 	m_event_last = 0;
 
 	std::future<bool> init_result = m_init_promise.get_future();
-
-	m_thread = std::thread([this]() {
-		uv_loop_t loop;
-		uv_loop_init(&loop);
-		run(&loop);
-		while (uv_loop_close(&loop) == UV_EBUSY)
-			uv_run(&loop, UV_RUN_ONCE);
-	});
+    m_thread = std::thread(&core::thread_main, this);
 
 	return init_result.get();
 }
@@ -101,11 +94,6 @@ void core::host_run(std::function<void(void)> f)
 {
 }
 
-bool core::init_rootfs(void)
-{
-	return true;
-}
-
 void core::update(float elapsed)
 {
 	while (m_event_first < m_event_last) {
@@ -137,6 +125,22 @@ void core::count(uv_timer_t *p)
 	core *c = reinterpret_cast<core *>(p->data);
 	c->m_frame_per_second = c->m_frame_count;
 	c->m_frame_count = 0;
+}
+
+void core::thread_main(void)
+{
+    if (!m_root_fs.init(m_rootfs_path)) {
+        m_init_promise.set_value(false);
+        return;
+    }
+
+    uv_loop_t loop;
+    uv_loop_init(&loop);
+
+    run(&loop);
+
+    while (uv_loop_close(&loop) == UV_EBUSY)
+        uv_run(&loop, UV_RUN_ONCE);
 }
 
 void core::host(uv_async_t *p)

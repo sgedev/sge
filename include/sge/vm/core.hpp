@@ -12,8 +12,8 @@
 #include <condition_variable>
 
 #include <sge/scene/world.hpp>
-
 #include <sge/vm/common.hpp>
+#include <sge/vm/root_fs.hpp>
 
 SGE_VM_BEGIN
 
@@ -39,10 +39,14 @@ protected:
 	virtual void run(uv_loop_t *loop);
 	virtual void handle_event(const SDL_Event &evt);
 
+protected:
+    root_fs m_root_fs;
+    scene::world m_world;
+
 private:
+    void thread_main(void);
 	static void host(uv_async_t *p);
 	static void quit(uv_async_t *p);
-	bool init_rootfs(void);
 	void update(float elapsed);
 	static void frame(uv_timer_t *p);
 	static void count(uv_timer_t *p);
@@ -60,14 +64,11 @@ private:
 	SDL_Event m_event_queue[EVENT_QUEUE_SIZE];
 	int64_t m_event_first;
 	int64_t m_event_last;
-
-private:
 	int64_t m_last;
 	uv_timer_t m_frame_timer;
 	uv_timer_t m_count_timer;
 	int m_frame_count;
 	int m_frame_per_second;
-	scene::world m_world;
 };
 
 SGE_INLINE const std::thread &core::thread(void) const

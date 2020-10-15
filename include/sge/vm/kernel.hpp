@@ -72,13 +72,13 @@ SGE_INLINE lua_State *kernel::task_to_lua(task_t *task)
 SGE_INLINE kernel *kernel::from_task(task_t *task)
 {
 	SGE_ASSERT(task != nullptr);
-	return reinterpret_cast<kernel *>(task->data);
+    return reinterpret_cast<kernel *>(task->kernel);
 }
 
 SGE_INLINE kernel *kernel::from_lua(lua_State *L)
 {
 	SGE_ASSERT(L != nullptr);
-	return reinterpret_cast<kernel *>(task_from_lua(L)->data);
+    return reinterpret_cast<kernel *>(task_from_lua(L)->kernel);
 }
 
 SGE_VM_END

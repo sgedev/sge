@@ -1,5 +1,7 @@
 //
 //
+#include <cctype>
+
 #include <sge/zip_reader.hpp>
 
 SGE_BEGIN
@@ -9,7 +11,7 @@ zip_reader::zip_reader(void)
 	mz_zip_zero_struct(&m_archive);
 }
 
-zip_reader::zip_reader(const std::string &filename) :
+zip_reader::zip_reader(const char *filename) :
 	m_filename(filename)
 {
 	mz_zip_zero_struct(&m_archive);
@@ -26,8 +28,8 @@ const std::string &zip_reader::filename(void) const
 
 void zip_reader::set_filename(const std::string &r)
 {
-	SGE_ASSERT(!is_open());
-	m_filename = r;
+    SGE_ASSERT(!is_open());
+    m_filename = r;
 }
 
 bool zip_reader::open(void)
@@ -47,7 +49,7 @@ bool zip_reader::is_open(void) const
 	return (m_archive.m_zip_mode == MZ_ZIP_MODE_READING);
 }
 
-int zip_reader::count(void) const
+int zip_reader::count(void)
 {
 	SGE_ASSERT(is_open());
 	return mz_zip_reader_get_num_files(&m_archive);
@@ -55,25 +57,45 @@ int zip_reader::count(void) const
 
 int zip_reader::index(const std::string &path)
 {
-	SGE_ASSERT(is_open());
-	return mz_zip_reader_locate_file(&m_archive, path.c_str(), nullptr, 0);
+    SGE_ASSERT(is_open());
+
+    if (path.empty())
+        return -1;
+
+    int head = 0;
+    while (path[head] == '/')
+        head += 1;
+
+    int i = mz_zip_reader_locate_file(&m_archive, path.data() + head, nullptr, 0);
+    if (i < 0)
+        i = mz_zip_reader_locate_file(&m_archive, (path + '/').data() + head, nullptr, 0);
+
+    return i;
 }
 
 bool zip_reader::stat(int index, zip_reader::stat_t &r)
 {
 	SGE_ASSERT(is_open());
+    SGE_ASSERT(index >= 0);
+
 	return mz_zip_reader_file_stat(&m_archive, index, &r);
 }
 
 bool zip_reader::stat(const std::string &path, stat_t &r)
 {
 	SGE_ASSERT(is_open());
-	return stat(index(path), r);
+
+    int i = index(path);
+    if (i < 0)
+        return false;
+
+    return stat(i, r);
 }
 
 bool zip_reader::extract(int i, byte_array_t &ba)
 {
 	SGE_ASSERT(is_open());
+    SGE_ASSERT(i >= 0);
 
 	stat_t st;
 
@@ -88,19 +110,31 @@ bool zip_reader::extract(int i, byte_array_t &ba)
 bool zip_reader::extract(const std::string &path, byte_array_t &ba)
 {
 	SGE_ASSERT(is_open());
-	return extract(index(path), ba);
+
+    int i = index(path);
+    if (i < 0)
+        return false;
+
+    return extract(i, ba);
 }
 
 bool zip_reader::extract(int i, buffer &buf)
 {
 	SGE_ASSERT(is_open());
+    SGE_ASSERT(i >= 0);
+
 	return extract(i, buf.data);
 }
 
 bool zip_reader::extract(const std::string &path, buffer &buf)
 {
 	SGE_ASSERT(is_open());
-	return extract(index(path), buf);
+
+    int i = index(path);
+    if (i < 0)
+        return false;
+
+    return extract(i, buf);
 }
 
 SGE_END

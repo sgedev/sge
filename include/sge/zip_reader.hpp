@@ -18,23 +18,23 @@ public:
 
 public:
 	zip_reader(void);
-	zip_reader(const std::string &filename);
+    zip_reader(const char *filename);
 	virtual ~zip_reader(void);
 
 public:
 	const std::string &filename(void) const;
-	void set_filename(const std::string &r);
+    void set_filename(const std::string &r);
 	bool open(void);
 	void close(void);
 	bool is_open(void) const;
-	int count(void) const;
-	int index(const std::string &path);
+	int count(void);
+    int index(const std::string &path);
 	bool stat(int i, stat_t &r);
-	bool stat(const std::string &path, stat_t &r);
+    bool stat(const std::string &path, stat_t &r);
 	bool extract(int i, byte_array_t &ba);
-	bool extract(const std::string &path, byte_array_t &ba);
+    bool extract(const std::string &path, byte_array_t &ba);
 	bool extract(int i, buffer &buf);
-	bool extract(const std::string &path, buffer &buf);
+    bool extract(const std::string &path, buffer &buf);
 
 private:
 	std::string m_filename;

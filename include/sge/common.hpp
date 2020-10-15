@@ -7,6 +7,7 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <filesystem>
 
 #define GLM_FORCE_INLINE
 #include <glm/glm.hpp>
@@ -31,6 +32,20 @@ SGE_BEGIN
 
 typedef std::vector<uint8_t> byte_array_t;
 typedef std::list<std::string> string_list_t;
+
+static inline bool is_writable_path(const std::string &path)
+{
+    static const std::filesystem::perms write_perms =
+        std::filesystem::perms::owner_write |
+        std::filesystem::perms::group_write |
+        std::filesystem::perms::others_write;
+
+    std::filesystem::perms perms = std::filesystem::status(path).permissions();
+    if ((perms & write_perms) != std::filesystem::perms::none)
+        return true;
+
+    return false;
+}
 
 SGE_END
 

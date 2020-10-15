@@ -27,7 +27,7 @@
 
 #include "uv.h"
 #include "internal.h"
-#include "idna.h"
+#include "../idna.h"
 
 #include <errno.h>
 #include <stddef.h> /* NULL */

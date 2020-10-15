@@ -7,8 +7,7 @@
 SGE_VM_BEGIN
 
 namespace lua_registration {
-	static bool 
-	bool userdata_construct(lua_State *L, rttr::type &t)
+	bool userdata_construct(lua_State *L, const rttr::type &t)
 	{
 		auto ctors = t.get_constructors();
 		if (!ctors.empty())

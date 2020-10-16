@@ -24,6 +24,7 @@
 #endif
 
 #include <rttr/type>
+#include <rttr/registration>
 
 #define SGE_BEGIN namespace sge {
 #define SGE_END }

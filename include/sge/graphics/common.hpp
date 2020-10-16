@@ -11,4 +11,16 @@
 #define SGE_GRAPHICS_BEGIN SGE_BEGIN namespace graphics {
 #define SGE_GRAPHICS_END } SGE_END
 
+SGE_GRAPHICS_BEGIN
+
+typedef struct {
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec3 tex_coord;
+} vertex_t;
+
+typedef uint32_t vertex_index_t;
+
+SGE_GRAPHICS_END
+
 #endif // SGE_GRAPHICS_COMMON_HPP

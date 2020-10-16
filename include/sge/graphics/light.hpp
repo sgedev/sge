@@ -8,6 +8,8 @@
 SGE_GRAPHICS_BEGIN
 
 class light {
+    RTTR_ENABLE()
+
 public:
     light(void);
     virtual ~light(void);

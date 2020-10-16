@@ -2,6 +2,7 @@
 target_sources(sge
 	PRIVATE
 		argh.h
+		debug_draw.hpp
 		fontstash.h
 		lauxlib.h
 		lua.h
@@ -16,6 +17,7 @@ target_sources(sge
 		nanovg.h
 		nanovg_gl.h
 		nanovg_gl_utils.h
+        oui.h
 		stb_image.h
 		stb_truetype.h
 		uv.h

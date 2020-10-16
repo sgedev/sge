@@ -16,13 +16,15 @@ public:
     ~zip_file(void) override;
 
 public:
-    bool is_seekable(void) override;
     bool open(int flags) override;
     void close(void) override;
     int64_t size(void) override;
-    int64_t seek(int64_t offset, seek_from from) override;
     int64_t read(void *p, int64_t size) override;
     int64_t write(const void *p, int64_t size) override;
+
+protected:
+    int64_t pos(void) override;
+    int64_t set_pos(int64_t v) override;
 
 private:
     zip_reader_ptr m_reader;
@@ -44,11 +46,6 @@ zip_file::~zip_file(void)
 {
     if (is_open())
         close();
-}
-
-bool zip_file::is_seekable(void)
-{
-    return true;
 }
 
 bool zip_file::open(int flags)
@@ -73,6 +70,7 @@ bool zip_file::open(int flags)
         return false;
     }
 
+    set_seekable(true);
     m_pos = 0;
 
     return true;
@@ -91,31 +89,6 @@ int64_t zip_file::size(void)
     SGE_ASSERT(is_open());
 
     return m_data.size();
-}
-
-int64_t zip_file::seek(int64_t offset, seek_from from)
-{
-    SGE_ASSERT(is_open());
-
-    int64_t pos;
-
-    switch (from) {
-    case SEEK_FROM_START:
-        pos = offset;
-        break;
-    case SEEK_FROM_CURRENT:
-        pos = m_pos + offset;
-        break;
-    case SEEK_FROM_END:
-        pos = m_data.size() - offset;
-        break;
-    default:
-        return -1;
-    }
-
-    m_pos = std::clamp(pos, int64_t(0), int64_t(m_data.size()));
-
-    return m_pos;
 }
 
 int64_t zip_file::read(void *p, int64_t size)
@@ -144,6 +117,17 @@ int64_t zip_file::write(const void *p, int64_t size)
     }
 
     return len;
+}
+
+int64_t zip_file::pos(void)
+{
+    return m_pos;
+}
+
+int64_t zip_file::set_pos(int64_t v)
+{
+    m_pos = std::clamp(v, int64_t(0), int64_t(m_data.size()));
+    return m_pos;
 }
 
 // zip_fs

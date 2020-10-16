@@ -17,15 +17,17 @@ public:
 	~file(void) override;
 
 public:
-	bool is_seekable(void) override;
-	bool open(int flags) override;
-	void close(void) override;
-	int64_t size(void) override;
-	int64_t seek(int64_t offset, seek_from from) override;
+    bool open(int flags) override;
+    void close(void) override;
+    int64_t size(void) override;
     int64_t read(void *p, int64_t size) override;
     int64_t write(const void *p, int64_t size) override;
-	const std::string &filename(void) const;
-	void set_filename(const std::string &r);
+    const std::string &filename(void) const;
+    void set_filename(const std::string &r);
+
+protected:
+    int64_t pos(void) override;
+    int64_t set_pos(int64_t pos) override;
 
 private:
 	std::string m_filename;

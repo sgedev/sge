@@ -34,6 +34,10 @@ public:
 	const std::string &initrc_path(void) const;
 
 protected:
+    //virtual ... trap_mesh_create(...);
+    //virtual void trap_render(...)
+
+protected:
 	void set_init_result(bool v);
 	void host_run(std::function<void (void)> f);
 	virtual void run(uv_loop_t *loop);

@@ -9,9 +9,7 @@
 
 #include <argh.h>
 
-#include <sge/vm/kernel.hpp>
-#include <sge/graphics/window.hpp>
-#include <sge/graphics/renderer.hpp>
+#include <sge/boot/engine.hpp>
 
 struct sdl_initializer {
 	int result;
@@ -20,42 +18,19 @@ struct sdl_initializer {
 	operator bool(void) const { return (result == 0); }
 };
 
-static sge::vm::kernel *kernel;
-static sge::graphics::window *window;
-static sge::graphics::renderer *renderer;
+static sge::boot::engine *engine;
 
 static void poll_events(uv_timer_t *p)
 {
-	SDL_Event evt;
+    SDL_Event evt;
 
 	while (SDL_PollEvent(&evt)) {
-        switch (evt.type) {
-		case SDL_MOUSEMOTION:
-		case SDL_KEYUP:
-		case SDL_KEYDOWN:
-		case SDL_MOUSEBUTTONUP:
-		case SDL_MOUSEBUTTONDOWN:
-		case SDL_MOUSEWHEEL:
-			if (kernel != nullptr)
-				kernel->post_event(evt);
-			break;
-		case SDL_QUIT:
+        if (evt.type != SDL_QUIT) {
+            if (engine != nullptr)
+                engine->post_event(evt);
+        } else
             uv_stop(p->loop);
-            break;
-        case SDL_WINDOWEVENT:
-            if (window != nullptr)
-                window->handle_event(evt.window);
-            break;
-        default:
-            break;
-        }
 	}
-
-    // TEST
-    if (renderer != nullptr) {
-        renderer->begin();
-        renderer->end();
-    }
 }
 
 static void print_help(void)
@@ -82,8 +57,8 @@ static void log_output(void *data, int, SDL_LogPriority priority, const char *me
     FILE *fp = stdout;
     const char *prefix = "";
 
-    if (kernel != nullptr) {
-        if (std::this_thread::get_id() == kernel->thread().get_id())
+    if (engine != nullptr) {
+        if (std::this_thread::get_id() == engine->thread().get_id())
             prefix = "vm: ";
     }
 
@@ -141,27 +116,13 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-    std::unique_ptr<sge::vm::kernel> k(new sge::vm::kernel(uv_default_loop()));
-    if (!k || !k->start(root, init)) {
-        SGE_LOGE("failed to init vm.");
+    std::unique_ptr<sge::boot::engine> eng(new sge::boot::engine(uv_default_loop()));
+    if (!eng || !eng->start(root, init)) {
+        SGE_LOGE("failed to init engine.");
         return EXIT_FAILURE;
     }
 
-    std::unique_ptr<sge::graphics::window> w(new sge::graphics::window());
-    if (!w || !w->init("sge", 800, 600)) {
-        SGE_LOGE("failed to init main window.");
-        return EXIT_FAILURE;
-    }
-
-    std::unique_ptr<sge::graphics::renderer> r(new sge::graphics::renderer(w.get()));
-    if (!r || !r->init()) {
-        SGE_LOGE("failed to init renderer.");
-        return EXIT_FAILURE;
-    }
-
-    kernel = k.get();
-    window = w.get();
-    renderer = r.get();
+    engine = eng.get();
 
     uv_timer_t poll_events_timer;
 	uv_timer_init(uv_default_loop(), &poll_events_timer);
@@ -171,9 +132,7 @@ int main(int argc, char *argv[])
 
 	uv_timer_stop(&poll_events_timer);
 
-    renderer = nullptr;
-    window = nullptr;
-    kernel = nullptr;
+    engine = nullptr;
 
 	return EXIT_SUCCESS;
 }

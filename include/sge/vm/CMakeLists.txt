@@ -7,6 +7,7 @@ target_sources(sge
 		kernel.hpp
 		root_fs.hpp
 		task.h
+		view.hpp
 		zip_fs.hpp
 	)
 

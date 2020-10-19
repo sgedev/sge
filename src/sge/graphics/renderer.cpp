@@ -7,32 +7,45 @@
 
 SGE_GRAPHICS_BEGIN
 
-renderer::renderer(canvas *target):
-	m_target(target)
+renderer::renderer(void):
+    m_target(nullptr)
 {
-	SGE_ASSERT(m_target != nullptr);
 }
 
 renderer::~renderer(void)
 {
+    shutdown();
 }
 
-bool renderer::init(void)
+bool renderer::init(canvas *target)
 {
-	SGE_ASSERT(m_target != nullptr);
+    SGE_ASSERT(m_target == nullptr);
+    SGE_ASSERT(target != nullptr);
 
-	if (!m_target->begin())
+    if (!target->begin())
 		return false;
 
-	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-    m_target->end();
+    target->end();
+
+    m_target = target;
 
 	return true;
 }
 
 void renderer::shutdown(void)
 {
+    if (m_target == nullptr)
+        return;
+
+    m_target->begin();
+
+    // TODO
+
+    m_target->end();
+
+    m_target = nullptr;
 }
 
 void renderer::begin(void)
@@ -48,7 +61,7 @@ void renderer::end(void)
 		return;
 
 	// TODO
-
+    glViewport(0, 0, m_target->width(), m_target->height());
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	m_target->end();

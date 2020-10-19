@@ -13,11 +13,11 @@ SGE_GRAPHICS_BEGIN
 
 class renderer {
 public:
-	renderer(canvas *target);
+    renderer(void);
 	virtual ~renderer(void);
 
 public:
-	bool init(void);
+    bool init(canvas *target);
 	void shutdown(void);
 	void begin(void);
 	void end(void);

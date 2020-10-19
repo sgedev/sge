@@ -13,14 +13,10 @@ window::window(void):
 
 window::~window(void)
 {
-	if (m_gl_context != nullptr)
-		SDL_GL_DeleteContext(m_gl_context);
-
-	if (m_handle != nullptr)
-		SDL_DestroyWindow(m_handle);
+    shutdown();
 }
 
-bool window::init(const char *name, int width, int height)
+bool window::init(const char *name, int width, int height, int flags)
 {
 	SGE_ASSERT(m_handle == nullptr);
 
@@ -38,8 +34,8 @@ bool window::init(const char *name, int width, int height)
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, gl_flags | SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
-	m_handle = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
+    m_handle = SDL_CreateWindow(name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height,
+        flags | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI);
 	if (m_handle == nullptr)
 		goto bad0;
 
@@ -77,6 +73,19 @@ bad1:
 
 bad0:
 	return false;
+}
+
+void window::shutdown(void)
+{
+    if (m_gl_context != nullptr) {
+        SDL_GL_DeleteContext(m_gl_context);
+        m_gl_context = nullptr;
+    }
+
+    if (m_handle != nullptr) {
+        SDL_DestroyWindow(m_handle);
+        m_handle = nullptr;
+    }
 }
 
 void window::handle_event(const SDL_WindowEvent &evt)

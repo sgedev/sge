@@ -169,6 +169,8 @@ void uv__run_timers(uv_loop_t* loop) {
       break;
 
     handle = container_of(heap_node, uv_timer_t, heap_node);
+    if (handle->loop != loop)
+        printf("asdf");
     if (handle->timeout > loop->time)
       break;
 

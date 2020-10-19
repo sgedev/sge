@@ -34,6 +34,14 @@ SGE_BEGIN
 typedef std::vector<uint8_t> byte_array_t;
 typedef std::list<std::string> string_list_t;
 
+static inline void uv_close(uv_handle_t *ph)
+{
+    int done = 0;
+    ph->data = &done;
+    uv_close(ph, [](uv_handle_t *ph) { *reinterpret_cast<int *>(ph->data) = 1; });
+    while (!done) { printf("loop\n"); uv_run(ph->loop, UV_RUN_ONCE); }
+}
+
 static inline bool is_writable_path(const std::string &path)
 {
     static const std::filesystem::perms write_perms =

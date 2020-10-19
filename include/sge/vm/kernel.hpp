@@ -40,21 +40,20 @@ private:
 	void init_exports(lua_State *L);
 
 	// sge.current
-	static int trap_current(lua_State *L);
+    static int sys_current(lua_State *L);
 
 	// sge.task
-	static int trap_task(lua_State *L);
+    static int sys_task(lua_State *L);
 
 	// sge.sleep
-	static void trap_sleep_done(uv_timer_t *p);
-	static int trap_sleep(lua_State *L);
+    static void sys_sleep_done(uv_timer_t *p);
+    static int sys_sleep(lua_State *L);
 
 	// sge.wait
-	static int trap_wait(lua_State *L);
+    static int sys_wait(lua_State *L);
 
 private:
 	sge_list_t m_task_list;
-	uv_prepare_t m_schedule_preparer;
 };
 
 SGE_INLINE kernel::task_t *kernel::task_from_lua(lua_State *L)

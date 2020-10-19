@@ -14,7 +14,8 @@ public:
 	~window(void) override;
 
 public:
-	bool init(const char *name, int width, int height);
+    bool init(const char *name, int width, int height, int flags = 0);
+    void shutdown(void);
 	void handle_event(const SDL_WindowEvent &evt);
 	Uint32 id(void) const;
 	bool visible(void) const;

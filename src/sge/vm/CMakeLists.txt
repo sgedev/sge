@@ -6,5 +6,6 @@ target_sources(sge
 		fs.cpp
 		kernel.cpp
 		root_fs.cpp
+		view.cpp
 		zip_fs.cpp
 	)

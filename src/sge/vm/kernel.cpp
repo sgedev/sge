@@ -91,14 +91,15 @@ void kernel::kmain(lua_State *L, uv_loop_t *loop)
 		return;
 	}
 
-	uv_prepare_init(loop, &m_schedule_preparer);
-	uv_prepare_start(&m_schedule_preparer, &kernel::schedule);
-	m_schedule_preparer.data = L;
+    uv_prepare_t schedule_preparer;
+    uv_prepare_init(loop, &schedule_preparer);
+    uv_prepare_start(&schedule_preparer, &kernel::schedule);
+    schedule_preparer.data = L;
 
-	core::run(loop);
+    core::run(loop);
 
-	uv_prepare_stop(&m_schedule_preparer);
-	uv_close(reinterpret_cast<uv_handle_t *>(&m_schedule_preparer), nullptr);
+    uv_prepare_stop(&schedule_preparer);
+    uv_close(reinterpret_cast<uv_handle_t *>(&schedule_preparer));
 }
 
 void kernel::schedule(uv_prepare_t *p)
@@ -124,10 +125,10 @@ void kernel::init_exports(lua_State *L)
 {
 	lua_registration::begin(L);
 
-	lua_registration::function(L, "current", &kernel::trap_current);
-	lua_registration::function(L, "task", &kernel::trap_task);
-	lua_registration::function(L, "sleep", &kernel::trap_sleep);
-	lua_registration::function(L, "wait", &kernel::trap_wait);
+    lua_registration::function(L, "current", &kernel::sys_current);
+    lua_registration::function(L, "task", &kernel::sys_task);
+    lua_registration::function(L, "sleep", &kernel::sys_sleep);
+    lua_registration::function(L, "wait", &kernel::sys_wait);
     // mount
     // umount
 
@@ -136,13 +137,13 @@ void kernel::init_exports(lua_State *L)
 	lua_registration::end(L);
 }
 
-int kernel::trap_current(lua_State *L)
+int kernel::sys_current(lua_State *L)
 {
     lua_pushthread(L);
     return 1;
 }
 
-int kernel::trap_task(lua_State *L)
+int kernel::sys_task(lua_State *L)
 {
     lua_State *T = lua_newthread(L);
     int top = lua_gettop(L);
@@ -165,7 +166,7 @@ int kernel::trap_task(lua_State *L)
 	return 1;
 }
 
-void kernel::trap_sleep_done(uv_timer_t *p)
+void kernel::sys_sleep_done(uv_timer_t *p)
 {
 	task_t *task = (task_t *)(p->data);
 	kernel *k = from_task(task);
@@ -174,21 +175,21 @@ void kernel::trap_sleep_done(uv_timer_t *p)
 	sge_list_add_tail(&k->m_task_list, &task->node);
 }
 
-int kernel::trap_sleep(lua_State *L)
+int kernel::sys_sleep(lua_State *L)
 {
 	int ms = (int)luaL_checkinteger(L, 1);
 	task_t *task = task_from_lua(L);
 	kernel *k = from_task(task);
 
 	if (ms > 0)
-		uv_timer_start(&task->sleep_timer, trap_sleep_done, ms, 0);
+        uv_timer_start(&task->sleep_timer, sys_sleep_done, ms, 0);
 	else
 		sge_list_add_tail(&k->m_task_list, &task->node);
 
 	return lua_yield(L, 0);
 }
 
-int kernel::trap_wait(lua_State *L)
+int kernel::sys_wait(lua_State *L)
 {
 	return 0;
 }

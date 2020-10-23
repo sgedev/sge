@@ -1,6 +1,5 @@
 //
 //
-#define SDL_MAIN_HANDLED
 #include <cstdio>
 #include <cstdlib>
 #include <thread>
@@ -8,8 +7,13 @@
 #include <filesystem>
 
 #include <argh.h>
+#include <uv.h>
 
-#include <sge/boot/engine.hpp>
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+
+#include <sge/app/engine.hpp>
+#include <sge/app/client.hpp>
 
 struct sdl_initializer {
 	int result;
@@ -18,7 +22,7 @@ struct sdl_initializer {
 	operator bool(void) const { return (result == 0); }
 };
 
-static sge::boot::engine *engine;
+static sge::app::engine *app;
 
 static void poll_events(uv_timer_t *p)
 {
@@ -26,8 +30,8 @@ static void poll_events(uv_timer_t *p)
 
 	while (SDL_PollEvent(&evt)) {
         if (evt.type != SDL_QUIT) {
-            if (engine != nullptr)
-                engine->post_event(evt);
+            if (app != nullptr)
+                app->post_event(evt);
         } else
             uv_stop(p->loop);
 	}
@@ -57,8 +61,8 @@ static void log_output(void *data, int, SDL_LogPriority priority, const char *me
     FILE *fp = stdout;
     const char *prefix = "";
 
-    if (engine != nullptr) {
-        if (std::this_thread::get_id() == engine->thread().get_id())
+    if (app != nullptr) {
+        if (std::this_thread::get_id() == app->thread().get_id())
             prefix = "vm: ";
     }
 
@@ -116,13 +120,13 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-    std::unique_ptr<sge::boot::engine> eng(new sge::boot::engine(uv_default_loop()));
+    std::unique_ptr<sge::app::engine> eng(new sge::app::client(uv_default_loop()));
     if (!eng || !eng->start(root, init)) {
         SGE_LOGE("failed to init engine.");
         return EXIT_FAILURE;
     }
 
-    engine = eng.get();
+    app = eng.get();
 
     uv_timer_t poll_events_timer;
 	uv_timer_init(uv_default_loop(), &poll_events_timer);
@@ -132,7 +136,7 @@ int main(int argc, char *argv[])
 
 	uv_timer_stop(&poll_events_timer);
 
-    engine = nullptr;
+    app = nullptr;
 
 	return EXIT_SUCCESS;
 }

@@ -8,6 +8,7 @@
 SGE_GRAPHICS_BEGIN
 
 renderer::renderer(void):
+    m_vg(nullptr),
     m_target(nullptr)
 {
 }
@@ -19,11 +20,18 @@ renderer::~renderer(void)
 
 bool renderer::init(canvas *target)
 {
+    SGE_ASSERT(m_vg == nullptr);
     SGE_ASSERT(m_target == nullptr);
     SGE_ASSERT(target != nullptr);
 
     if (!target->begin())
 		return false;
+
+    m_vg = nvgCreateGL3(0);
+    if (m_vg == nullptr) {
+        target->end();
+        return false;
+    }
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -36,33 +44,39 @@ bool renderer::init(canvas *target)
 
 void renderer::shutdown(void)
 {
-    if (m_target == nullptr)
-        return;
+    if (m_target != nullptr) {
+        m_target->begin();
 
-    m_target->begin();
+        // TODO
 
-    // TODO
+        if (m_vg != nullptr) {
+            nvgDeleteGL3(m_vg);
+            m_vg = nullptr;
+        }
 
-    m_target->end();
-
-    m_target = nullptr;
+        m_target->end();
+        m_target = nullptr;
+    }
 }
 
 void renderer::begin(void)
 {
+    SGE_ASSERT(m_vg != nullptr);
 	SGE_ASSERT(m_target != nullptr);
 }
 
 void renderer::end(void)
 {
+    SGE_ASSERT(m_vg != nullptr);
 	SGE_ASSERT(m_target != nullptr);
 
 	if (!m_target->begin())
 		return;
 
-	// TODO
     glViewport(0, 0, m_target->width(), m_target->height());
-	glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // TODO
 
 	m_target->end();
 }

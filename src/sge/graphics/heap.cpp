@@ -87,6 +87,7 @@ int64_t heap_buffer::size(void)
 int64_t heap_buffer::read(void *p, int64_t size)
 {
     SGE_ASSERT(m_map != nullptr);
+    SGE_ASSERT(is_readable());
 
     int64_t len = std::min(m_size - m_offset - m_pos, size);
     if (len > 0) {
@@ -100,6 +101,7 @@ int64_t heap_buffer::read(void *p, int64_t size)
 int64_t heap_buffer::write(const void *p, int64_t size)
 {
     SGE_ASSERT(m_map != nullptr);
+    SGE_ASSERT(is_writable());
 
     int64_t len = std::min(m_size - -m_offset - m_pos, size);
     if (len > 0) {
@@ -118,6 +120,7 @@ void heap_buffer::bind(void)
 int64_t heap_buffer::pos(void)
 {
     SGE_ASSERT(m_map != nullptr);
+    SGE_ASSERT(is_seekable());
 
     return m_pos;
 }
@@ -125,6 +128,7 @@ int64_t heap_buffer::pos(void)
 int64_t heap_buffer::set_pos(int64_t pos)
 {
     SGE_ASSERT(m_map != nullptr);
+    SGE_ASSERT(is_seekable());
 
     m_pos = std::clamp(pos, int64_t(0), m_size);
 
@@ -178,6 +182,7 @@ bool heap::init(int order)
 
 void heap::release(void)
 {
+    SGE_ASSERT(m_buffer_list.empty());
 }
 
 buffer *heap::alloc_buffer(GLsizeiptr size)

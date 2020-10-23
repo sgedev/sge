@@ -5,10 +5,11 @@ target_sources(sge
 		file.cpp
 		io.cpp
 		list.c
+		lua.cpp
 		zip_reader.cpp
 	)
 
-add_subdirectory(boot boot)
+add_subdirectory(app app)
 add_subdirectory(graphics graphics)
 add_subdirectory(gui gui)
 add_subdirectory(scene scene)

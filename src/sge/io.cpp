@@ -54,7 +54,7 @@ int64_t io::seek(int64_t offset, seek_from from)
 
     switch (from) {
     case SEEK_FROM_START:
-        new_pos = 0;
+        new_pos = offset;
         break;
     case SEEK_FROM_CURRENT:
         new_pos = pos() + offset;

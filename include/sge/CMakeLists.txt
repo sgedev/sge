@@ -9,6 +9,8 @@ target_sources(sge
 		file.hpp
 		io.hpp
 		list.h
+		lua.hpp
+		spin_lock.hpp
 		zip_reader.hpp
 	)
 
@@ -17,7 +19,7 @@ configure_file(
 	config.h
 	)
 
-add_subdirectory(boot boot)
+add_subdirectory(app app)
 add_subdirectory(graphics graphics)
 add_subdirectory(gui gui)
 add_subdirectory(scene scene)

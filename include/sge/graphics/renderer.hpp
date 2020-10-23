@@ -29,7 +29,7 @@ public:
         MATRIX_PROJECTION
     };
 
-    void matrix_mode(matrix_type mt);
+    void set_matrix_mode(matrix_type mt);
     void push_matrix(void);
     void pop_matrix(void);
     void load_identity(void);
@@ -62,6 +62,7 @@ private:
     glm::ivec4 m_view_rect;
     float m_view_fov;
     light m_ambient_light;
+    NVGcontext *m_vg;
     canvas *m_target;
 };
 

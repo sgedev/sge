@@ -34,12 +34,34 @@ SGE_BEGIN
 typedef std::vector<uint8_t> byte_array_t;
 typedef std::list<std::string> string_list_t;
 
-static inline void uv_close(uv_handle_t *ph)
+class noncopyable {
+public:
+    inline noncopyable(void) { }
+    noncopyable(const noncopyable &) = delete;
+    noncopyable &operator=(const noncopyable &) = delete;
+};
+
+static inline void uv_sync_close(uv_handle_t *p)
 {
     int done = 0;
-    ph->data = &done;
-    uv_close(ph, [](uv_handle_t *ph) { *reinterpret_cast<int *>(ph->data) = 1; });
-    while (!done) { printf("loop\n"); uv_run(ph->loop, UV_RUN_ONCE); }
+    p->data = &done;
+    uv_close(p, [](uv_handle_t *p) { *reinterpret_cast<int *>(p->data) = 1; });
+    while (!done) { uv_run(p->loop, UV_RUN_ONCE); }
+}
+
+static inline void uv_sync_close(uv_timer_t *p)
+{
+    uv_sync_close(reinterpret_cast<uv_handle_t *>(p));
+}
+
+static inline void uv_sync_close(uv_async_t *p)
+{
+    uv_sync_close(reinterpret_cast<uv_handle_t *>(p));
+}
+
+static inline void uv_sync_close(uv_prepare_t *p)
+{
+    uv_sync_close(reinterpret_cast<uv_handle_t *>(p));
 }
 
 static inline bool is_writable_path(const std::string &path)
@@ -50,10 +72,8 @@ static inline bool is_writable_path(const std::string &path)
         std::filesystem::perms::others_write;
 
     std::filesystem::perms perms = std::filesystem::status(path).permissions();
-    if ((perms & write_perms) != std::filesystem::perms::none)
-        return true;
 
-    return false;
+    return ((perms & write_perms) != std::filesystem::perms::none);
 }
 
 SGE_END

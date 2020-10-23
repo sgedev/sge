@@ -110,7 +110,6 @@ void window::handle_event(const SDL_WindowEvent &evt)
 void window::resize(int width, int height)
 {
 	// TODO
-
 	canvas::resize(width, height);
 }
 
@@ -119,15 +118,22 @@ bool window::begin(void)
 	SGE_ASSERT(m_handle != nullptr);
 	SGE_ASSERT(m_gl_context != nullptr);
 
-	if (width() < 1 || height() < 1)
-		return false;
+    if (!canvas::begin())
+        return false;
 
-	if (SDL_GL_MakeCurrent(m_handle, m_gl_context) < 0)
+    if (width() < 1 || height() < 1) {
+        canvas::end();
 		return false;
+    }
+
+    if (SDL_GL_MakeCurrent(m_handle, m_gl_context) < 0) {
+        canvas::end();
+		return false;
+    }
 
 	gl3wProcs = &m_gl3w;
 
-	return canvas::begin();
+    return true;
 }
 
 void window::end(void)

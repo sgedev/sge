@@ -5,8 +5,7 @@
 SGE_VM_BEGIN
 
 core::core(uv_loop_t *loop):
-    m_loop(loop),
-    m_view_rendering(0)
+    m_loop(loop)
 {
     SGE_ASSERT(m_loop != nullptr);
 }
@@ -20,14 +19,10 @@ bool core::start(const std::string &rootfs_path, const std::string &initrc_path)
 {
     SGE_ASSERT(m_loop != nullptr);
 
-    uv_async_init(m_loop, &m_render_view_async, &core::render_view);
-    m_render_view_async.data = this;
-
 	m_rootfs_path = rootfs_path;
 	m_initrc_path = initrc_path;
 	m_event_first = 0;
 	m_event_last = 0;
-    m_view_mutex.clear();
 
 	std::future<bool> init_result = m_init_promise.get_future();
     m_thread = std::thread(&core::thread_main, this);
@@ -41,8 +36,6 @@ void core::stop(void)
 		uv_async_send(&m_quit_async);
 		m_thread.join();
 	}
-
-    uv_close(reinterpret_cast<uv_handle_t *>(&m_render_view_async), nullptr);
 }
 
 void core::post_event(const SDL_Event &evt)
@@ -84,17 +77,12 @@ void core::run(uv_loop_t *loop)
     uv_timer_stop(&count_timer);
     uv_timer_stop(&frame_timer);
 
-    uv_close(reinterpret_cast<uv_handle_t *>(&count_timer));
-    uv_close(reinterpret_cast<uv_handle_t *>(&frame_timer));
-    uv_close(reinterpret_cast<uv_handle_t *>(&m_quit_async));
+    uv_sync_close(&count_timer);
+    uv_sync_close(&frame_timer);
+    uv_sync_close(&m_quit_async);
 }
 
 void core::handle_event(const SDL_Event &evt)
-{
-    m_world.handle_event(evt);
-}
-
-void core::render(const view &v)
 {
 }
 
@@ -110,10 +98,7 @@ void core::thread_main(void)
 
     run(&loop);
 
-    while (uv_loop_close(&loop) == UV_EBUSY) {
-        uv_print_all_handles(&loop, stdout);
-        uv_run(&loop, UV_RUN_ONCE);
-    }
+    uv_loop_close(&loop);
 }
 
 void core::update(float elapsed)
@@ -122,16 +107,6 @@ void core::update(float elapsed)
         handle_event(m_event_queue[m_event_first & EVENT_QUEUE_MASK]);
 		m_event_first += 1;
 	}
-
-	m_world.update(elapsed);
-
-    view &v = m_views[!m_view_rendering];
-    // TODO build view...
-
-    while (m_view_mutex.test_and_set());
-    uv_async_send(&m_render_view_async);
-    m_view_rendering = !m_view_rendering;
-    m_view_mutex.clear();
 }
 
 void core::frame(uv_timer_t *p)
@@ -155,14 +130,7 @@ void core::count(uv_timer_t *p)
 	core *c = reinterpret_cast<core *>(p->data);
 	c->m_frame_per_second = c->m_frame_count;
 	c->m_frame_count = 0;
-}
-
-void core::render_view(uv_async_t *p)
-{
-    core *c = reinterpret_cast<core *>(p->data);
-    while (c->m_view_mutex.test_and_set());
-    c->render(c->m_views[c->m_view_rendering]);
-    c->m_view_mutex.clear();
+    SGE_LOGD("fps %d", c->m_frame_per_second);
 }
 
 void core::quit(uv_async_t *p)

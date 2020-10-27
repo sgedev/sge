@@ -5,7 +5,6 @@ target_sources(sge
 		core.cpp
 		fs.cpp
 		kernel.cpp
-		registration.cpp
 		root_fs.cpp
 		view.cpp
 		zip_fs.cpp

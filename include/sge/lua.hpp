@@ -48,7 +48,7 @@ void getmetatable(lua_State *L)
     getmetatable(L, rttr::type::get<T>());
 }
 
-void *checkudata(lua_State *L, int i, const rttr::type &type)
+static inline void *checkudata(lua_State *L, int i, const rttr::type &type)
 {
     return luaL_checkudata(L, i, metatablename(type));
 }

@@ -6,6 +6,7 @@
 
 SGE_LUA_BEGIN
 
+#if 0
 struct nil { };
 struct function { };
 struct table { };
@@ -162,7 +163,7 @@ static inline int pushvariant(lua_State *L, rttr::variant &v)
         return 1;
     }
 
-    if (v.can_convert<ref>()) {
+    if (v.can_convert<ref<function> >()) {
         lua_rawgeti(L, LUA_REGISTRYINDEX, v.get_value<function_ref>().ref);
         return 1;
     }
@@ -296,5 +297,6 @@ bool create(lua_State *L, const rttr::type &type)
 
     return false;
 }
+#endif
 
 SGE_LUA_END

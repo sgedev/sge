@@ -45,6 +45,8 @@ protected:
     void run(uv_loop_t *loop) override;
 	void handle_event(const SDL_Event &evt) override;
     virtual void init_lua(lua_State *L);
+
+protected:
     virtual void trap_foo(void) = 0;
 
 private:

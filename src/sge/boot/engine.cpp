@@ -1,19 +1,19 @@
 //
 //
-#include <sge/app/client.hpp>
+#include <sge/boot/engine.hpp>
 
-SGE_APP_BEGIN
+SGE_BOOT_BEGIN
 
-client::client(uv_loop_t *loop):
-    engine(loop)
+engine::engine(uv_loop_t *loop):
+    vm::kernel(loop)
 {
 }
 
-client::~client(void)
+engine::~engine(void)
 {
 }
 
-bool client::start(const std::string &rootfs, const std::string &initrc)
+bool engine::start(const std::string &rootfs, const std::string &initrc)
 {
     if (!m_window.init("sge", 800, 600, SDL_WINDOW_RESIZABLE))
         return false;
@@ -23,7 +23,7 @@ bool client::start(const std::string &rootfs, const std::string &initrc)
         return false;
     }
 
-    if (!engine::start(rootfs, initrc)) {
+    if (!vm::kernel::start(rootfs, initrc)) {
         m_renderer.shutdown();
         m_window.shutdown();
         return false;
@@ -32,14 +32,14 @@ bool client::start(const std::string &rootfs, const std::string &initrc)
     return true;
 }
 
-void client::stop(void)
+void engine::stop(void)
 {
-    engine::stop();
+    vm::kernel::stop();
     m_renderer.shutdown();
     m_window.shutdown();
 }
 
-void client::handle_event(const SDL_Event &evt)
+void engine::handle_event(const SDL_Event &evt)
 {
     if (evt.type != SDL_WINDOWEVENT)
         vm::kernel::handle_event(evt);
@@ -47,17 +47,12 @@ void client::handle_event(const SDL_Event &evt)
         m_window.handle_event(evt.window);
 }
 
-void client::render(const vm::view &v)
-{
-    m_renderer.begin();
-
-    // TODO
-
-    m_renderer.end();
-}
-
-void client::trap_foo(void)
+void engine::trap_foo(void)
 {
 }
 
-SGE_APP_END
+void engine::render_view(uv_async_t *p)
+{
+}
+
+SGE_BOOT_END

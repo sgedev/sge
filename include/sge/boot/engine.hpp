@@ -1,18 +1,20 @@
 //
 //
-#ifndef SGE_APP_CLIENT_HPP
-#define SGE_APP_CLIENT_HPP
+#ifndef SGE_BOOT_ENGINE_HPP
+#define SGE_BOOT_ENGINE_HPP
 
+#include <sge/vm/kernel.hpp>
+#include <sge/scene/world.hpp>
 #include <sge/graphics/window.hpp>
 #include <sge/graphics/renderer.hpp>
-#include <sge/app/engine.hpp>
+#include <sge/boot/common.hpp>
 
-SGE_APP_BEGIN
+SGE_BOOT_BEGIN
 
-class client: public engine {
+class engine: public vm::kernel {
 public:
-    client(uv_loop_t *loop);
-    ~client(void) override;
+    engine(uv_loop_t *loop);
+    ~engine(void) override;
 
 public:
     bool start(const std::string &rootfs, const std::string &initrc) override;
@@ -28,6 +30,7 @@ private:
     static void render_view(uv_async_t *p);
 
 private:
+    scene::world m_world;
     graphics::window m_window;
     graphics::renderer m_renderer;
     uv_async_t m_render_view_async;
@@ -35,6 +38,6 @@ private:
     spin_lock m_view_mutex;
 };
 
-SGE_APP_END
+SGE_BOOT_END
 
-#endif // SGE_APP_CLIENT_HPP
+#endif // SGE_BOOT_ENGINE_HPP

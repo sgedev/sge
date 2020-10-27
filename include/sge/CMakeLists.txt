@@ -19,7 +19,7 @@ configure_file(
 	config.h
 	)
 
-add_subdirectory(app app)
+add_subdirectory(boot boot)
 add_subdirectory(graphics graphics)
 add_subdirectory(gui gui)
 add_subdirectory(scene scene)

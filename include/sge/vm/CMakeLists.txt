@@ -5,7 +5,6 @@ target_sources(sge
 		core.hpp
 		fs.hpp
 		kernel.hpp
-		registration.hpp
 		root_fs.hpp
 		task.h
 		view.hpp

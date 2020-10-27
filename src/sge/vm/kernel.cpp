@@ -104,7 +104,17 @@ void kernel::handle_event(const SDL_Event &evt)
 
 void kernel::init_lua(lua_State *L)
 {
+    lua_pushcfunction(L, &kernel::sys_task);
+    lua_setfield(L, -2, "task");
 
+    lua_pushcfunction(L, &kernel::sys_current);
+    lua_setfield(L, -2, "current");
+
+    lua_pushcfunction(L, &kernel::sys_wait);
+    lua_setfield(L, -2, "wait");
+
+    lua_pushcfunction(L, &kernel::sys_sleep);
+    lua_setfield(L, -2, "sleep");
 }
 
 bool kernel::load_initrc(lua_State *L)
@@ -225,11 +235,6 @@ int kernel::do_trap(lua_State *L, int type)
 int kernel::handle_trap_foo(lua_State *L)
 {
     return 0;
-}
-
-void kernel::init_type(lua_State *L, const std::string &name, const rttr::type &type)
-{
-    luaL_newmetatable()
 }
 
 int kernel::sys_current(lua_State *L)

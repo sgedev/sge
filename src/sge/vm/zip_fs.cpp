@@ -143,19 +143,19 @@ zip_fs::~zip_fs(void)
 
 bool zip_fs::is_writable(void)
 {
-	return false;
+    return false;
 }
 
 bool zip_fs::init(const std::string &native_path)
 {
     SGE_ASSERT(!m_reader);
 
-	if (!std::filesystem::is_regular_file(native_path))
-		return false;
+    if (!std::filesystem::is_regular_file(native_path))
+        return false;
 
     auto reader = std::make_shared<zip_reader>(native_path.c_str());
     if (!reader || !reader->open())
-		return false;
+        return false;
 
     m_tree.clear();
     m_tree.reserve(0);
@@ -177,15 +177,15 @@ bool zip_fs::init(const std::string &native_path)
     m_reader = reader;
     set_native_path(native_path);
 
-	return true;
+    return true;
 }
 
 zip_fs::type_t zip_fs::type(const std::string &path)
 {
     SGE_ASSERT(m_reader);
 
-	if (!check_path(path))
-		return TYPE_INVALID;
+    if (!check_path(path))
+        return TYPE_INVALID;
 
     zip_reader::stat_t st;
     if (!m_reader->stat(path, st))
@@ -201,8 +201,8 @@ bool zip_fs::enum_dir(const std::string &path, string_list_t &result)
 {
     SGE_ASSERT(m_reader);
 
-	if (!check_path(path))
-		return false;
+    if (!check_path(path))
+        return false;
 
     zip_reader::stat_t st;
     if (!m_reader->stat(path, st))
@@ -223,36 +223,36 @@ bool zip_fs::make_dir(const std::string &path)
     SGE_ASSERT(m_reader);
     SGE_UNUSED(path);
 
-	return false;
+    return false;
 }
 
 io *zip_fs::open_file(const std::string &path, int io_flags)
 {
     SGE_ASSERT(m_reader);
 
-	if (!check_path(path))
-		return nullptr;
+    if (!check_path(path))
+        return nullptr;
 
     if (path.back() == '/')
         return nullptr;
 
     if (io_flags & (io::FLAG_WRITE | io::FLAG_CREATE | io::FLAG_TRUNCATE))
-		return nullptr;
+        return nullptr;
 
     int i = m_reader->index(path);
     if (i < 0)
         return nullptr;
 
     zip_file *fp = new zip_file(m_reader, i);
-	if (fp == nullptr)
-		return nullptr;
+    if (fp == nullptr)
+        return nullptr;
 
-	if (!fp->open(io_flags)) {
-		delete fp;
-		return nullptr;
-	}
+    if (!fp->open(io_flags)) {
+        delete fp;
+        return nullptr;
+    }
 
-	return fp;
+    return fp;
 }
 
 bool zip_fs::remove(const std::string &path)
@@ -260,7 +260,7 @@ bool zip_fs::remove(const std::string &path)
     SGE_ASSERT(m_reader);
     SGE_UNUSED(path);
 
-	return false;
+    return false;
 }
 
 bool zip_fs::populate_node(const zip_reader::stat_t &st)

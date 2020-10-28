@@ -25,20 +25,20 @@
 */
 #define sizelstring(l)  (offsetof(TString, contents) + ((l) + 1) * sizeof(char))
 
-#define luaS_newliteral(L, s)	(luaS_newlstr(L, "" s, \
+#define luaS_newliteral(L, s)    (luaS_newlstr(L, "" s, \
                                  (sizeof(s)/sizeof(char))-1))
 
 
 /*
 ** test whether a string is a reserved word
 */
-#define isreserved(s)	((s)->tt == LUA_VSHRSTR && (s)->extra > 0)
+#define isreserved(s)    ((s)->tt == LUA_VSHRSTR && (s)->extra > 0)
 
 
 /*
 ** equality for short strings, which are always internalized
 */
-#define eqshrstr(a,b)	check_exp((a)->tt == LUA_VSHRSTR, (a) == (b))
+#define eqshrstr(a,b)    check_exp((a)->tt == LUA_VSHRSTR, (a) == (b))
 
 
 LUAI_FUNC unsigned int luaS_hash (const char *str, size_t l,

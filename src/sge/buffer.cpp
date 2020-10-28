@@ -7,13 +7,13 @@
 SGE_BEGIN
 
 buffer::buffer(void):
-	m_pos(0)
+    m_pos(0)
 {
 }
 
 buffer::buffer(const buffer &that):
-	data(that.data),
-	m_pos(0)
+    data(that.data),
+    m_pos(0)
 {
 }
 
@@ -33,7 +33,7 @@ bool buffer::open(int flags)
 
 int64_t buffer::size(void)
 {
-	return data.size();
+    return data.size();
 }
 
 int64_t buffer::read(void *p, int64_t size)

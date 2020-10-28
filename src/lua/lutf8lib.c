@@ -21,9 +21,9 @@
 #include "lualib.h"
 
 
-#define MAXUNICODE	0x10FFFFu
+#define MAXUNICODE    0x10FFFFu
 
-#define MAXUTF		0x7FFFFFFFu
+#define MAXUTF        0x7FFFFFFFu
 
 /*
 ** Integer type for decoded UTF-8 values; MAXUTF needs 31 bits.
@@ -35,7 +35,7 @@ typedef unsigned long utfint;
 #endif
 
 
-#define iscont(p)	((*(p) & 0xC0) == 0x80)
+#define iscont(p)    ((*(p) & 0xC0) == 0x80)
 
 
 /* from strlib */
@@ -265,7 +265,7 @@ static int iter_codes (lua_State *L) {
 
 
 /* pattern to match a single UTF-8 character */
-#define UTF8PATT	"[\0-\x7F\xC2-\xFD][\x80-\xBF]*"
+#define UTF8PATT    "[\0-\x7F\xC2-\xFD][\x80-\xBF]*"
 
 
 static const luaL_Reg funcs[] = {

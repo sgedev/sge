@@ -9,26 +9,26 @@ SGE_BEGIN
 
 class io {
 public:
-	enum {
-		FLAG_READ = 0x1,
-		FLAG_WRITE = 0x2,
-		FLAG_CREATE = 0x4,
-		FLAG_EXISTED = 0x8,
+    enum {
+        FLAG_READ = 0x1,
+        FLAG_WRITE = 0x2,
+        FLAG_CREATE = 0x4,
+        FLAG_EXISTED = 0x8,
         FLAG_TRUNCATE = 0x10,
 
         // internal
         FLAG_SEEKABLE = 0x10000
-	};
+    };
 
-	enum seek_from {
-		SEEK_FROM_START = 0,
-		SEEK_FROM_CURRENT,
-		SEEK_FROM_END
-	};
+    enum seek_from {
+        SEEK_FROM_START = 0,
+        SEEK_FROM_CURRENT,
+        SEEK_FROM_END
+    };
 
 public:
-	io(void);
-	virtual ~io(void);
+    io(void);
+    virtual ~io(void);
 
 public:
     virtual bool open(int flags);
@@ -57,12 +57,12 @@ SGE_INLINE int io::flags(void) const
 {
     SGE_ASSERT(is_open());
 
-	return m_flags;
+    return m_flags;
 }
 
 SGE_INLINE bool io::is_open(void) const
 {
-	return (m_flags != 0);
+    return (m_flags != 0);
 }
 
 SGE_INLINE bool io::is_readable() const

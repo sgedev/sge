@@ -14,5 +14,6 @@ target_sources(sge
 		renderer.cpp
 		spot_light.cpp
 		texture.cpp
+        view.cpp
 		window.cpp
 	)

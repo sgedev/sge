@@ -11,15 +11,15 @@
 #include "lstate.h"
 
 
-#define pcRel(pc, p)	(cast_int((pc) - (p)->code) - 1)
+#define pcRel(pc, p)    (cast_int((pc) - (p)->code) - 1)
 
-#define resethookcount(L)	(L->hookcount = L->basehookcount)
+#define resethookcount(L)    (L->hookcount = L->basehookcount)
 
 /*
 ** mark for entries in 'lineinfo' array that has absolute information in
 ** 'abslineinfo' array
 */
-#define ABSLINEINFO	(-0x80)
+#define ABSLINEINFO    (-0x80)
 
 LUAI_FUNC int luaG_getfuncline (const Proto *f, int pc);
 LUAI_FUNC const char *luaG_findlocal (lua_State *L, CallInfo *ci, int n,

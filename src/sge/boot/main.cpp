@@ -12,28 +12,31 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 
-#include <sge/boot/engine.hpp>
+#include <sge/vm/kernel.hpp>
 
 struct sdl_initializer {
-	int result;
-	sdl_initializer(Uint32 flags): result(SDL_Init(flags)) { }
-	~sdl_initializer(void) { if (result == 0) SDL_Quit(); }
-	operator bool(void) const { return (result == 0); }
+    int result;
+    sdl_initializer(Uint32 flags): result(SDL_Init(flags)) { }
+    ~sdl_initializer(void) { if (result == 0) SDL_Quit(); }
+    operator bool(void) const { return (result == 0); }
 };
 
-static sge::boot::engine *engine;
+static sge::vm::kernel *vm;
 
 static void poll_events(uv_timer_t *p)
 {
     SDL_Event evt;
 
-	while (SDL_PollEvent(&evt)) {
-        if (evt.type != SDL_QUIT) {
-            if (engine != nullptr)
-                engine->post_event(evt);
-        } else
+    while (SDL_PollEvent(&evt)) {
+        if (evt.type == SDL_QUIT) {
+            if (vm != nullptr)
+                vm->stop();
             uv_stop(p->loop);
-	}
+        } else {
+            if (vm != nullptr)
+                vm->post_event(evt);
+        }
+    }
 }
 
 static void print_help(void)
@@ -60,8 +63,8 @@ static void log_output(void *data, int, SDL_LogPriority priority, const char *me
     FILE *fp = stdout;
     const char *prefix = "";
 
-    if (engine != nullptr) {
-        if (std::this_thread::get_id() == engine->thread().get_id())
+    if (vm != nullptr) {
+        if (std::this_thread::get_id() == vm->thread().get_id())
             prefix = "vm: ";
     }
 
@@ -113,29 +116,29 @@ int main(int argc, char *argv[])
         }
     }
 
-	sdl_initializer sdl(SDL_INIT_EVERYTHING);
-	if (!sdl) {
+    sdl_initializer sdl(SDL_INIT_EVERYTHING);
+    if (!sdl) {
         SGE_LOGE("failed to init SDL.");
-		return EXIT_FAILURE;
-	}
-
-    std::unique_ptr<sge::boot::engine> eng(new sge::boot::engine(uv_default_loop()));
-    if (!eng || !eng->start(root, init)) {
-        SGE_LOGE("failed to init engine.");
         return EXIT_FAILURE;
     }
 
-    engine = eng.get();
+    std::unique_ptr<sge::vm::kernel> p(new sge::vm::kernel(uv_default_loop()));
+    if (!p || !p->start(root, init)) {
+        SGE_LOGE("failed to start vm.");
+        return EXIT_FAILURE;
+    }
+
+    vm = p.get();
 
     uv_timer_t poll_events_timer;
-	uv_timer_init(uv_default_loop(), &poll_events_timer);
-    uv_timer_start(&poll_events_timer, poll_events, 0, 15);
+    uv_timer_init(uv_default_loop(), &poll_events_timer);
+    uv_timer_start(&poll_events_timer, &poll_events, 0, 15);
 
     uv_run(uv_default_loop(), UV_RUN_DEFAULT);
 
-	uv_timer_stop(&poll_events_timer);
+    uv_timer_stop(&poll_events_timer);
 
-    engine = nullptr;
+    vm = nullptr;
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

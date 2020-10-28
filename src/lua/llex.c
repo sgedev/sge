@@ -29,11 +29,11 @@
 
 
 
-#define next(ls)	(ls->current = zgetc(ls->z))
+#define next(ls)    (ls->current = zgetc(ls->z))
 
 
 
-#define currIsNewline(ls)	(ls->current == '\n' || ls->current == '\r')
+#define currIsNewline(ls)    (ls->current == '\n' || ls->current == '\r')
 
 
 /* ORDER RESERVED */

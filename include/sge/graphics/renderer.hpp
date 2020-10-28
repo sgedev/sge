@@ -3,11 +3,14 @@
 #ifndef SGE_GRAPHICS_RENDERER_HPP
 #define SGE_GRAPHICS_RENDERER_HPP
 
+#include <GL/Program.hpp>
+
 #include <sge/graphics/common.hpp>
 #include <sge/graphics/canvas.hpp>
 #include <sge/graphics/light.hpp>
 #include <sge/graphics/mesh.hpp>
 #include <sge/graphics/material.hpp>
+#include <sge/graphics/view.hpp>
 
 SGE_GRAPHICS_BEGIN
 
@@ -19,51 +22,13 @@ public:
 public:
     bool init(canvas *target);
 	void shutdown(void);
-	void begin(void);
-	void end(void);
-
-public:
-    enum matrix_type {
-        MATRIX_MODEL = 0,
-        MATRIX_VIEW,
-        MATRIX_PROJECTION
-    };
-
-    void set_matrix_mode(matrix_type mt);
-    void push_matrix(void);
-    void pop_matrix(void);
-    void load_identity(void);
-    void translate(const glm::vec3 &r);
-    void translate(float x, float y, float z);
-    void scale(const glm::vec3 &r);
-    void scale(float x, float y, float z);
-    void rotate(const glm::quat &r);
-    void rotate(float angle, float x, float y, float z);
-    void look_at(const glm::vec3 &pos, const glm::vec3 &dir, const glm::vec3 &up);
-    void look_at(float posx, float posy, float posz, float dirx, float diry, float dirz, float upx, float upy, float upz);
-    void ortho(float left, float right, float bottom, float top, float znear, float zfar);
-    void frustum(float left, float right, float bottom, float top, float znear, float zfar);
-    void perpective(float fov, float ratio, float znear, float zfar);
-    light &ambient_light(void);
-    // void set_material()
-    // void add(mesh *p);
-    // void add(direction_light *p);
-    // void add(point_light *p);
-    // void add(spot_light *p);
+    void render(const view &v);
 
 private:
-    matrix_type m_matrix_mode;
-    glm::vec3 m_position;
-    glm::vec3 m_scale;
-    glm::quat m_rotation;
-    glm::vec3 m_view_position;
-    glm::vec3 m_view_direction;
-    glm::vec3 m_view_up;
-    glm::ivec4 m_view_rect;
-    float m_view_fov;
-    light m_ambient_light;
-    NVGcontext *m_vg;
     canvas *m_target;
+    NVGcontext *m_vg;
+    GL::Program m_program;
+    light m_ambient_light;
 };
 
 SGE_GRAPHICS_END

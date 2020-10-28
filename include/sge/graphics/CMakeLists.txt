@@ -15,5 +15,6 @@ target_sources(sge
 		renderer.hpp
 		spot_light.hpp
 		texture.hpp
+        view.hpp
 		window.hpp
 	)

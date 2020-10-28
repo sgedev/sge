@@ -31,10 +31,10 @@
 
 
 /* Maximum number of registers in a Lua function (must fit in 8 bits) */
-#define MAXREGS		255
+#define MAXREGS        255
 
 
-#define hasjumps(e)	((e)->t != (e)->f)
+#define hasjumps(e)    ((e)->t != (e)->f)
 
 
 static int codesJ (FuncState *fs, OpCode o, int sj, int k);
@@ -319,12 +319,12 @@ void luaK_patchtohere (FuncState *fs, int list) {
 ** information.
 */
 #if !defined(MAXIWTHABS)
-#define MAXIWTHABS	120
+#define MAXIWTHABS    120
 #endif
 
 
 /* limit for difference between lines in relative line info. */
-#define LIMLINEDIFF	0x80
+#define LIMLINEDIFF    0x80
 
 
 /*

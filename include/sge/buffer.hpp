@@ -14,7 +14,7 @@ class buffer: public io {
 public:
     buffer(void);
     buffer(const buffer &that);
-	~buffer(void) override;
+    ~buffer(void) override;
 
 public:
     bool open(int flags) override;
@@ -28,31 +28,31 @@ public:
     buffer &operator=(const buffer &that);
 
 public:
-	byte_array_t data;
+    byte_array_t data;
 
 protected:
     int64_t pos(void) override;
     int64_t set_pos(int64_t pos) override;
 
 private:
-	int64_t m_pos;
+    int64_t m_pos;
 };
 
 SGE_INLINE bool buffer::operator==(const buffer &that)
 {
-	return (data == that.data);
+    return (data == that.data);
 }
 
 SGE_INLINE bool buffer::operator!=(const buffer &that)
 {
-	return (data != that.data);
+    return (data != that.data);
 }
 
 SGE_INLINE buffer &buffer::operator=(const buffer &that)
 {
-	if ((*this) != that)
-		data = that.data;
-	return (*this);
+    if ((*this) != that)
+        data = that.data;
+    return (*this);
 }
 
 SGE_END

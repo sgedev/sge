@@ -16,11 +16,11 @@
 #include <sge/common.h>
 
 #ifdef max
-#	undef max
+#    undef max
 #endif
 
 #ifdef min
-#	undef min
+#    undef min
 #endif
 
 #include <rttr/type>

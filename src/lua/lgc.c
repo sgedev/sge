@@ -32,44 +32,44 @@
 ** (Large enough to dissipate fixed overheads but small enough
 ** to allow small steps for the collector.)
 */
-#define GCSWEEPMAX	100
+#define GCSWEEPMAX    100
 
 /*
 ** Maximum number of finalizers to call in each single step.
 */
-#define GCFINMAX	10
+#define GCFINMAX    10
 
 
 /*
 ** Cost of calling one finalizer.
 */
-#define GCFINALIZECOST	50
+#define GCFINALIZECOST    50
 
 
 /*
 ** The equivalent, in bytes, of one unit of "work" (visiting a slot,
 ** sweeping an object, etc.)
 */
-#define WORK2MEM	sizeof(TValue)
+#define WORK2MEM    sizeof(TValue)
 
 
 /*
 ** macro to adjust 'pause': 'pause' is actually used like
 ** 'pause / PAUSEADJ' (value chosen by tests)
 */
-#define PAUSEADJ		100
+#define PAUSEADJ        100
 
 
 /* mask to erase all color bits (plus gen. related stuff) */
-#define maskcolors	(~(bitmask(BLACKBIT) | WHITEBITS | AGEBITS))
+#define maskcolors    (~(bitmask(BLACKBIT) | WHITEBITS | AGEBITS))
 
 
 /* macro to erase all color bits then sets only the current white bit */
-#define makewhite(g,x)	\
+#define makewhite(g,x)    \
  (x->marked = cast_byte((x->marked & maskcolors) | luaC_white(g)))
 
-#define white2gray(x)	resetbits(x->marked, WHITEBITS)
-#define black2gray(x)	resetbit(x->marked, BLACKBIT)
+#define white2gray(x)    resetbits(x->marked, WHITEBITS)
+#define black2gray(x)    resetbit(x->marked, BLACKBIT)
 
 
 #define valiswhite(x)   (iscollectable(x) && iswhite(gcvalue(x)))
@@ -89,15 +89,15 @@
 #define markvalue(g,o) { checkconsistency(o); \
   if (valiswhite(o)) reallymarkobject(g,gcvalue(o)); }
 
-#define markkey(g, n)	{ if keyiswhite(n) reallymarkobject(g,gckey(n)); }
+#define markkey(g, n)    { if keyiswhite(n) reallymarkobject(g,gckey(n)); }
 
-#define markobject(g,t)	{ if (iswhite(t)) reallymarkobject(g, obj2gco(t)); }
+#define markobject(g,t)    { if (iswhite(t)) reallymarkobject(g, obj2gco(t)); }
 
 /*
 ** mark an object that can be NULL (either because it is really optional,
 ** or it was stripped as debug info, or inside an uncompleted structure)
 */
-#define markobjectN(g,t)	{ if (t) markobject(g,t); }
+#define markobjectN(g,t)    { if (t) markobject(g,t); }
 
 static void reallymarkobject (global_State *g, GCObject *o);
 static lu_mem atomic (lua_State *L);
@@ -114,7 +114,7 @@ static void entersweep (lua_State *L);
 /*
 ** one after last element in a hash array
 */
-#define gnodelast(h)	gnode(h, cast_sizet(sizenode(h)))
+#define gnodelast(h)    gnode(h, cast_sizet(sizenode(h)))
 
 
 static GCObject **getgclist (GCObject *o) {
@@ -137,7 +137,7 @@ static GCObject **getgclist (GCObject *o) {
 /*
 ** Link a collectable object 'o' with a known type into list pointed by 'p'.
 */
-#define linkgclist(o,p)	((o)->gclist = (p), (p) = obj2gco(o))
+#define linkgclist(o,p)    ((o)->gclist = (p), (p) = obj2gco(o))
 
 
 /*
@@ -966,7 +966,7 @@ static void setpause (global_State *g);
 
 
 /* mask to erase all color bits, not changing gen-related stuff */
-#define maskgencolors	(~(bitmask(BLACKBIT) | WHITEBITS))
+#define maskgencolors    (~(bitmask(BLACKBIT) | WHITEBITS))
 
 
 /*

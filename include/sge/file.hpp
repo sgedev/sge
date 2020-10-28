@@ -12,9 +12,9 @@ SGE_BEGIN
 
 class file: public io {
 public:
-	file(void);
-	file(const std::string &filename);
-	~file(void) override;
+    file(void);
+    file(const std::string &filename);
+    ~file(void) override;
 
 public:
     bool open(int flags) override;
@@ -30,19 +30,19 @@ protected:
     int64_t set_pos(int64_t pos) override;
 
 private:
-	std::string m_filename;
-	SDL_RWops *m_fops;
+    std::string m_filename;
+    SDL_RWops *m_fops;
 };
 
 SGE_INLINE const std::string &file::filename(void) const
 {
-	return m_filename;
+    return m_filename;
 }
 
 SGE_INLINE void file::set_filename(const std::string &r)
 {
-	SGE_ASSERT(m_fops == nullptr);
-	m_filename = r;
+    SGE_ASSERT(m_fops == nullptr);
+    m_filename = r;
 }
 
 SGE_END

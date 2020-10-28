@@ -1,5 +1,5 @@
 
 target_sources(sge
-	PRIVATE
-		nanovg.c
-	)
+    PRIVATE
+        nanovg.c
+    )

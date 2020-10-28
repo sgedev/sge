@@ -10,24 +10,24 @@
 #include "lobject.h"
 
 
-#define gnode(t,i)	(&(t)->node[i])
-#define gval(n)		(&(n)->i_val)
-#define gnext(n)	((n)->u.next)
+#define gnode(t,i)    (&(t)->node[i])
+#define gval(n)        (&(n)->i_val)
+#define gnext(n)    ((n)->u.next)
 
 
-#define invalidateTMcache(t)	((t)->flags = 0)
+#define invalidateTMcache(t)    ((t)->flags = 0)
 
 
 /* true when 't' is using 'dummynode' as its hash part */
-#define isdummy(t)		((t)->lastfree == NULL)
+#define isdummy(t)        ((t)->lastfree == NULL)
 
 
 /* allocated size for hash nodes */
-#define allocsizenode(t)	(isdummy(t) ? 0 : sizenode(t))
+#define allocsizenode(t)    (isdummy(t) ? 0 : sizenode(t))
 
 
 /* returns the Node, given the value of a table entry */
-#define nodefromval(v)	cast(Node *, (v))
+#define nodefromval(v)    cast(Node *, (v))
 
 
 LUAI_FUNC const TValue *luaH_getint (Table *t, lua_Integer key);

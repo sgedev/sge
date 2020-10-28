@@ -5,6 +5,8 @@
 
 #include <list>
 
+#include <GL/Buffer.hpp>
+
 #include <sge/graphics/common.hpp>
 #include <sge/graphics/buffer.hpp>
 
@@ -18,9 +20,7 @@ public:
 public:
     bool init(int order = 26);
     void release(void);
-    GLenum target(void) const;
-    GLenum usage(void) const;
-    GLsizeiptr size(void) const;
+    const GL::Buffer &gl_buffer(void) const;
     GLsizeiptr free_size(void) const;
     buffer *alloc_buffer(GLsizeiptr size);
 
@@ -34,29 +34,16 @@ private:
     typedef std::list<buffer *> buffer_list_t;
 
 private:
-    GLenum m_target;
-    GLenum m_usage;
-    GLuint m_buffer;
-    GLsizeiptr m_size;
+    GL::Buffer m_gl_buffer;
     GLsizeiptr m_free_size;
     void *m_map;
     int m_map_count;
     buffer_list_t m_buffer_list;
 };
 
-SGE_INLINE GLenum heap::target(void) const
+SGE_INLINE const GL::Buffer &heap::gl_buffer(void) const
 {
-    return m_target;
-}
-
-SGE_INLINE GLenum heap::usage(void) const
-{
-    return m_usage;
-}
-
-SGE_INLINE GLsizeiptr heap::size(void) const
-{
-    return m_size;
+    return m_gl_buffer;
 }
 
 SGE_INLINE GLsizeiptr heap::free_size(void) const

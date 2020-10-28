@@ -59,13 +59,7 @@ void renderer::shutdown(void)
     }
 }
 
-void renderer::begin(void)
-{
-    SGE_ASSERT(m_vg != nullptr);
-	SGE_ASSERT(m_target != nullptr);
-}
-
-void renderer::end(void)
+void renderer::render(const view &v)
 {
     SGE_ASSERT(m_vg != nullptr);
 	SGE_ASSERT(m_target != nullptr);

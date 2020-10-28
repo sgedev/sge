@@ -5,7 +5,7 @@
 SGE_BEGIN
 
 file::file(void):
-	m_fops(nullptr)
+    m_fops(nullptr)
 {
 }
 
@@ -23,19 +23,19 @@ file::~file(void)
 
 bool file::open(int flags)
 {
-	SGE_ASSERT(m_fops == nullptr);
+    SGE_ASSERT(m_fops == nullptr);
 
     if (!io::open(flags))
         return false;
 
-	std::string mode;
+    std::string mode;
 
-	if (flags & FLAG_READ)
-		mode += 'r';
-	if (flags & FLAG_WRITE)
-		mode += 'w';
+    if (flags & FLAG_READ)
+        mode += 'r';
+    if (flags & FLAG_WRITE)
+        mode += 'w';
 
-	m_fops = SDL_RWFromFile(m_filename.c_str(), mode.c_str());
+    m_fops = SDL_RWFromFile(m_filename.c_str(), mode.c_str());
     if (m_fops == nullptr) {
         io::close();
         return false;
@@ -43,15 +43,15 @@ bool file::open(int flags)
 
     set_seekable(true);
 
-	return true;
+    return true;
 }
 
 void file::close(void)
 {
-	SGE_ASSERT(m_fops != nullptr);
+    SGE_ASSERT(m_fops != nullptr);
 
-	SDL_RWclose(m_fops);
-	m_fops = nullptr;
+    SDL_RWclose(m_fops);
+    m_fops = nullptr;
 
     io::close();
 }
@@ -65,14 +65,14 @@ int64_t file::size(void)
 
 int64_t file::read(void *p, int64_t size)
 {
-	SGE_ASSERT(m_fops != nullptr);
+    SGE_ASSERT(m_fops != nullptr);
 
     return SDL_RWread(m_fops, p, 1, size);
 }
 
 int64_t file::write(const void *p, int64_t size)
 {
-	SGE_ASSERT(m_fops != nullptr);
+    SGE_ASSERT(m_fops != nullptr);
 
     return SDL_RWwrite(m_fops, p, 1, size);
 }

@@ -73,7 +73,7 @@ static void *firsttry (global_State *g, void *block, size_t os, size_t ns) {
 ** reallocating to size 1, then 2, and then 4. All these arrays
 ** will be reallocated to exact sizes or erased when parsing ends.
 */
-#define MINSIZEARRAY	4
+#define MINSIZEARRAY    4
 
 
 void *luaM_growaux_ (lua_State *L, void *block, int nelems, int *psize,

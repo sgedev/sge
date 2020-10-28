@@ -27,7 +27,7 @@
 ** compute its hash
 */
 #if !defined(LUAI_HASHLIMIT)
-#define LUAI_HASHLIMIT		5
+#define LUAI_HASHLIMIT        5
 #endif
 
 
@@ -35,7 +35,7 @@
 /*
 ** Maximum size for string table.
 */
-#define MAXSTRTB	cast_int(luaM_limitN(MAX_INT, TString*))
+#define MAXSTRTB    cast_int(luaM_limitN(MAX_INT, TString*))
 
 
 /*

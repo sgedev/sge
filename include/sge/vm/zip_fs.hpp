@@ -17,17 +17,17 @@ typedef std::shared_ptr<zip_reader> zip_reader_ptr;
 
 class zip_fs: public fs {
 public:
-	zip_fs(void);
-	~zip_fs(void) override;
+    zip_fs(void);
+    ~zip_fs(void) override;
 
 public:
-	bool is_writable(void) override;
-	bool init(const std::string &native_path) override;
-	type_t type(const std::string &path) override;
+    bool is_writable(void) override;
+    bool init(const std::string &native_path) override;
+    type_t type(const std::string &path) override;
     bool enum_dir(const std::string &path, string_list_t &result) override;
-	bool make_dir(const std::string &path) override;
-	io *open_file(const std::string &path, int io_flags) override;
-	bool remove(const std::string &path) override;
+    bool make_dir(const std::string &path) override;
+    io *open_file(const std::string &path, int io_flags) override;
+    bool remove(const std::string &path) override;
 
 protected:
     struct node {

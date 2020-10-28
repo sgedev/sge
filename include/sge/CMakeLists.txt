@@ -1,23 +1,23 @@
 
 target_sources(sge
-	PRIVATE
-		buffer.hpp
-		color.hpp
-		common.h
-		common.hpp
-		config.h.in
-		file.hpp
-		io.hpp
-		list.h
-		lua.hpp
-		spin_lock.hpp
-		zip_reader.hpp
-	)
+    PRIVATE
+        buffer.hpp
+        color.hpp
+        common.h
+        common.hpp
+        config.h.in
+        file.hpp
+        io.hpp
+        list.h
+        lua.hpp
+        spin_lock.hpp
+        zip_reader.hpp
+    )
 
 configure_file(
-	config.h.in
-	config.h
-	)
+    config.h.in
+    config.h
+    )
 
 add_subdirectory(boot boot)
 add_subdirectory(graphics graphics)

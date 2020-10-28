@@ -12,17 +12,17 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 if(MSVC)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-	add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_CRT_NONSTDC_NO_WARNINGS)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(
-	${CMAKE_SOURCE_DIR}/include
-	${CMAKE_BINARY_DIR}/include
-	)
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_BINARY_DIR}/include
+    )
 
 set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
 set(SGE_LOG ON CACHE BOOL "Enable log functions.")

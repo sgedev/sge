@@ -43,7 +43,7 @@
 ** MAXABITS is the largest integer such that MAXASIZE fits in an
 ** unsigned int.
 */
-#define MAXABITS	cast_int(sizeof(int) * CHAR_BIT - 1)
+#define MAXABITS    cast_int(sizeof(int) * CHAR_BIT - 1)
 
 
 /*
@@ -51,13 +51,13 @@
 ** between 2^MAXABITS and the maximum size that, measured in bytes,
 ** fits in a 'size_t'.
 */
-#define MAXASIZE	luaM_limitN(1u << MAXABITS, TValue)
+#define MAXASIZE    luaM_limitN(1u << MAXABITS, TValue)
 
 /*
 ** MAXHBITS is the largest integer such that 2^MAXHBITS fits in a
 ** signed int.
 */
-#define MAXHBITS	(MAXABITS - 1)
+#define MAXHBITS    (MAXABITS - 1)
 
 
 /*
@@ -65,27 +65,27 @@
 ** between 2^MAXHBITS and the maximum size such that, measured in bytes,
 ** it fits in a 'size_t'.
 */
-#define MAXHSIZE	luaM_limitN(1u << MAXHBITS, Node)
+#define MAXHSIZE    luaM_limitN(1u << MAXHBITS, Node)
 
 
-#define hashpow2(t,n)		(gnode(t, lmod((n), sizenode(t))))
+#define hashpow2(t,n)        (gnode(t, lmod((n), sizenode(t))))
 
-#define hashstr(t,str)		hashpow2(t, (str)->hash)
-#define hashboolean(t,p)	hashpow2(t, p)
-#define hashint(t,i)		hashpow2(t, i)
+#define hashstr(t,str)        hashpow2(t, (str)->hash)
+#define hashboolean(t,p)    hashpow2(t, p)
+#define hashint(t,i)        hashpow2(t, i)
 
 
 /*
 ** for some types, it is better to avoid modulus by power of 2, as
 ** they tend to have many 2 factors.
 */
-#define hashmod(t,n)	(gnode(t, ((n) % ((sizenode(t)-1)|1))))
+#define hashmod(t,n)    (gnode(t, ((n) % ((sizenode(t)-1)|1))))
 
 
-#define hashpointer(t,p)	hashmod(t, point2uint(p))
+#define hashpointer(t,p)    hashmod(t, point2uint(p))
 
 
-#define dummynode		(&dummynode_)
+#define dummynode        (&dummynode_)
 
 static const Node dummynode_ = {
   {{NULL}, LUA_VEMPTY,  /* value's value and type */
@@ -200,7 +200,7 @@ static int equalkey (const TValue *k1, const Node *n2) {
 ** part of table 't'. (Otherwise, the array part must be larger than
 ** 'alimit'.)
 */
-#define limitequalsasize(t)	(isrealasize(t) || ispow2((t)->alimit))
+#define limitequalsasize(t)    (isrealasize(t) || ispow2((t)->alimit))
 
 
 /*
@@ -244,7 +244,7 @@ static unsigned int setlimittosize (Table *t) {
 }
 
 
-#define limitasasize(t)	check_exp(isrealasize(t), t->alimit)
+#define limitasasize(t)    check_exp(isrealasize(t), t->alimit)
 
 
 

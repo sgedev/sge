@@ -143,10 +143,7 @@ SGE_INLINE GLintptr heap_buffer::offset(void) const
 // heap
 
 heap::heap(GLenum target, GLenum usage):
-    m_target(target),
-    m_usage(usage),
-    m_buffer(0),
-    m_size(0),
+    m_gl_buffer(target, usage),
     m_free_size(0),
     m_map(nullptr),
     m_map_count(0)
@@ -155,7 +152,6 @@ heap::heap(GLenum target, GLenum usage):
 
 heap::~heap(void)
 {
-    SGE_ASSERT(m_buffer == 0);
     SGE_ASSERT(m_map == nullptr);
     SGE_ASSERT(m_map_count == 0);
 }
@@ -163,18 +159,13 @@ heap::~heap(void)
 bool heap::init(int order)
 {
     SGE_ASSERT(order >= 0);
-    SGE_ASSERT(m_buffer == 0);
-
-    glGenBuffers(1, &m_buffer);
-    if (m_buffer == 0)
-        return false;
+    SGE_ASSERT(!m_gl_buffer.isValid());
 
     GLsizeiptr size = 1 << order;
 
-    glBindBuffer(m_target, m_buffer);
-    glBufferData(m_target, size, nullptr, m_usage);
+    if (!m_gl_buffer.create(size))
+        return false;
 
-    m_size = size;
     m_free_size = size;
 
     return true;
@@ -183,12 +174,13 @@ bool heap::init(int order)
 void heap::release(void)
 {
     SGE_ASSERT(m_buffer_list.empty());
+    m_gl_buffer.destroy();
 }
 
 buffer *heap::alloc_buffer(GLsizeiptr size)
 {
     SGE_ASSERT(size > 0);
-    SGE_ASSERT(m_buffer > 0);
+    SGE_ASSERT(m_gl_buffer.isValid());
 
     if (size > m_free_size)
         return nullptr;
@@ -209,7 +201,7 @@ buffer *heap::alloc_buffer(GLsizeiptr size)
         return nullptr;
 
     if (it == m_buffer_list.end()) {
-        if (used != nullptr && size > (m_size - offset))
+        if (used != nullptr && size > (m_gl_buffer.size() - offset))
             return nullptr;
         m_buffer_list.push_front(buf);
     } else
@@ -234,7 +226,7 @@ void heap::bind_buffer(buffer *buf)
 {
     SGE_UNUSED(buf);
 
-    glBindBuffer(m_target, m_buffer);
+    m_gl_buffer.bind();
 }
 
 void *heap::map_buffer(buffer *buf)
@@ -244,8 +236,8 @@ void *heap::map_buffer(buffer *buf)
     if (m_map == nullptr)
     {
         SGE_ASSERT(m_map_count == 0);
-        glBindBuffer(m_target, m_buffer);
-        m_map = glMapBuffer(m_target, GL_READ_WRITE);
+        m_gl_buffer.bind();
+        m_map = m_gl_buffer.map();
         if (m_map == nullptr)
             return nullptr;
     }
@@ -265,8 +257,9 @@ void heap::unmap_buffer(buffer *buf)
     if (m_map_count > 0)
         return;
 
-    glBindBuffer(m_target, m_buffer);
-    glUnmapBuffer(m_target);
+    m_gl_buffer.bind();
+    m_gl_buffer.unmap();
+
     m_map = nullptr;
 }
 

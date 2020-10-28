@@ -211,12 +211,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Haiku")
   list(APPEND uv_defines _BSD_SOURCE)
   list(APPEND uv_libraries bsd network)
   list(APPEND uv_sources
-	  unix/haiku.c
-	  unix/bsd-ifaddrs.c
-	  unix/no-fsevents.c
-	  unix/no-proctitle.c
-	  unix/posix-hrtime.c
-	  unix/posix-poll.c)
+      unix/haiku.c
+      unix/bsd-ifaddrs.c
+      unix/no-fsevents.c
+      unix/no-proctitle.c
+      unix/posix-hrtime.c
+      unix/posix-poll.c)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "QNX")

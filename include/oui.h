@@ -803,9 +803,9 @@ enum {
     // item is frozen (bit 19)
     UI_ITEM_FROZEN      = 0x080000,
     // item handle is pointer to data (bit 20)
-    UI_ITEM_DATA	    = 0x100000,
+    UI_ITEM_DATA        = 0x100000,
     // item has been inserted (bit 21)
-    UI_ITEM_INSERTED	= 0x200000,
+    UI_ITEM_INSERTED    = 0x200000,
     // horizontal size has been explicitly set (bit 22)
     UI_ITEM_HFIXED      = 0x400000,
     // vertical size has been explicitly set (bit 23)

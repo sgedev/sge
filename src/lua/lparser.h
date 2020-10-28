@@ -60,8 +60,8 @@ typedef enum {
 } expkind;
 
 
-#define vkisvar(k)	(VLOCAL <= (k) && (k) <= VINDEXSTR)
-#define vkisindexed(k)	(VINDEXED <= (k) && (k) <= VINDEXSTR)
+#define vkisvar(k)    (VLOCAL <= (k) && (k) <= VINDEXSTR)
+#define vkisindexed(k)    (VINDEXED <= (k) && (k) <= VINDEXSTR)
 
 
 typedef struct expdesc {
@@ -86,10 +86,10 @@ typedef struct expdesc {
 
 
 /* kinds of variables */
-#define VDKREG		0   /* regular */
-#define RDKCONST	1   /* constant */
-#define RDKTOCLOSE	2   /* to-be-closed */
-#define RDKCTC		3   /* compile-time constant */
+#define VDKREG        0   /* regular */
+#define RDKCONST    1   /* constant */
+#define RDKTOCLOSE    2   /* to-be-closed */
+#define RDKCTC        3   /* compile-time constant */
 
 /* description of an active local variable */
 typedef union Vardesc {

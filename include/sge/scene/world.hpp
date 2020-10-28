@@ -15,18 +15,18 @@ SGE_SCENE_BEGIN
 
 class world { RTTR_ENABLE()
 public:
-	world(void);
-	virtual ~world(void);
+    world(void);
+    virtual ~world(void);
 
 public:
-	bool init(void);
-	void shutdown(void);
-	void update(float elapsed);
-	void handle_event(const SDL_Event &evt);
-	void test(int i);
+    bool init(void);
+    void shutdown(void);
+    void update(float elapsed);
+    void handle_event(const SDL_Event &evt);
+    void test(int i);
 
 private:
-	//entity_ptr_array_t m_entities;
+    //entity_ptr_array_t m_entities;
 
 };
 

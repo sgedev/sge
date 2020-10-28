@@ -1,13 +1,13 @@
 
 target_sources(sge
-	PRIVATE
-		buffer.cpp
-		file.cpp
-		io.cpp
-		list.c
-		lua.cpp
-		zip_reader.cpp
-	)
+    PRIVATE
+        buffer.cpp
+        file.cpp
+        io.cpp
+        list.c
+        lua.cpp
+        zip_reader.cpp
+    )
 
 add_subdirectory(boot boot)
 add_subdirectory(graphics graphics)

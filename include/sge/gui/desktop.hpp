@@ -9,8 +9,8 @@ SGE_GUI_BEGIN
 
 class desktop {
 public:
-	desktop(void);
-	virtual ~desktop(void);
+    desktop(void);
+    virtual ~desktop(void);
 };
 
 SGE_GUI_END

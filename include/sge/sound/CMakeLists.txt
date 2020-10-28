@@ -1,5 +1,5 @@
 
 target_sources(sge
-	PRIVATE
-		common.hpp
-	)
+    PRIVATE
+        common.hpp
+    )

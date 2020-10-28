@@ -43,14 +43,14 @@ const char lua_ident[] =
 ** '!ttisnil(o)' implies 'o != &G(L)->nilvalue', so it is not needed.
 ** However, it covers the most common cases in a faster way.
 */
-#define isvalid(L, o)	(!ttisnil(o) || o != &G(L)->nilvalue)
+#define isvalid(L, o)    (!ttisnil(o) || o != &G(L)->nilvalue)
 
 
 /* test for pseudo index */
-#define ispseudo(i)		((i) <= LUA_REGISTRYINDEX)
+#define ispseudo(i)        ((i) <= LUA_REGISTRYINDEX)
 
 /* test for upvalue */
-#define isupvalue(i)		((i) < LUA_REGISTRYINDEX)
+#define isupvalue(i)        ((i) < LUA_REGISTRYINDEX)
 
 
 static TValue *index2value (lua_State *L, int idx) {
@@ -957,7 +957,7 @@ LUA_API int lua_setiuservalue (lua_State *L, int idx, int n) {
 
 #define checkresults(L,na,nr) \
      api_check(L, (nr) == LUA_MULTRET || (L->ci->top - L->top >= (nr) - (na)), \
-	"results from function overflow current stack size")
+    "results from function overflow current stack size")
 
 
 LUA_API void lua_callk (lua_State *L, int nargs, int nresults,

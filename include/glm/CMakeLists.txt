@@ -29,17 +29,17 @@ source_group("SIMD Files" FILES ${SIMD_INLINE})
 source_group("SIMD Files" FILES ${SIMD_HEADER})
 
 target_sources(sge
-	PRIVATE
-		${ROOT_INLINE}
-		${ROOT_HEADER}
-		${CORE_INLINE}
-		${CORE_HEADER}
-		${EXT_INLINE}
-		${EXT_HEADER}
-		${GTC_INLINE}
-		${GTC_HEADER}
-		${GTX_INLINE}
-		${GTX_HEADER}
-		${SIMD_INLINE}
-		${SIMD_HEADER}
-	)
+    PRIVATE
+        ${ROOT_INLINE}
+        ${ROOT_HEADER}
+        ${CORE_INLINE}
+        ${CORE_HEADER}
+        ${EXT_INLINE}
+        ${EXT_HEADER}
+        ${GTC_INLINE}
+        ${GTC_HEADER}
+        ${GTX_INLINE}
+        ${GTX_HEADER}
+        ${SIMD_INLINE}
+        ${SIMD_HEADER}
+    )

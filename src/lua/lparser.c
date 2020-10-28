@@ -32,15 +32,15 @@
 
 /* maximum number of local variables per function (must be smaller
    than 250, due to the bytecode format) */
-#define MAXVARS		200
+#define MAXVARS        200
 
 
-#define hasmultret(k)		((k) == VCALL || (k) == VVARARG)
+#define hasmultret(k)        ((k) == VCALL || (k) == VVARARG)
 
 
 /* because all strings are unified by the scanner, the parser
    can use pointer equality for string equality */
-#define eqstr(a,b)	((a) == (b))
+#define eqstr(a,b)    ((a) == (b))
 
 
 /*
@@ -119,7 +119,7 @@ static void checknext (LexState *ls, int c) {
 }
 
 
-#define check_condition(ls,c,msg)	{ if (!(c)) luaX_syntaxerror(ls, msg); }
+#define check_condition(ls,c,msg)    { if (!(c)) luaX_syntaxerror(ls, msg); }
 
 
 /*
@@ -492,9 +492,9 @@ static void adjust_assign (LexState *ls, int nvars, int nexps, expdesc *e) {
 /*
 ** Macros to limit the maximum recursion depth while parsing
 */
-#define enterlevel(ls)	luaE_enterCcall((ls)->L)
+#define enterlevel(ls)    luaE_enterCcall((ls)->L)
 
-#define leavelevel(ls)	luaE_exitCcall((ls)->L)
+#define leavelevel(ls)    luaE_exitCcall((ls)->L)
 
 
 /*
@@ -1240,7 +1240,7 @@ static const struct {
    {2, 2}, {1, 1}            /* and, or */
 };
 
-#define UNARY_PRIORITY	12  /* priority for unary operators */
+#define UNARY_PRIORITY    12  /* priority for unary operators */
 
 
 /*

@@ -40,7 +40,6 @@ protected:
     virtual void run(uv_loop_t *loop);
     virtual void handle_event(const SDL_Event &evt);
     virtual void frame(float elapsed);
-    virtual void render(const graphics::view &v);
 
 private:
     void thread_main(void);

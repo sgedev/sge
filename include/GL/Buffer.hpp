@@ -8,7 +8,7 @@
 
 GL_BEGIN
 
-class Buffer: public Object {
+class GL_API Buffer: public Object {
 public:
     Buffer(GLenum target = GL_INVALID_ENUM, GLenum usage = GL_INVALID_ENUM);
     ~Buffer(void) override;

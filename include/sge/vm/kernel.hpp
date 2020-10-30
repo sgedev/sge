@@ -27,12 +27,21 @@ private:
     typedef sge_vm_task_t task_t;
 
     enum {
+        SYS_OK = 0,
+        SYS_INVALID_PARAM,
+        SYS_TIMEOUT
+    };
+
+    enum {
         TRAP_TYPE_INVALID = -1,
-        TRAP_TYPE_LIGHT_NEW = 0,
+        TRAP_TYPE_DIRECTIONAL_LIGHT_NEW = 0,
+        TRAP_TYPE_POINT_LIGHT_NEW,
+        TRAP_TYPE_SPOT_LIGHT_NEW,
         TRAP_TYPE_LIGHT_DESTROY,
-        TRAP_TYPE_MESH_NEW,
+        TRAP_TYPE_STATIC_MESH_NEW,
+        TRAP_TYPE_DYNAMIC_MESH_NEW,
         TRAP_TYPE_MESH_DESTROY,
-        TRAP_TYPE_USER
+        TRAP_TYPE_MAX
     };
 
     enum {
@@ -53,20 +62,23 @@ private:
     static void schedule(uv_prepare_t *p);
     static void handle_traps(uv_async_t *p);
     static int trap_done(lua_State *L, int status, lua_KContext ctx);
-    int do_trap(lua_State *L, int type);
-
-private:
-    int trap_light_new(lua_State *L);
-    int trap_light_destroy(lua_State *L);
-    int trap_mesh_new(lua_State *L);
-    int trap_mesh_destory(lua_State *L);
+    static int do_trap(lua_State *L, lua_CFunction func);
 
 private:
     static int sys_current(lua_State *L);
-    static int sys_task(lua_State *L);
-    static void sys_sleep_done(uv_timer_t *p);
+    static int sys_task_new(lua_State *L);
     static int sys_sleep(lua_State *L);
+    static void sys_sleep_done(uv_timer_t *p);
     static int sys_wait(lua_State *L);
+    static void sys_wait_timeout(uv_timer_t *p);
+    static int sys_wait_done(lua_State *L, int status, lua_KContext ctx);
+    static int sys_directional_light_new(lua_State *L);
+    static int sys_point_light_new(lua_State *L);
+    static int sys_spot_light_new(lua_State *L);
+    static int sys_light_destroy(lua_State *L);
+    static int sys_static_mesh_new(lua_State *L);
+    static int sys_dynamic_mesh_new(lua_State *L);
+    static int sys_mesh_destroy(lua_State *L);
 
 private:
     spin_lock m_task_list_lock;
@@ -78,24 +90,28 @@ private:
 SGE_INLINE kernel::task_t *kernel::task_from_lua(lua_State *L)
 {
     SGE_ASSERT(L != nullptr);
+
     return (task_t *)lua_getextraspace(L);
 }
 
 SGE_INLINE lua_State *kernel::task_to_lua(task_t *task)
 {
     SGE_ASSERT(task != nullptr);
+
     return (lua_State *)SGE_PMOVB(task, LUA_EXTRASPACE);
 }
 
 SGE_INLINE kernel *kernel::from_task(task_t *task)
 {
     SGE_ASSERT(task != nullptr);
+
     return reinterpret_cast<kernel *>(task->kernel);
 }
 
 SGE_INLINE kernel *kernel::from_lua(lua_State *L)
 {
     SGE_ASSERT(L != nullptr);
+
     return reinterpret_cast<kernel *>(task_from_lua(L)->kernel);
 }
 

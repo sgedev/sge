@@ -11,7 +11,7 @@
 
 GL_BEGIN
 
-class Program: public Object {
+class GL_API Program: public Object {
 public:
     Program(void);
     ~Program(void) override;

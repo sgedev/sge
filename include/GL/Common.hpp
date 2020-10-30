@@ -24,6 +24,10 @@
 #   define GL_INLINE inline
 #endif
 
+#ifndef GL_API
+#   define GL_API
+#endif
+
 #ifndef GL_NAMESPACE
 #   define GL_NAMESPACE GL
 #endif

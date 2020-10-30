@@ -13,7 +13,7 @@ typedef struct sge_list_node_Struct {
     struct sge_list_node_Struct *next;
 } sge_list_node_t;
 
-static inline void sge_list_node_reset(sge_list_node_t *node)
+static SGE_INLINE void sge_list_node_reset(sge_list_node_t *node)
 {
     SGE_ASSERT(node != NULL);
 
@@ -21,7 +21,7 @@ static inline void sge_list_node_reset(sge_list_node_t *node)
     node->next = node;
 }
 
-static inline void sge_list_node_link(
+static SGE_INLINE void sge_list_node_link(
     sge_list_node_t *node, sge_list_node_t *prev, sge_list_node_t *next)
 {
     SGE_ASSERT(node != NULL);
@@ -34,7 +34,7 @@ static inline void sge_list_node_link(
     next->prev = node;
 }
 
-static inline void sge_list_node_unlink(sge_list_node_t *node)
+static SGE_INLINE void sge_list_node_unlink(sge_list_node_t *node)
 {
     SGE_ASSERT(node != NULL);
     SGE_ASSERT(node->prev != NULL);
@@ -46,14 +46,14 @@ static inline void sge_list_node_unlink(sge_list_node_t *node)
     sge_list_node_reset(node);
 }
 
-static inline bool sge_list_node_linked(const sge_list_node_t *node)
+static SGE_INLINE bool sge_list_node_linked(const sge_list_node_t *node)
 {
     SGE_ASSERT(node != NULL);
 
     return (node != node->next);
 }
 
-static inline sge_list_node_t *sge_list_node_prev(sge_list_node_t *node)
+static SGE_INLINE sge_list_node_t *sge_list_node_prev(sge_list_node_t *node)
 {
     SGE_ASSERT(node != NULL);
     SGE_ASSERT(node->prev != NULL);
@@ -61,7 +61,7 @@ static inline sge_list_node_t *sge_list_node_prev(sge_list_node_t *node)
     return node->prev;
 }
 
-static inline sge_list_node_t *sge_list_node_next(sge_list_node_t *node)
+static SGE_INLINE sge_list_node_t *sge_list_node_next(sge_list_node_t *node)
 {
     SGE_ASSERT(node != NULL);
     SGE_ASSERT(node->next != NULL);
@@ -76,42 +76,42 @@ typedef struct {
 int sge_list_length(sge_list_t *list);
 bool sge_list_contains(sge_list_t *list, sge_list_node_t *node);
 
-static inline void sge_list_reset(sge_list_t *list)
+static SGE_INLINE void sge_list_reset(sge_list_t *list)
 {
     SGE_ASSERT(list != NULL);
 
     sge_list_node_reset(&list->knot);
 }
 
-static inline bool sge_list_empty(const sge_list_t *list)
+static SGE_INLINE bool sge_list_empty(const sge_list_t *list)
 {
     SGE_ASSERT(list != NULL);
 
     return !sge_list_node_linked(&list->knot);
 }
 
-static inline sge_list_node_t *sge_list_knot(sge_list_t *list)
+static SGE_INLINE sge_list_node_t *sge_list_knot(sge_list_t *list)
 {
     SGE_ASSERT(list != NULL);
 
     return &list->knot;
 }
 
-static inline sge_list_node_t *sge_list_head(sge_list_t *list)
+static SGE_INLINE sge_list_node_t *sge_list_head(sge_list_t *list)
 {
     SGE_ASSERT(list != NULL);
 
     return sge_list_node_next(&list->knot);
 }
 
-static inline sge_list_node_t *sge_list_tail(sge_list_t *list)
+static SGE_INLINE sge_list_node_t *sge_list_tail(sge_list_t *list)
 {
     SGE_ASSERT(list != NULL);
 
     return sge_list_node_prev(&list->knot);
 }
 
-static inline sge_list_node_t *sge_list_del_head(sge_list_t *list)
+static SGE_INLINE sge_list_node_t *sge_list_del_head(sge_list_t *list)
 {
     sge_list_node_t *node;
 
@@ -123,7 +123,7 @@ static inline sge_list_node_t *sge_list_del_head(sge_list_t *list)
     return node;
 }
 
-static inline sge_list_node_t *sge_list_del_tail(sge_list_t *list)
+static SGE_INLINE sge_list_node_t *sge_list_del_tail(sge_list_t *list)
 {
     sge_list_node_t *node;
 
@@ -135,7 +135,7 @@ static inline sge_list_node_t *sge_list_del_tail(sge_list_t *list)
     return node;
 }
 
-static inline void sge_list_del_node(sge_list_t *list, sge_list_node_t *node)
+static SGE_INLINE void sge_list_del_node(sge_list_t *list, sge_list_node_t *node)
 {
     SGE_ASSERT(list != NULL);
     SGE_ASSERT(node != NULL);
@@ -144,7 +144,7 @@ static inline void sge_list_del_node(sge_list_t *list, sge_list_node_t *node)
     sge_list_node_unlink(node);
 }
 
-static inline void sge_list_clear(sge_list_t *list)
+static SGE_INLINE void sge_list_clear(sge_list_t *list)
 {
     SGE_ASSERT(list != NULL);
 
@@ -152,7 +152,7 @@ static inline void sge_list_clear(sge_list_t *list)
         sge_list_del_head(list);
 }
 
-static inline void sge_list_add_head(sge_list_t *list, sge_list_node_t *node)
+static SGE_INLINE void sge_list_add_head(sge_list_t *list, sge_list_node_t *node)
 {
     SGE_ASSERT(list != NULL);
     SGE_ASSERT(node != NULL);
@@ -161,13 +161,27 @@ static inline void sge_list_add_head(sge_list_t *list, sge_list_node_t *node)
     sge_list_node_link(node, sge_list_knot(list), sge_list_head(list));    
 }
 
-static inline void sge_list_add_tail(sge_list_t *list, sge_list_node_t *node)
+static SGE_INLINE void sge_list_add_tail(sge_list_t *list, sge_list_node_t *node)
 {
     SGE_ASSERT(list != NULL);
     SGE_ASSERT(node != NULL);
 
     sge_list_node_unlink(node);
     sge_list_node_link(node, sge_list_tail(list), sge_list_knot(list));    
+}
+
+static SGE_INLINE void sge_list_move(sge_list_t *to, sge_list_t *from)
+{
+    SGE_ASSERT(to != NULL);
+    SGE_ASSERT(from != NULL);
+
+    sge_list_head(from)->prev = sge_list_tail(to);
+    sge_list_tail(from)->next = sge_list_knot(to);
+
+    sge_list_tail(to)->next = sge_list_head(from);
+    sge_list_knot(to)->prev = sge_list_tail(from);
+
+    sge_list_reset(from);
 }
 
 SGE_END_C_DECLS

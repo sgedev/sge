@@ -37,7 +37,9 @@ typedef struct sge_vm_task {
     uv_loop_t *loop;
     uv_timer_t sleep_timer;
     void *kernel;
-    int trap_type;
+    int sys_result;
+    sge_list_t wait_list;
+    lua_CFunction trap_func;
     int trap_result;
 } sge_vm_task_t;
 

@@ -10,7 +10,7 @@
 
 GL_BEGIN
 
-class Shader: public Object {
+class GL_API Shader: public Object {
 public:
     Shader(GLenum type = GL_INVALID_ENUM);
     ~Shader(void) override;

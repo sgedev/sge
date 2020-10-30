@@ -42,9 +42,10 @@ void kernel::task_added(lua_State *L, lua_State *L1)
     task->loop = main->loop;
     task->kernel = main->kernel;
     task->sleep_timer.data = task;
-    task->trap_type = TRAP_TYPE_INVALID;
+    task->trap_func = nullptr;
     task->trap_result = TRAP_ERROR_NOT_SET;
 
+    sge_list_reset(&task->wait_list);
     sge_list_node_reset(&task->node);
 
     std::unique_lock locker(from_task(task)->m_task_list_lock);
@@ -56,7 +57,6 @@ void kernel::task_removed(lua_State *L, lua_State *L1)
     SGE_UNUSED(L);
 
     task_t *task = task_from_lua(L1);
-
 
     uv_timer_stop(&task->sleep_timer);
     uv_sync_close(&task->sleep_timer);
@@ -132,25 +132,6 @@ void kernel::kmain(lua_State *L, uv_loop_t *loop)
     uv_sync_close(&schedule_preparer);
 }
 
-void kernel::init_exports(lua_State *L)
-{
-    lua_newtable(L);
-
-    lua_pushcfunction(L, &kernel::sys_task);
-    lua_setfield(L, -2, "task");
-
-    lua_pushcfunction(L, &kernel::sys_current);
-    lua_setfield(L, -2, "current");
-
-    lua_pushcfunction(L, &kernel::sys_wait);
-    lua_setfield(L, -2, "wait");
-
-    lua_pushcfunction(L, &kernel::sys_sleep);
-    lua_setfield(L, -2, "sleep");
-
-    lua_setglobal(L, "sge");
-}
-
 bool kernel::load_initrc(lua_State *L)
 {
     return true;
@@ -170,13 +151,16 @@ void kernel::schedule(uv_prepare_t *p)
         k->m_task_list_lock.lock();
         node = sge_list_del_head(&k->m_task_list_ready);
         k->m_task_list_lock.unlock();
-        if (node != sge_list_knot(&k->m_task_list_ready)) {
-            task = SGE_MEMBEROF(node, task_t, node);
-            T = task_to_lua(task);
-            ret = lua_resume(T, L, 0, &nresults);
-            /* TODO ret */
-        } else
+        if (node == sge_list_knot(&k->m_task_list_ready))
             break;
+        task = SGE_MEMBEROF(node, task_t, node);
+        T = task_to_lua(task);
+        ret = lua_resume(T, L, 0, &nresults);
+        if (ret != LUA_YIELD) {
+            k->m_task_list_lock.lock();
+            sge_list_move(&k->m_task_list_ready, &task->wait_list);
+            k->m_task_list_lock.unlock();
+        }
     }
 
     k->m_task_list_lock.lock();
@@ -192,30 +176,23 @@ void kernel::handle_traps(uv_async_t *p)
     kernel *k = reinterpret_cast<kernel *>(p->data);
     sge_list_node_t *node;
     task_t *task;
-    lua_State *L;
     bool handled = false;
 
     for (;;) {
         k->m_task_list_lock.lock();
         node = sge_list_del_head(&k->m_task_list_trapped);
         k->m_task_list_lock.unlock();
+
         if (node != sge_list_knot(&k->m_task_list_trapped)) {
             task = SGE_MEMBEROF(node, task_t, node);
-            L = task_to_lua(task);
-            switch (task->trap_type) {
-            case TRAP_TYPE_FOO:
-                task->trap_result = k->trap_foo(L);
-                break;
-            default:
-                task->trap_result = TRAP_ERROR_UNKNOWN;
-                break;
-            }
-            k->m_task_list_lock.lock();
-            sge_list_add_tail(&k->m_task_list_ready, &task->node);
-            k->m_task_list_lock.unlock();
+            task->trap_result = task->trap_func(task_to_lua(task));
             handled = true;
         } else
             break;
+
+        k->m_task_list_lock.lock();
+        sge_list_add_tail(&k->m_task_list_ready, &task->node);
+        k->m_task_list_lock.unlock();
     }
 
     if (handled)
@@ -228,97 +205,36 @@ int kernel::trap_done(lua_State *L, int status, lua_KContext ctx)
     SGE_UNUSED(ctx);
 
     task_t *task = task_from_lua(L);
-    SGE_ASSERT(task->trap_type != TRAP_TYPE_INVALID);
+    SGE_ASSERT(task->trap_func != nullptr);
 
     int ret = task->trap_result;
     if (ret < 0)
-        luaL_error(L, "trap %d error %d", task->trap_type, ret);
+        luaL_error(L, "trap %p error %d", task->trap_func, ret);
 
-    task->trap_type = TRAP_TYPE_INVALID;
+    task->trap_func = nullptr;
     task->trap_result = 0;
 
     return ret;
 }
 
-int kernel::do_trap(lua_State *L, int type)
+int kernel::do_trap(lua_State *L, lua_CFunction func)
 {
-    SGE_ASSERT(std::this_thread::get_id() == thread().get_id());
-    SGE_ASSERT(type != TRAP_TYPE_INVALID);
+    SGE_ASSERT(func != nullptr);
 
     task_t *task = task_from_lua(L);
-    SGE_ASSERT(task->trap_type == TRAP_TYPE_INVALID);
+    SGE_ASSERT(task->trap_func == nullptr);
 
-    task->trap_type = type;
+    kernel *k = from_task(task);
+    SGE_ASSERT(std::this_thread::get_id() == k->thread().get_id());
+
+    task->trap_func = func;
     task->trap_result = TRAP_ERROR_NOT_SET;
 
-    m_task_list_lock.lock();
-    sge_list_add_tail(&m_task_list_trapped, &task->node);
-    m_task_list_lock.unlock();
+    k->m_task_list_lock.lock();
+    sge_list_add_tail(&k->m_task_list_trapped, &task->node);
+    k->m_task_list_lock.unlock();
 
     return lua_yieldk(L, 0, 0, &kernel::trap_done);
-}
-
-int kernel::trap_foo(lua_State *L)
-{
-    return 0;
-}
-
-int kernel::sys_current(lua_State *L)
-{
-    lua_pushthread(L);
-    return 1;
-}
-
-int kernel::sys_task(lua_State *L)
-{
-    lua_State *T = lua_newthread(L);
-    int top = lua_gettop(L);
-    if (top != 1)
-        luaL_error(L, "one parameter.");
-
-    int type = lua_type(L, 1);
-    switch (type) {
-    case LUA_TSTRING:
-        luaL_loadstring(T, lua_tostring(L, 1));
-        break;
-    case LUA_TFUNCTION:
-        lua_xmove(L, T, 1);
-        break;
-    default:
-        luaL_error(L, "invalid type.");
-        break;
-    }
-
-    return 1;
-}
-
-void kernel::sys_sleep_done(uv_timer_t *p)
-{
-    task_t *task = (task_t *)(p->data);
-    kernel *k = from_task(task);
-    std::unique_lock locker(k->m_task_list_lock);
-    sge_list_node_unlink(&task->node);
-    sge_list_add_tail(&k->m_task_list_ready, &task->node);
-}
-
-int kernel::sys_sleep(lua_State *L)
-{
-    int ms = (int)luaL_checkinteger(L, 1);
-    task_t *task = task_from_lua(L);
-    kernel *k = from_task(task);
-
-    if (ms < 1) {
-        std::unique_lock locker(k->m_task_list_lock);
-        sge_list_add_tail(&k->m_task_list_ready, &task->node);
-    } else
-        uv_timer_start(&task->sleep_timer, sys_sleep_done, ms, 0);
-
-    return lua_yield(L, 0);
-}
-
-int kernel::sys_wait(lua_State *L)
-{
-    return 0;
 }
 
 SGE_VM_END

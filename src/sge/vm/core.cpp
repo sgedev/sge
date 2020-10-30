@@ -131,16 +131,11 @@ void core::frame(float elapsed)
     m_world.update(elapsed);
 
     graphics::view &v = m_view_pool[!m_view_rendering];
-    // TOOD build view to 'v'.
+    // TOOD build visibile set into 'v'.
 
     std::unique_lock locker(m_view_lock);
     uv_async_send(&m_view_update_async);
     m_view_rendering = !m_view_rendering;
-}
-
-void core::render(const graphics::view &v)
-{
-    m_renderer.render(v);
 }
 
 void core::thread_main(void)
@@ -193,13 +188,14 @@ void core::quit_cb(uv_async_t *p)
 
 void core::kick_cb(uv_async_t *p)
 {
+    SGE_UNUSED(p);
 }
 
 void core::view_update_cb(uv_async_t *p)
 {
     core *c = reinterpret_cast<core *>(p->data);
     std::unique_lock locker(c->m_view_lock);
-    c->render(c->m_view_pool[c->m_view_rendering]);
+    c->m_renderer.render(c->m_view_pool[c->m_view_rendering]);
 }
 
 SGE_VM_END

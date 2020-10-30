@@ -6,47 +6,7 @@
 
 SGE_LUA_BEGIN
 
-#if 0
-struct nil { };
-struct function { };
-struct table { };
-struct thread { };
-struct userdata { };
-
 typedef std::vector<rttr::argument> args;
-
-template <typename T>
-struct ref {
-    int id;
-
-    ref(void):
-        id(LUA_REFNIL)
-    {
-    }
-
-    ref(const ref &that):
-        id(that.id)
-    {
-    }
-
-    bool create(lua_State *L)
-    {
-        id = luaL_ref(L, LUA_REGISTRYINDEX);
-        return (id != LUA_REFNIL);
-    }
-
-    void get(lua_State *L)
-    {
-        lua_rawgeti(L, LUA_REGISTRYINDEX, id);
-    }
-
-    ref &operator=(const ref &that)
-    {
-        if (this != &that)
-            id = that.id;
-        return (*this);
-    }
-};
 
 struct function_context {
     rttr::type type;
@@ -89,8 +49,7 @@ rttr::variant make_ref<userdata>(lua_State *L, int i)
     return *reinterpret_cast<rttr::variant *>(lua_touserdata(L, i));
 }
 
-template <typename T>
-void push_ref(lua_State *L, const rttr::variant &v)
+void push(lua_State *L, const rttr::variant &v)
 {
 
 }
@@ -112,24 +71,24 @@ static inline rttr::variant tovariant(lua_State *L, int i)
         return rttr::variant(lua_touserdata(L, i));
 
     if (type == LUA_TFUNCTION)
-        return make_ref<function>(L, i);
+        return make_ref<function_tag>(L, i);
 
     if (type == LUA_TTABLE)
-        return make_ref<table>(L, i);
+        return make_ref<table_tag>(L, i);
 
     if (type == LUA_TTHREAD)
-        return make_ref<thread>(L, i);
+        return make_ref<thread_tag>(L, i);
 
     if (type == LUA_TUSERDATA)
-        return make_ref<userdata>(L, i);
+        return make_ref<userdata_tag>(L, i);
 
     if (type == LUA_TNIL)
-        return rttr::variant(nil());
+        return rttr::variant();
 
     return rttr::variant();
 }
 
-static inline int pushvariant(lua_State *L, rttr::variant &v)
+static int pushvariant(lua_State *L, rttr::variant &v)
 {
     if (!v) {
         lua_pushnil(L);
@@ -149,7 +108,7 @@ static inline int pushvariant(lua_State *L, rttr::variant &v)
     }
 
     if (type == rttr::type::get<float>() || type == rttr::type::get<double>()) {
-        lua_pushnumber(L, v.get_value<double>());
+        lua_pushnumber(L, v.get_value<lua_Number>());
         return 1;
     }
 
@@ -158,34 +117,33 @@ static inline int pushvariant(lua_State *L, rttr::variant &v)
         return 1;
     }
 
-    if (v.can_convert<nil>()) {
-        lua_pushnil(L);
-        return 1;
-    }
-
-    if (v.can_convert<ref<function> >()) {
-        lua_rawgeti(L, LUA_REGISTRYINDEX, v.get_value<function_ref>().ref);
+    if (v.can_convert<function_ref>()) {
+        v.get_value<function_ref>().get(L);
         return 1;
     }
 
     if (v.can_convert<table_ref>()) {
-        lua_rawgeti(L, LUA_REGISTRYINDEX, v.get_value<table_ref>().ref);
+        v.get_value<table_ref>().get(L);
         return 1;
     }
 
     if (v.can_convert<thread_ref>()) {
-        lua_rawgeti(L, LUA_REGISTRYINDEX, v.get_value<thread_ref>().ref);
+        v.get_value<thread_ref>().get(L);
         return 1;
     }
 
-    auto type_name = type.get_name();
+    if (v.can_convert<userdata_ref>()) {
+        getmetatable(L, type);
+        SGE_ASSERT(!lua_isnil(L, -1));
+        v.get_value<userdata_ref>().get(L);
+        return 1;
+    }
 
     return 0;
 }
 
 static inline rttr::variant invoke_variadic(rttr::method &method, rttr::variant &inst, lua_State *L, int first_arg)
 {
-    lua_args_t largs;
     int i = first_arg;
 
 
@@ -297,6 +255,5 @@ bool create(lua_State *L, const rttr::type &type)
 
     return false;
 }
-#endif
 
 SGE_LUA_END

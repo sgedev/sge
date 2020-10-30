@@ -7,7 +7,7 @@
 
 GL_BEGIN
 
-class Object {
+class GL_API Object {
 public:
     Object(void);
     Object(const Object &that) = delete;

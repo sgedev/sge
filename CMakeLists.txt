@@ -2,25 +2,20 @@
 #
 #
 
-cmake_minimum_required(VERSION 3.13.2)
+cmake_minimum_required(VERSION 3.19)
 
 project(sge VERSION 0.1.0)
+
+if(MSVC)
+    add_definitions(-D _CRT_SECURE_NO_WARNINGS)
+endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 
-set(CONAN_CMAKE_URL "https://raw.githubusercontent.com/conan-io/cmake-conan/master/conan.cmake" CACHE STRING "url for 'conan.cmake' downloading.")
+set(CMAKE_MODULE_PATH "${CMAKE_HOME_DIRECTORY}/cmake")
 
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-    message(STATUS "Downloading conan.cmake from ${CONAN_CMAKE_URL}")
-    file(DOWNLOAD "${CONAN_CMAKE_URL}"
-        "${CMAKE_BINARY_DIR}/conan.cmake")
-endif()
+set(SGE_DEBUG ON CACHE BOOL "Enable debug functions.")
 
-include(${CMAKE_BINARY_DIR}/conan.cmake)
-
-add_subdirectory(engine engine)
-add_subdirectory(framework framework)
-add_subdirectory(test test)
-add_subdirectory(samples samples)
-add_subdirectory(documents documents)
+add_subdirectory(documents document)
+add_subdirectory(sources sources)

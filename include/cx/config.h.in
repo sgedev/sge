@@ -1,0 +1,9 @@
+/*
+ *
+ */
+#ifndef CX_CONFIG_H
+#define CX_CONFIG_H
+
+#cmakedefine CX_DEBUG
+
+#endif /* CX_CONFIG_H */

@@ -3,11 +3,6 @@
 #ifndef SGE_SYSTEM_BASE_HPP
 #define SGE_SYSTEM_BASE_HPP
 
-#include <entt/entt.hpp>
-
-#include <Jolt/Jolt.h>
-#include <Jolt/Physics/PhysicsSystem.h>
-
 #include <sge/vm/context.hpp>
 #include <sge/system/common.hpp>
 
@@ -24,18 +19,12 @@ public:
     virtual void run() = 0;
 
 protected:
-    entt::registry& registry() noexcept {
-        return registry_;
-    }
-
     virtual void frame(Clock::duration elapsed);
 
 private:
     void handleTraps();
 
 private:
-    entt::registry registry_;
-    JPH::PhysicsSystem physics_system_;
 };
 
 SGE_SYSTEM_END

@@ -10,6 +10,12 @@ SGE_SYSTEM_BEGIN
 
 class Server: public Base {
 public:
+	Server();
+	~Server() override;
+
+public:
+	void exit() override;
+	void run() override;
 };
 
 SGE_SYSTEM_END

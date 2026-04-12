@@ -3,9 +3,9 @@
 #ifndef SGE_VM_KERNEL_HPP
 #define SGE_VM_KERNEL_HPP
 
+#include <map>
+#include <string>
 #include <chrono>
-
-#include <uv.h>
 
 #include <sge/vm/common.hpp>
 #include <sge/vm/context.hpp>
@@ -44,13 +44,20 @@ public: // for hooks
     void taskYieldHook(lua_State* T, int n);
 
 protected:
+	void registerEnv(const char* name, std::function<int(lua_State*)> func);
+	void unregisterEnv(const char* name);
+
+    virtual void initSyscalls(lua_State* L);
     virtual void frame(Clock::duration elapsed) noexcept;
 
 private:
     int pmain(lua_State* L);
-    void initSyscalls(lua_State* L);
-    void loadInitTask(lua_State* L);
     void schedule(lua_State* L) noexcept;
+
+private:
+    int sysSleep(lua_State* T);
+    int sysStart(lua_State* T);
+    int sysWait(lua_State* T);
 
 private:
     Context& context_;
@@ -58,9 +65,9 @@ private:
     uv_async_t stop_async_;
     uv_prepare_t schedule_prepare_;
     uv_timer_t frame_timer_;
-    lua_State* state_;
     sge_List task_list_;
     Clock::time_point frame_last_;
+	std::map<std::string, lua_CFunction> env_map_;
 };
 
 SGE_VM_END

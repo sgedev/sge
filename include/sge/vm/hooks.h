@@ -4,6 +4,8 @@
 #ifndef SGE_VM_HOOKS_H
 #define SGE_VM_HOOKS_H
 
+#include <uv.h>
+
 #include <sge/common.h>
 #include <sge/list.h>
 
@@ -19,6 +21,10 @@
 SGE_C_BEGIN
 
 typedef struct {
+    int status;
+    lua_CFunction env;
+    uv_timer_t sleep_timer;
+    uv_work_t io_work;
     sge_ListNode node;
     sge_List wait_list;
     void* data;

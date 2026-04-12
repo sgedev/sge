@@ -2,10 +2,9 @@
 //
 #include <string>
 #include <memory>
+#include <format>
 #include <filesystem>
 
-#include <lua.hpp>
-#if 0
 #include <argh.h>
 #include <physfs.h>
 #include <spdlog/spdlog.h>
@@ -19,7 +18,7 @@
 
 SGE_SYSTEM_BEGIN
 
-struct Settings {
+struct Options {
     enum class Mode {
         Local = 0,
         Client,
@@ -32,7 +31,8 @@ struct Settings {
     std::filesystem::path rootfs = std::filesystem::current_path();
     Mode mode = Mode::Local;
 
-    Settings(const argh::parser& cmdline) {
+    Options(char* argv[]) {
+        argh::parser cmdline(argv);
         if (cmdline[{ "-d", "--debug" }]) {
             debug = true;
             spdlog::set_level(spdlog::level::debug);
@@ -82,10 +82,10 @@ struct Settings {
     }
 };
 
-static int run(const Settings& settings) {
-    logInfo("SGE - v{}, debug {}, verbose {}", SGE_VERSION_STR, settings.debug, settings.verbose);
-    logInfo("Mode: {}", settings.modeName());
-    logInfo("RootFS: {}", settings.rootfs);
+static int run(const Options& options) {
+    logInfo("SGE - v{}, debug {}, verbose {}", SGE_VERSION_STR, options.debug, options.verbose);
+    logInfo("Mode: {}", options.modeName());
+    logInfo("RootFS: {}", options.rootfs.string());
 
     int ret = PHYSFS_init("sge");
     if (!ret) {
@@ -95,20 +95,20 @@ static int run(const Settings& settings) {
         PHYSFS_deinit();
     });
 
-    ret = PHYSFS_mount(settings.rootfs.string().c_str(), "/", 1);
+    ret = PHYSFS_mount(options.rootfs.string().c_str(), "/", 1);
     if (!ret) {
-        throw std::runtime_error(std::format("Failed to mount root fs: {}", settings.rootfs));
+        throw std::runtime_error(std::format("Failed to mount root fs: {}", options.rootfs.string()));
     }
 
     std::unique_ptr<sge::system::Base> app;
-    switch (settings.mode) {
-    case Settings::Mode::Client:
+    switch (options.mode) {
+    case Options::Mode::Client:
         app = std::make_unique<sge::system::Client>();
         break;
-    case Settings::Mode::Server:
+    case Options::Mode::Server:
         app = std::make_unique<sge::system::Server>();
         break;
-    case Settings::Mode::Editor:
+    case Options::Mode::Editor:
         //app = std::make_unique<sge::system::Editor>();
         break;
     default:
@@ -120,15 +120,12 @@ static int run(const Settings& settings) {
 }
 
 SGE_SYSTEM_END
-#endif
 
 int main(int argc, char* argv[]) {
-#if 0
-    sge::system::Settings settings(argh::parser(argv));
-
     int exit_code = EXIT_FAILURE;
     try {
-        exit_code = sge::system::run(settings);
+        sge::system::Options options(argv);
+        exit_code = sge::system::run(options);
     } catch (const std::exception& e) {
         spdlog::error("Exception: {}", e.what());
     } catch (...) {
@@ -136,7 +133,4 @@ int main(int argc, char* argv[]) {
     }
 
     return exit_code;
-#else
-    return 0;
-#endif
 }

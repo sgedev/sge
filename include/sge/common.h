@@ -9,6 +9,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <uv.h>
+#include <physfs.h>
+
 #include <sge/config.h>
 
 #ifdef SGE_DEBUG
@@ -50,5 +53,13 @@
 
 #define SGE_MEMBEROF(p, struct_type, member_name) \
     ((struct_type*)SGE_PMOVB(p, -offsetof(struct_type, member_name)))
+
+SGE_C_BEGIN
+
+typedef void (*AsyncReadPhysFileCallback)(uv_work_t* req, int status, void* data, size_t size);
+
+int asyncReadPhysFile(uv_loop_t* loop, PHYSFS_File* file, uv_work_t* req, AsyncReadPhysFileCallback cb);
+
+SGE_C_END
 
 #endif // SGE_COMMON_H

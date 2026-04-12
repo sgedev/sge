@@ -1,5 +1,10 @@
 //
 //
+#include <vector>
+#include <filesystem>
+
+#include <physfs.h>
+
 #include <sge/list.h>
 #include <sge/scopeguard.hpp>
 #include <sge/vm/kernel.hpp>
@@ -58,7 +63,6 @@ Kernel::~Kernel() {
     uv_close(reinterpret_cast<uv_handle_t*>(&stop_async_), nullptr);
     uv_close(reinterpret_cast<uv_handle_t*>(&frame_timer_), nullptr);
     uv_loop_close(&loop_);
-    lua_close(state_);
 }
 
 void Kernel::run() {
@@ -97,7 +101,16 @@ void Kernel::taskAddedHook(lua_State* L, lua_State* T) {
     SGE_ASSERT(fromState(L) == this);
     auto main = taskFromState(L);
     auto task = taskFromState(T);
+
+	memset(task, 0, sizeof(Task));
     task->data = main->data;
+
+	int ret = uv_timer_init(&loop_, &task->sleep_timer);
+    if (ret < 0) {
+        luaL_error(L, "Failed to create task sleep timer.");
+        return;
+	}
+
     sge_List_reset(&task->wait_list);
     sge_ListNode_reset(&task->node);
     sge_List_append(&task_list_, &task->node);
@@ -118,12 +131,50 @@ void Kernel::taskYieldHook(lua_State* T, int n) {
     SGE_ASSERT(fromState(T) == this);
 }
 
+void Kernel::registerEnv(const char* name, std::function<int(lua_State*)> func) {
+	env_map_[name] = std::move(func);
+}
+
+void Kernel::unregisterEnv(const char* name) {
+	auto it = env_map_.find(name);
+    if (it != env_map_.end()) {
+        env_map_.erase(it);
+	}
+}
+
+void Kernel::initSyscalls(lua_State* L) {
+    //luaL_openlibs(L);
+
+    luaopen_base(L);
+    //luaopen_package(L);
+    luaopen_coroutine(L);
+    luaopen_debug(L);
+    //luaopen_io(L);
+    luaopen_math(L);
+    luaopen_string(L);
+    luaopen_table(L);
+    luaopen_utf8(L);
+
+    lua_pushcfunction(L, [](lua_State* L) { return fromState(L)->sysSleep(L); });
+	lua_setglobal(L, "sleep");
+
+	lua_pushcfunction(L, [](lua_State* L) { return fromState(L)->sysStart(L); });
+	lua_setglobal(L, "start");
+
+	lua_pushcfunction(L, [](lua_State* L) { return fromState(L)->sysWait(L); });
+	lua_setglobal(L, "wait");
+
+    context_.initSyscalls(L);
+}
+
 void Kernel::frame(Clock::duration elapsed) noexcept {
 }
 
 int Kernel::pmain(lua_State* L) {
     initSyscalls(L);
-    loadInitTask(L);
+
+    lua_pushstring(L, "/init.lua");
+    sysStart(L);
 
     int ret = uv_prepare_start(&schedule_prepare_, [](uv_prepare_t* p) {
         auto L = reinterpret_cast<lua_State*>(p->data);
@@ -158,16 +209,158 @@ int Kernel::pmain(lua_State* L) {
     return 0;
 }
 
-void Kernel::initSyscalls(lua_State* L) {
-    context_.initSyscalls(L);
-}
-
-void Kernel::loadInitTask(lua_State* L) {
-
-}
-
 void Kernel::schedule(lua_State* L) noexcept {
+    while (!sge_List_isEmpty(&task_list_)) {
+        auto node = sge_List_removeFirst(&task_list_);
+		auto task = SGE_MEMBEROF(node, sge_vm_Task, node);
+		auto T = taskToState(task);
+        int ret = lua_resume(T, L, 0, nullptr);
+        if (ret != LUA_YIELD && ret != LUA_OK) {
+            // TODO
+        }
+	}
+}
 
+int Kernel::sysSleep(lua_State* T) {
+	auto ms = luaL_checknumber(T, 1);
+	luaL_argcheck(T, ms >= 0, 1, "non-negative number expected");
+	auto task = taskFromState(T);
+    if (ms > 0) {
+        int ret = uv_timer_start(&task->sleep_timer, [](uv_timer_t* p) {
+            auto task = SGE_MEMBEROF(p, Task, sleep_timer);
+            sge_List_append(&fromTask(task)->task_list_, &task->node);
+        }, ms, 0);
+        if (ret < 0) {
+			return luaL_error(T, "Failed to start sleep timer.");
+        }
+    } else {
+        sge_List_append(&task_list_, &task->node);
+    }
+    return lua_yield(T, 0);
+}
+
+int Kernel::sysStart(lua_State* T) {
+	auto argc = lua_gettop(T);
+	luaL_argcheck(T, argc == 1 || argc == 2, 1, "Invalid arguments.");
+	auto type = lua_type(T, 1);
+    luaL_argcheck(T, type == LUA_TSTRING || type == LUA_TFUNCTION, 1, "String or Function expected.");
+
+    auto create_task = [](lua_State* T, int status, lua_KContext ctx) {
+        auto task = taskFromState(T);
+        if (task->status != 0) {
+			return luaL_error(T, "I/O failed.");
+        }
+        auto N = lua_newthread(T);
+		taskFromState(N)->env = reinterpret_cast<lua_CFunction>(ctx);
+        lua_pushvalue(T, -2);
+        lua_xmove(T, N, 1);
+        return 1;
+    };
+
+	auto task = taskFromState(T);
+    task->status = 0;
+
+    std::filesystem::path filepath = lua_tostring(T, 1);
+    std::string env_name;
+    if (argc == 1) {
+        if (filepath.has_extension()) {
+            env_name = filepath.extension().string().c_str() + 1;
+        }
+    } else {
+        env_name = luaL_checkstring(T, 2);
+    }
+
+    lua_CFunction env;
+    auto it = env_map_.find(env_name);
+    if (it != env_map_.end()) {
+        env = it->second;
+    } else {
+        env = task->env;
+    }
+
+    if (type != LUA_TSTRING) {
+        return create_task(T, 0, lua_KContext(env));
+    }
+
+	auto file = PHYSFS_openRead(filepath.string().c_str());
+    if (file == nullptr) {
+		return luaL_error(T, "Failed to open file.");
+    }
+	task->io_work.data = file;
+
+    int ret = uv_queue_work(&loop_, &task->io_work, [](uv_work_t* req) {
+		auto file = reinterpret_cast<PHYSFS_File*>(req->data);
+        auto file_guard = scopeGuard([file] {
+            PHYSFS_close(file);
+	    });
+        req->data = nullptr;
+        auto file_size = PHYSFS_fileLength(file);
+        if (file_size > 0) {
+            auto task = SGE_MEMBEROF(req, Task, io_work);
+			void* data = malloc(file_size + 4);
+            if (data == nullptr) {
+                task->status = -1;
+                return;
+            }
+			memset(data, 0, file_size + 4);
+			auto ret = PHYSFS_readBytes(file, data, file_size);
+            if (ret == file_size) {
+                req->data = data;
+            } else {
+            }
+        }
+    }, [](uv_work_t* req, int status) {
+		auto task = SGE_MEMBEROF(req, Task, io_work);
+        if (status == 0 && task->status == 0) {
+            auto data = reinterpret_cast<char*>(req->data);
+            auto data_guard = scopeGuard([data] {
+                free(reinterpret_cast<void*>(data));
+            });
+            req->data = nullptr;
+            luaL_loadstring(taskToState(task), data);
+            sge_List_append(&fromTask(task)->task_list_, &task->node);
+        }
+	});
+
+    if (ret < 0) {
+        PHYSFS_close(file);
+        task->io_work.data = nullptr;
+		return luaL_error(T, "Failed to queue I/O work.");
+    }
+
+	return lua_yieldk(T, 0, lua_KContext(env), create_task);
+}
+
+int Kernel::sysWait(lua_State* T) {
+    int n = lua_gettop(T);
+    luaL_argcheck(T, n == 1 || n == 2, 1, "Invalid arguments.");
+    int ms = (n == 2) ? luaL_checkinteger(T, 2) : -1;
+    luaL_argcheck(T, lua_type(T, 1) == LUA_TTHREAD, 1, "Thread expected.");
+    auto task = taskFromState(T);
+    auto wait_task = taskFromState(lua_tothread(T, 1));
+    sge_List_append(&wait_task->wait_list, &task->node);
+    if (ms > 0) {
+        int ret = uv_timer_start(&task->sleep_timer, [](uv_timer_t* p) {
+            auto task = SGE_MEMBEROF(p, Task, sleep_timer);
+            task->status = -1;
+            sge_List_append(&fromTask(task)->task_list_, &task->node);
+		}, ms, 0);
+        if (ret < 0) {
+			return luaL_error(T, "Failed to start wait timer.");
+        }
+        return lua_yieldk(T, 0, 0, [](lua_State* T, int status, lua_KContext ctx) {
+            auto task = taskFromState(T);
+            lua_pushinteger(T, task->status); // 
+            return 1;
+		});
+    }
+
+    if (ms == 0) {
+        lua_pushinteger(T, 0); // TODO
+        return 1;
+    }
+
+    return lua_yield(T, 1);
 }
 
 SGE_VM_END

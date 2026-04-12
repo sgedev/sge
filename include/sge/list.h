@@ -142,12 +142,14 @@ SGE_INLINE static sge_ListNode* sge_List_removeFirst(sge_List* list) {
     SGE_ASSERT(list != NULL);
     sge_ListNode* node = sge_List_first(list);
     sge_ListNode_unlink(node);
+    return node;
 }
 
 SGE_INLINE static sge_ListNode* sge_List_removeLast(sge_List* list) {
     SGE_ASSERT(list != NULL);
     sge_ListNode* node = sge_List_last(list);
     sge_ListNode_unlink(node);
+    return node;
 }
 
 SGE_INLINE static void sge_List_removeNode(sge_List* list, sge_ListNode* node) {

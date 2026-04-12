@@ -101,13 +101,17 @@ set(SGE_SOURCES
 	include/sge/system/window.hpp
 	include/sge/vm/common.hpp
 	include/sge/vm/context.hpp
+	include/sge/vm/env.hpp
 	include/sge/vm/kernel.hpp
 	include/sge/vm/hooks.h
+	include/sge/world/common.hpp
+	include/sge/world/scene.hpp
 	include/sge/common.h
 	include/sge/common.hpp
 	include/sge/config.h.in
 	include/sge/list.h
 	include/sge/scopeguard.hpp
+	src/sge/vm/env.cpp
 	src/sge/vm/kernel.cpp
 	src/sge/system/base.cpp
 	src/sge/system/client.cpp
@@ -115,6 +119,8 @@ set(SGE_SOURCES
 	src/sge/system/main.cpp
 	src/sge/system/server.cpp
 	src/sge/system/window.cpp
+	src/sge/world/scene.cpp
+	src/sge/common.cpp
 )
 
 add_executable(sge ${SGE_SOURCES})
@@ -153,7 +159,7 @@ find_package(Jolt)
 target_link_libraries(sge Jolt::Jolt)
 
 find_package(libuv)
-target_link_libraries(sge libuv::uv_a)
+target_link_libraries(sge uv)
 
 find_package(PhysFS)
 target_link_libraries(sge physfs-static)

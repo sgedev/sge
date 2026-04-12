@@ -3,6 +3,7 @@
 #ifndef SGE_VM_COMMON_HPP
 #define SGE_VM_COMMON_HPP
 
+#include <uv.h>
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
@@ -23,6 +24,8 @@ SGE_INLINE lua_State* taskToState(Task* task) {
 SGE_INLINE Task* taskFromState(lua_State* L) {
     return (sge_vm_Task*)lua_getextraspace(L);
 }
+
+
 
 SGE_VM_END
 
